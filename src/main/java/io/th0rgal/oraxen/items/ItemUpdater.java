@@ -4,8 +4,10 @@ import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent;
 import com.jeff_media.morepersistentdatatypes.DataType;
 import com.jeff_media.persistentdataserializer.PersistentDataSerializer;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.configs.Settings;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.nms.NMSHandler;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.AdventureUtils;
@@ -23,6 +25,7 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.block.BlockState;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.ItemDisplay;
@@ -445,12 +448,12 @@ public class ItemUpdater implements Listener {
     public static void updateEntityInventories(Entity entity) {
         if (entity instanceof ItemFrame itemFrame) {
             ItemStack oldItem = itemFrame.getItem();
-            ItemStack newItem = updateItem(oldItem);
+            ItemStack newItem = updateFurnitureItem(entity, oldItem);
             if (!Objects.equals(oldItem, newItem)) itemFrame.setItem(newItem, false);
         }
         if (entity instanceof ItemDisplay itemDisplay) {
             ItemStack oldItem = itemDisplay.getItemStack();
-            ItemStack newItem = updateItem(oldItem);
+            ItemStack newItem = updateFurnitureItem(entity, oldItem);
             if (!Objects.equals(oldItem, newItem)) itemDisplay.setItemStack(newItem);
         }
         if (entity instanceof Item item) {
@@ -469,6 +472,18 @@ public class ItemUpdater implements Listener {
                 || entity instanceof Item
                 || entity instanceof InventoryHolder
                 || entity instanceof LivingEntity livingEntity && hasEquipment(livingEntity);
+    }
+
+    private static ItemStack updateFurnitureItem(Entity entity, ItemStack oldItem) {
+        String id = OraxenItems.getIdByItem(oldItem);
+        if (OraxenItems.getOptionalItemById(id)
+                .map(builder -> builder.getOraxenMeta().isNoUpdate())
+                .orElse(false)) return oldItem;
+
+        ItemStack updatedItem = updateItem(oldItem);
+        if (ItemUtils.isEmpty(updatedItem)) return updatedItem;
+        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
+        return mechanic != null ? mechanic.applyAppearance(entity, updatedItem) : updatedItem;
     }
 
     private static boolean hasEquipment(LivingEntity livingEntity) {
@@ -490,7 +505,8 @@ public class ItemUpdater implements Listener {
             try {
                 ItemStack oldItem = equipment.getItem(slot);
                 if (oldItem == null) continue;
-                ItemStack newItem = updateItem(oldItem);
+                ItemStack newItem = livingEntity instanceof ArmorStand && slot == EquipmentSlot.HEAD
+                        ? updateFurnitureItem(livingEntity, oldItem) : updateItem(oldItem);
                 if (oldItem.equals(newItem)) continue;
                 equipment.setItem(slot, newItem);
             } catch (IllegalArgumentException ignored) {

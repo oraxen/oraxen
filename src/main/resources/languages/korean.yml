@@ -98,8 +98,9 @@ command:
     success: "<prefix><#55ffa4>Oraxen 브랜딩을 <#43fa8c><files><#55ffa4>개의 언어 파일에서 제거했습니다. 기본 에셋과 환영 사운드를 비활성화했습니다. 팩과 설정을 다시 생성하려면 <#43c9fa>/oraxen reload all<#55ffa4>을 실행하세요."
     failed: "<prefix><#fa4943>Oraxen 브랜딩을 제거하지 못했습니다. 자세한 내용은 콘솔을 확인하세요."
   remove_defaults:
-    success: "<prefix><#55ffa4>기본 파일 <#43fa8c><files><#55ffa4>개를 제거했습니다. 기본 설정, 기본 에셋, 환영 사운드를 비활성화했습니다. 필수 글리프는 유지했습니다. 팩과 설정을 다시 생성하려면 <#43c9fa>/oraxen reload all<#55ffa4>을 실행하세요."
-    failed: "<prefix><#fa4943>기본 파일 <#43fa8c><deleted><#fa4943>개를 제거했지만 <#43fa8c><failed><#fa4943>개는 제거하지 못했습니다. 자세한 내용은 콘솔을 확인하세요."
+    success: "<prefix><#55ffa4>기본 파일 <#43fa8c><files><#55ffa4>개와 sounds.yml의 기본 사운드 정의 <#43fa8c><sounds><#55ffa4>개를 제거했습니다. 기본 설정, 기본 에셋, 환영 사운드를 비활성화했습니다. 필수 글리프는 유지했습니다. 팩과 설정을 다시 생성하려면 <#43c9fa>/oraxen reload all<#55ffa4>을 실행하세요."
+    failed: "<prefix><#fa4943>기본 파일 <#43fa8c><deleted><#fa4943>개와 기본 사운드 정의 <#43fa8c><sounds><#fa4943>개를 제거했지만 정리 작업 <#43fa8c><failed><#fa4943>개를 완료하지 못했습니다. 자세한 내용은 콘솔을 확인하세요."
+    confirm: "<prefix><#fa9343>이 작업은 Oraxen에 포함된 기본 아이템, 레시피, 글리프, 모델, 텍스처, 수정되지 않은 기본 사운드 정의와 사용되지 않는 기본 오디오 파일을 영구적으로 삭제합니다. 계속하려면 <#43c9fa>/oraxen remove-defaults confirm<#fa9343>을 실행하세요."
 
 mechanics:
   not_enough_exp: "<prefix><#fa4943>이 작업을 수행하려면 더 많은 경험치가 필요합니다"

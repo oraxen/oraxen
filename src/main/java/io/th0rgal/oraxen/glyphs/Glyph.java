@@ -38,6 +38,8 @@ public class Glyph {
     private final List<String> unicodeRows;
     private final GlyphGrid grid;
     private final GlyphAppearance appearance;
+    @Nullable
+    private final Key targetFont;
     private String texture;
     private final int ascent;
     private final int height;
@@ -81,6 +83,7 @@ public class Glyph {
 
         // Parse appearance configuration
         appearance = GlyphAppearance.fromConfig(glyphSection.getConfigurationSection("appearance"));
+        targetFont = GlyphAppearance.parseTargetFont(glyphSection, glyphName);
 
         ConfigurationSection bitmapSection = glyphSection.getConfigurationSection("bitmap");
         bitmapEntry = bitmapSection != null
@@ -235,7 +238,15 @@ public class Glyph {
      */
     @NotNull
     public Key getFont() {
-        return appearance.font();
+        return targetFont != null ? targetFont : appearance.font();
+    }
+
+    /**
+     * Returns the font resource that should contain this glyph's provider.
+     */
+    @NotNull
+    public Key getTargetFont() {
+        return targetFont != null ? targetFont : GlyphAppearance.DEFAULT.font();
     }
 
     public String getTexture() {

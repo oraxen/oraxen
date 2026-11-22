@@ -25,7 +25,7 @@ public class SkriptCompatibility extends CompatibilityProvider<Skript> {
         } catch (Exception e) {
             Logs.logError("Failed to register Skript addon: " + e.getMessage());
             if (OraxenPlugin.get().getConfigsManager().getSettings().getBoolean("debug", false)) {
-                e.printStackTrace();
+                Logs.debug(e);
             }
         }
     }

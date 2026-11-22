@@ -98,8 +98,9 @@ command:
     success: "<prefix><#55ffa4>Oraxenのブランド表示を<#43fa8c><files><#55ffa4>個の言語ファイルから削除しました。デフォルトアセットとウェルカムサウンドを無効化しました。パックと設定を再生成するには<#43c9fa>/oraxen reload all<#55ffa4>を実行してください。"
     failed: "<prefix><#fa4943>Oraxenのブランド表示を削除できませんでした。詳細はコンソールを確認してください。"
   remove_defaults:
-    success: "<prefix><#55ffa4><#43fa8c><files><#55ffa4>個のデフォルトファイルを削除しました。デフォルト設定、デフォルトアセット、ウェルカムサウンドを無効化しました。必要なグリフは保持されました。パックと設定を再生成するには<#43c9fa>/oraxen reload all<#55ffa4>を実行してください。"
-    failed: "<prefix><#fa4943><#43fa8c><deleted><#fa4943>個のデフォルトファイルを削除しましたが、<#43fa8c><failed><#fa4943>個を削除できませんでした。詳細はコンソールを確認してください。"
+    success: "<prefix><#55ffa4><#43fa8c><files><#55ffa4>個のデフォルトファイルと、sounds.ymlの<#43fa8c><sounds><#55ffa4>個の標準サウンド定義を削除しました。デフォルト設定、デフォルトアセット、ウェルカムサウンドを無効化しました。必要なグリフは保持されました。パックと設定を再生成するには<#43c9fa>/oraxen reload all<#55ffa4>を実行してください。"
+    failed: "<prefix><#fa4943><#43fa8c><deleted><#fa4943>個のデフォルトファイルと<#43fa8c><sounds><#fa4943>個の標準サウンド定義を削除しましたが、<#43fa8c><failed><#fa4943>個のクリーンアップ処理に失敗しました。詳細はコンソールを確認してください。"
+    confirm: "<prefix><#fa9343>Oraxenに含まれるデフォルトのアイテム、レシピ、グリフ、モデル、テクスチャ、未変更の標準サウンド定義と未使用の標準音声ファイルを完全に削除します。続行するには<#43c9fa>/oraxen remove-defaults confirm<#fa9343>を実行してください。"
 
 mechanics:
   not_enough_exp: "<prefix><#fa4943>これを行うにはもっと経験験値が必要です"

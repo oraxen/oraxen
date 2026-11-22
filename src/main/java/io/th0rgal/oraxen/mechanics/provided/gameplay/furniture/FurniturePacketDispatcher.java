@@ -78,7 +78,8 @@ public final class FurniturePacketDispatcher {
                 task.run();
             } catch (Exception e) {
                 Logs.logError("Error in furniture async task");
-                e.printStackTrace();
+                Logs.logWarning("Failed to dispatch an asynchronous furniture packet task.");
+                Logs.debug(e);
             }
         });
     }
@@ -151,7 +152,8 @@ public final class FurniturePacketDispatcher {
             }, null);
         } catch (Exception e) {
             Logs.logError("Failed to teleport entity asynchronously");
-            e.printStackTrace();
+            Logs.logWarning("Failed to teleport after furniture interaction.");
+            Logs.debug(e);
             // Still run the callback so callers can restore state (e.g. re-add ejected passengers)
             if (onComplete != null) SchedulerUtil.runForEntity(entity, onComplete, null);
         }

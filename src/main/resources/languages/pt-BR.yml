@@ -96,8 +96,9 @@ command:
     success: "<prefix><#55ffa4>A marca Oraxen foi removida de <#43fa8c><files><#55ffa4> arquivo(s) de idioma. Os recursos padrão e o som de boas-vindas foram desativados. Execute <#43c9fa>/oraxen reload all<#55ffa4> para regenerar o pacote e as configurações."
     failed: "<prefix><#fa4943>Não foi possível remover a marca Oraxen. Verifique o console para obter detalhes."
   remove_defaults:
-    success: "<prefix><#55ffa4><#43fa8c><files><#55ffa4> arquivo(s) padrão removido(s). As configurações padrão, os recursos padrão e o som de boas-vindas foram desativados. Os glifos obrigatórios foram mantidos. Execute <#43c9fa>/oraxen reload all<#55ffa4> para regenerar o pacote e as configurações."
-    failed: "<prefix><#fa4943><#43fa8c><deleted><#fa4943> arquivo(s) padrão removido(s), mas não foi possível remover <#43fa8c><failed><#fa4943>. Verifique o console para obter detalhes."
+    success: "<prefix><#55ffa4><#43fa8c><files><#55ffa4> arquivo(s) padrão e <#43fa8c><sounds><#55ffa4> definição(ões) de som incluída(s) foram removidos de sounds.yml. As configurações e os recursos padrão, além do som de boas-vindas, foram desativados. Os glifos obrigatórios foram mantidos. Execute <#43c9fa>/oraxen reload all<#55ffa4> para regenerar o pacote e as configurações."
+    failed: "<prefix><#fa4943><#43fa8c><deleted><#fa4943> arquivo(s) padrão e <#43fa8c><sounds><#fa4943> definição(ões) de som incluída(s) foram removidos, mas <#43fa8c><failed><#fa4943> operação(ões) de limpeza falharam. Verifique o console para obter detalhes."
+    confirm: "<prefix><#fa9343>Esta ação excluirá permanentemente os itens, receitas, glifos, modelos e texturas padrão incluídos no Oraxen, as definições de som incluídas que não foram alteradas e os arquivos de som incluídos que não são usados. Execute <#43c9fa>/oraxen remove-defaults confirm<#fa9343> para continuar."
 
 mechanics:
   not_enough_exp: "<prefix><#fa4943>Você precisa de mais experiência para realizar esta ação."

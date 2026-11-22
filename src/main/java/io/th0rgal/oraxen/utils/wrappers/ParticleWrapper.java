@@ -26,7 +26,7 @@ public class ParticleWrapper {
             DUST_COLOR_TRANSITION_VALUE = resolveParticle("dust_color_transition", "DUST_COLOR_TRANSITION");
         } catch (IllegalArgumentException | IncompatibleClassChangeError e) {
             Logs.logError("Failed to initialize particle types, using fallback particles: " + e.getMessage());
-            e.printStackTrace();
+            Logs.debug(e);
             // Last resort fallback to any available particle
             Particle[] particles = Particle.values();
             if (particles.length == 0) {

@@ -45,7 +45,7 @@ public final class ActionConditions {
                 if (!Boolean.TRUE.equals(result)) return false;
             } catch (ParseException | EvaluationException exception) {
                 Logs.logWarning("Failed to evaluate action condition '" + condition + "' for player " + player.getName() + "; blocking action.");
-                if (Settings.DEBUG.toBool()) exception.printStackTrace();
+                Logs.debug(exception);
                 return false;
             }
         }

@@ -436,6 +436,7 @@ public class ShapedBlockMechanicListener implements Listener {
         }
 
         consumeItem(player, item);
+        shapedMechanic.runPlaceEvents(player);
         if (Settings.DEBUG.toBool()) {
             Logs.logSuccess("[ShapedBlock] Placed " + itemId + " as " + shapedMechanic.getBlockType());
         }
@@ -549,8 +550,18 @@ public class ShapedBlockMechanicListener implements Listener {
                         }
 
                         event.setCancelled(true);
+                        var replacedState = clickedBlock.getState();
+                        BlockData oldData = slab.clone();
                         slab.setType(Slab.Type.DOUBLE);
                         clickedBlock.setBlockData(slab);
+                        markAsCustomBlock(clickedBlock, shapedMechanic);
+
+                        BlockPlaceEvent placeEvent = new BlockPlaceEvent(clickedBlock, replacedState,
+                                clickedBlock, item, player, true, event.getHand());
+                        if (!placeEvent.callEvent() || !placeEvent.canBuild()) {
+                            clickedBlock.setBlockData(oldData);
+                            return true;
+                        }
 
                         if (shapedMechanic.hasBlockSounds()) {
                             BlockSounds sounds = shapedMechanic.getBlockSounds();
@@ -564,6 +575,7 @@ public class ShapedBlockMechanicListener implements Listener {
                         if (player.getGameMode() != GameMode.CREATIVE) {
                             item.setAmount(item.getAmount() - 1);
                         }
+                        shapedMechanic.runPlaceEvents(player);
                         return true;
                     }
                 }

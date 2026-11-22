@@ -1,27 +1,25 @@
 package io.th0rgal.oraxen.recipes.loaders;
 
-import io.th0rgal.oraxen.utils.logs.Logs;
+import io.th0rgal.oraxen.recipes.RecipeProcessing;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.BlastingRecipe;
-import org.bukkit.inventory.RecipeChoice;
 
 public class BlastingLoader extends RecipeLoader {
-	public BlastingLoader(ConfigurationSection section) {
-		super(section);
-	}
 
-	@Override
-	public void registerRecipe() {
-		ConfigurationSection inputSection = getSection().getConfigurationSection("input");
-		if (inputSection == null) return;
-		RecipeChoice recipeChoice = getRecipeChoice(inputSection);
-		if (recipeChoice == null) {
-			Logs.logError("Recipe " + getRecipeName() + " has an invalid or unresolvable input ingredient; skipping recipe.");
-			return;
-		}
-		BlastingRecipe recipe = new BlastingRecipe(getNamespacedKey(), getValidResult(),
-				recipeChoice, getSection().getInt("experience"), getSection().getInt("cookingTime"));
-		recipe.setGroup(getGroup());
-		loadRecipe(recipe);
-	}
+    public BlastingLoader(ConfigurationSection section) {
+        super(section);
+    }
+
+    @Override
+    public void registerRecipe() {
+        int time = getSection().getInt("cooking-time", getSection().getInt("cookingTime", 100));
+        double experience = getSection().getDouble("experience", 0);
+        if (time <= 0 || !Double.isFinite(experience) || experience < 0)
+            throw new IllegalArgumentException("Recipe '" + getRecipeName() + "' has invalid cooking settings");
+        BlastingRecipe recipe = new BlastingRecipe(getNamespacedKey(), getValidResult(),
+                getRequiredChoice("input"), (float) experience, time);
+        recipe.setGroup(getGroup());
+        RecipeProcessing.register(recipe, recipe.getInputChoice());
+        loadRecipe(recipe);
+    }
 }

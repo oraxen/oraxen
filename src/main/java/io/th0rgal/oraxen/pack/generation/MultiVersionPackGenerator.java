@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.pack.generation;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.th0rgal.oraxen.OraxenPlugin;
@@ -103,6 +104,10 @@ public class MultiVersionPackGenerator {
      * @param switchingFromSinglePack true if switching from single-pack mode (treat as reload)
      */
     public void generateMultipleVersions(List<VirtualFile> output, boolean switchingFromSinglePack) {
+        generateMultipleVersions(output, switchingFromSinglePack, new JsonArray());
+    }
+
+    public void generateMultipleVersions(List<VirtualFile> output, boolean switchingFromSinglePack, JsonArray generatedOverlayEntries) {
         Logs.logInfo("Generating multi-version resource packs...");
 
         // Fire event to allow modifications before generation
@@ -111,6 +116,7 @@ public class MultiVersionPackGenerator {
         output = event.getOutput();
         UnprotectedPackWriter.writeConfigured(output, packFolder);
         PackObfuscator.obfuscate(output);
+        PackPipeline.sparsifyGeneratedOverlays(output, generatedOverlayEntries);
 
         // Define which pack versions to generate
         versionManager.definePackVersions();
@@ -155,7 +161,7 @@ public class MultiVersionPackGenerator {
             } catch (Exception e) {
                 Logs.logError("Failed to generate pack for " + packVersion.getMinecraftVersion() + ": " + e.getMessage());
                 if (Settings.DEBUG.toBool()) {
-                    e.printStackTrace();
+                    Logs.debug(e);
                 }
             }
         }
@@ -274,7 +280,7 @@ public class MultiVersionPackGenerator {
         } catch (Exception e) {
             Logs.logWarning("Failed to refresh legacy pack.zip in multi-version mode: " + e.getMessage());
             if (Settings.DEBUG.toBool()) {
-                e.printStackTrace();
+                Logs.debug(e);
             }
         }
     }
@@ -306,7 +312,7 @@ public class MultiVersionPackGenerator {
     }
 
     private boolean isMcmetaGenerationDisabled() {
-        return Boolean.TRUE.equals(Settings.DISABLE_MCMETA_GENERATION.getValue());
+        return !Boolean.TRUE.equals(Settings.GENERATE_MCMETA.getValue());
     }
 
     private void uploadAndSendPacks(boolean switchingFromSinglePack) {

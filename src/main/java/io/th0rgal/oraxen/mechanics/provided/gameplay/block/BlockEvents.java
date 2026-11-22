@@ -35,14 +35,40 @@ public class BlockEvents {
         return events.isEmpty();
     }
 
+    public boolean hasClickEvents() {
+        return events.stream().anyMatch(event -> event.trigger() == Trigger.CLICK);
+    }
+
     public boolean hasLeftClickEvent() {
-        return events.stream().anyMatch(event -> event.click().matches(Action.LEFT_CLICK_BLOCK));
+        return events.stream().anyMatch(event -> event.trigger() == Trigger.CLICK && event.click().matches(Action.LEFT_CLICK_BLOCK));
     }
 
     public boolean run(Player player, Action clickAction) {
         boolean ran = false;
         for (BlockEvent event : events) {
-            if (!event.click().matches(clickAction)) continue;
+            if (event.trigger() != Trigger.CLICK || !event.click().matches(clickAction)) continue;
+            event.run(player);
+            ran = true;
+        }
+        return ran;
+    }
+
+    public boolean runBreak(Player player) {
+        return runTrigger(player, Trigger.BREAK);
+    }
+
+    public boolean runPlace(Player player) {
+        return runTrigger(player, Trigger.PLACE);
+    }
+
+    public boolean runSit(Player player) {
+        return runTrigger(player, Trigger.SIT);
+    }
+
+    private boolean runTrigger(Player player, Trigger trigger) {
+        boolean ran = false;
+        for (BlockEvent event : events) {
+            if (event.trigger() != trigger) continue;
             event.run(player);
             ran = true;
         }
@@ -59,14 +85,17 @@ public class BlockEvents {
                 continue;
             }
 
-            ClickFilter click = ClickFilter.from(eventMap.get("click"), sourceID, eventPath);
+            Trigger trigger = Trigger.from(eventMap.get("trigger"), sourceID, eventPath);
+            if (trigger == null) continue;
+            Object type = eventMap.containsKey("type") ? eventMap.get("type") : eventMap.get("click");
+            ClickFilter click = trigger == Trigger.CLICK ? ClickFilter.from(type, sourceID, eventPath) : ClickFilter.BOTH;
             List<ConditionalAction> actions = parseActions(eventMap.get("actions"), sourceID);
             if (actions.isEmpty()) {
                 Logs.logWarning(eventPath + " entry in " + sourceID + " has no valid actions.");
                 continue;
             }
 
-            parsedEvents.add(new BlockEvent(click, actions));
+            parsedEvents.add(new BlockEvent(trigger, click, actions));
         }
 
         return List.copyOf(parsedEvents);
@@ -150,7 +179,7 @@ public class BlockEvents {
         return parsed;
     }
 
-    private record BlockEvent(ClickFilter click, List<ConditionalAction> actions) {
+    private record BlockEvent(Trigger trigger, ClickFilter click, List<ConditionalAction> actions) {
         private void run(Player player) {
             for (ConditionalAction action : actions) {
                 action.run(player);
@@ -227,6 +256,23 @@ public class BlockEvents {
             } catch (IllegalArgumentException exception) {
                 Logs.logWarning("Invalid " + eventPath + " executor '" + value + "' in " + sourceID + "; using PLAYER.");
                 return PLAYER;
+            }
+        }
+    }
+
+    private enum Trigger {
+        CLICK,
+        BREAK,
+        PLACE,
+        SIT;
+
+        private static Trigger from(Object value, String sourceID, String eventPath) {
+            if (value == null) return CLICK;
+            try {
+                return valueOf(value.toString().trim().toUpperCase(Locale.ROOT));
+            } catch (IllegalArgumentException exception) {
+                Logs.logWarning("Invalid " + eventPath + " trigger '" + value + "' in " + sourceID + "; skipping event.");
+                return null;
             }
         }
     }

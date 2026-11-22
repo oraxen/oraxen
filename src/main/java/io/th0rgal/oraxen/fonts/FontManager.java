@@ -10,6 +10,7 @@ import io.th0rgal.oraxen.configs.ConfigsManager;
 import io.th0rgal.oraxen.configs.Settings;
 import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import net.kyori.adventure.key.Key;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.ConfigurationSection;
@@ -386,10 +387,15 @@ public class FontManager {
     public record GlyphBitMap(String texture, int rows, int columns, int ascent, int height) {
 
         public JsonObject toJson(FontManager fontManager) {
+            return toJson(fontManager, GlyphAppearance.DEFAULT.font());
+        }
+
+        public JsonObject toJson(FontManager fontManager, Key targetFont) {
             JsonObject json = new JsonObject();
             JsonArray chars = new JsonArray();
 
-            List<Glyph> bitmapGlyphs = fontManager.getGlyphs().stream().filter(Glyph::hasBitmap)
+            List<Glyph> bitmapGlyphs = fontManager.getBaseGlyphs().stream().filter(Glyph::hasBitmap)
+                    .filter(g -> g.getTargetFont().equals(targetFont))
                     .filter(g -> g.getBitMap() != null && g.getBitMap().equals(this)).toList();
 
             for (int i = 1; i <= rows(); i++) {

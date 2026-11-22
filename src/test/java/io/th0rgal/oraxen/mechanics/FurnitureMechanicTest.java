@@ -1,46 +1,220 @@
 package io.th0rgal.oraxen.mechanics;
 
+import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.items.ItemBuilder;
-import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.items.ItemProperties;
+import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.items.OraxenMeta;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.ArmorStandProperties;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurniturePacketDispatcher;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.drops.Loot;
+import io.th0rgal.oraxen.utils.logs.Logs;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import net.kyori.adventure.text.Component;
+import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-
-import java.util.List;
-import java.util.Map;
+import org.mockito.ArgumentCaptor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class FurnitureMechanicTest extends MechanicTestSupport {
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void sitActionsRunOnlyAfterSuccessfulMount(boolean accepted) {
+        ConfigurationSection section = mechanicSection("furniture", "events", List.of(Map.of(
+                "trigger", "sit", "actions", List.of(Map.of("command", "say seated <player>")))));
+        FurnitureMechanic mechanic = new FurnitureMechanic(mechanicFactory(), section);
+        Player player = mock(Player.class);
+        when(player.getName()).thenReturn("testPlayer");
+        assertFalse(mechanic.runEvents(player, Action.RIGHT_CLICK_BLOCK));
+        assertFalse(mechanic.runEvents(player, Action.LEFT_CLICK_BLOCK));
+        mechanic.runBreakEvents(player);
+        mechanic.runPlaceEvents(player);
+        verify(player, never()).performCommand(any());
+
+        Entity seat = mock(Entity.class);
+        UUID seatId = UUID.randomUUID();
+        World world = mock(World.class);
+        when(seat.getLocation()).thenReturn(new Location(world, 0, 0, 0));
+        when(player.getLocation()).thenReturn(new Location(world, 0, 0, 0));
+        when(seat.addPassenger(player)).thenReturn(accepted);
+        PersistentDataContainer pdc = mock(PersistentDataContainer.class);
+        doReturn(List.of(seatId)).when(pdc).getOrDefault(eq(FurnitureMechanic.SEATS_KEY), any(), any());
+        when(pdc.get(FurnitureMechanic.FURNITURE_KEY, PersistentDataType.STRING)).thenReturn("chair");
+
+        try (var bukkit = mockStatic(Bukkit.class);
+             var furniture = mockStatic(OraxenFurniture.class);
+             var packets = mockStatic(FurniturePacketDispatcher.class);
+             var scheduler = mockStatic(SchedulerUtil.class);
+             var compatibilities = mockStatic(CompatibilitiesManager.class)) {
+            bukkit.when(() -> Bukkit.getEntity(seatId)).thenReturn(seat);
+            furniture.when(() -> OraxenFurniture.getFurnitureMechanic("chair")).thenReturn(mechanic);
+            ArgumentCaptor<Runnable> mount = ArgumentCaptor.forClass(Runnable.class);
+            ArgumentCaptor<Runnable> actions = ArgumentCaptor.forClass(Runnable.class);
+
+            FurnitureMechanic.sitOnSeat(pdc, player);
+            scheduler.verify(() -> SchedulerUtil.runForEntity(eq(seat), mount.capture(), isNull()));
+            verify(player, never()).performCommand(any());
+            mount.getValue().run();
+            verify(seat).addPassenger(player);
+            if (accepted) {
+                scheduler.verify(() -> SchedulerUtil.runForEntity(eq(player), actions.capture(), isNull()));
+                actions.getValue().run();
+                verify(player).performCommand("say seated testPlayer");
+            } else {
+                scheduler.verify(() -> SchedulerUtil.runForEntity(eq(player), any(), isNull()), never());
+                verify(player, never()).performCommand(any());
+            }
+        }
+    }
+
+    @Test
+    void occupiedSeatDoesNotRunSitActions() {
+        Entity seat = mock(Entity.class);
+        Player player = mock(Player.class);
+        when(seat.getPassengers()).thenReturn(List.of(mock(Entity.class)));
+        UUID seatId = UUID.randomUUID();
+        PersistentDataContainer pdc = mock(PersistentDataContainer.class);
+        doReturn(List.of(seatId)).when(pdc).getOrDefault(eq(FurnitureMechanic.SEATS_KEY), any(), any());
+
+        try (var bukkit = mockStatic(Bukkit.class);
+             var scheduler = mockStatic(SchedulerUtil.class)) {
+            bukkit.when(() -> Bukkit.getEntity(seatId)).thenReturn(seat);
+            FurnitureMechanic.sitOnSeat(pdc, player);
+            verify(seat, never()).addPassenger(any());
+            scheduler.verifyNoInteractions();
+        }
+    }
+
+    @Test
+    void breakActionsKeepFurnitureBreakableAndDoNotRunOnClicks() {
+        ConfigurationSection section = mechanicSection("furniture", "events", List.of(Map.of(
+                "trigger", "break", "actions", List.of(Map.of("command", "say broken")))));
+        FurnitureMechanic mechanic = new FurnitureMechanic(mechanicFactory(), section);
+        Player player = mock(Player.class);
+
+        when(player.getName()).thenReturn("testPlayer");
+        assertTrue(mechanic.isBreakable());
+        assertFalse(mechanic.runEvents(player, Action.LEFT_CLICK_BLOCK));
+        assertFalse(mechanic.runEvents(player, Action.RIGHT_CLICK_BLOCK));
+        try (var compatibilities = mockStatic(CompatibilitiesManager.class)) {
+            mechanic.runBreakEvents(player);
+            verify(player).performCommand("say broken");
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void removalOfMultiBarrierFurnitureRunsBreakActionsOnceOnlyWithPlayer(boolean hasPlayer) {
+        ConfigurationSection section = mechanicSection("furniture", "barriers", List.of("0,0,0", "1,0,0"));
+        section.set("events", List.of(Map.of("trigger", "break", "actions", List.of(Map.of("command", "say broken")))));
+        FurnitureMechanic mechanic = spy(new FurnitureMechanic(mechanicFactory(), section));
+        ItemDisplay entity = mock(ItemDisplay.class);
+        World world = mock(World.class);
+        Location location = new Location(world, 0, 64, 0);
+        Player player = hasPlayer ? mock(Player.class) : null;
+        when(entity.getWorld()).thenReturn(world);
+        when(entity.getLocation()).thenReturn(location);
+        doNothing().when(mechanic).removeSolid(entity, location, 0f);
+        if (hasPlayer) {
+            when(player.getName()).thenReturn("testPlayer");
+            when(player.getGameMode()).thenReturn(GameMode.CREATIVE);
+            when(player.getInventory()).thenReturn(mock(PlayerInventory.class));
+        }
+
+        try (var furniture = mockStatic(OraxenFurniture.class, CALLS_REAL_METHODS);
+                var factory = mockStatic(FurnitureFactory.class);
+                var furnitureStatics = mockStatic(FurnitureMechanic.class);
+                var compatibilities = mockStatic(CompatibilitiesManager.class)) {
+            factory.when(FurnitureFactory::isEnabled).thenReturn(true);
+            furniture.when(() -> OraxenFurniture.getFurnitureMechanic(entity)).thenReturn(mechanic);
+            furniture.when(() -> OraxenFurniture.isInteractionEntity(entity)).thenReturn(false);
+
+            assertEquals(2, mechanic.getBarriers().size());
+            assertTrue(OraxenFurniture.remove(entity, player, null));
+
+            verify(mechanic).removeSolid(entity, location, 0f);
+            if (hasPlayer) {
+                var order = inOrder(mechanic, player);
+                order.verify(mechanic).removeSolid(entity, location, 0f);
+                order.verify(player).performCommand("say broken");
+                verify(player, times(1)).performCommand("say broken");
+            } else {
+                verify(mechanic, never()).runBreakEvents(any());
+            }
+        }
+    }
+
+    @Test
+    void readsBarrierOffsetsAndDisablesDefaultInteractionHitbox() {
+        ConfigurationSection section = mechanicSection("furniture", "barriers",
+                List.of("0,0,0", " -2, 1, 3 "));
+        FurnitureMechanic mechanic = new FurnitureMechanic(mechanicFactory(), section);
+
+        assertEquals(List.of("0,0,0", "-2,1,3"), mechanic.getBarriers().stream().map(Object::toString).toList());
+        assertTrue(mechanic.hasBarriers());
+        assertFalse(mechanic.hasHitbox());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"origin", "1,2", "1,2,3,4", "1.5,0,0", "1,2,", "2147483648,0,0"})
+    void skipsInvalidBarrierOffsetsWithoutPreventingValidEntries(String invalidOffset) {
+        ConfigurationSection section = mechanicSection("furniture", "barriers",
+                List.of(invalidOffset, "-1,0,2"));
+        try (var logs = mockStatic(Logs.class)) {
+            FurnitureMechanic mechanic = new FurnitureMechanic(mechanicFactory(), section);
+
+            assertEquals(List.of("-1,0,2"), mechanic.getBarriers().stream().map(Object::toString).toList());
+            ArgumentCaptor<String> message = ArgumentCaptor.forClass(String.class);
+            logs.verify(() -> Logs.logError(message.capture()));
+            assertTrue(message.getValue().contains(invalidOffset));
+            assertTrue(message.getValue().contains(mechanic.getItemID()));
+        }
+    }
 
     @Test
     void readsUnifiedDisplayPropertiesAndIgnoresArmorStandOffset() {

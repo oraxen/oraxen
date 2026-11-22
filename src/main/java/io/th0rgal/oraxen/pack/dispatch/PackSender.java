@@ -7,6 +7,7 @@ import io.th0rgal.oraxen.utils.HashUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.resource.ResourcePackInfo;
 import net.kyori.adventure.resource.ResourcePackRequest;
 import org.bukkit.entity.Player;
@@ -15,6 +16,7 @@ import java.net.URI;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,6 +24,7 @@ public abstract class PackSender {
 
     private static final long DEFAULT_PRE_JOIN_TIMEOUT_MILLIS = 30_000L;
     private static final Pattern TIMEOUT_PATTERN = Pattern.compile("^([0-9]+(?:\\.[0-9]+)?)\\s*(ms|s|m|ticks?|t)?$", Pattern.CASE_INSENSITIVE);
+    private static final ConcurrentHashMap<UUID, UUID> lastSentPackIds = new ConcurrentHashMap<>();
 
     protected final HostingProvider hostingProvider;
     private static final Object dispatchNormalizationLock = new Object();
@@ -56,16 +59,45 @@ public abstract class PackSender {
         // Adventure version bundled with 1.20.3+. On older servers (e.g. 1.20.1), use Paper's
         // component-based setResourcePack API instead.
         if (VersionUtil.atOrAbove("1.20.3")) {
-            player.sendResourcePacks(createResourcePackRequest(uuid, url, sha1, componentPrompt, mandatory));
+            ResourcePackRequest request = createResourcePackRequest(uuid, url, sha1, componentPrompt, mandatory);
+            sendResourcePack((Audience) player, player.getUniqueId(), uuid, request);
         } else {
-            player.setResourcePack(url, sha1, componentPrompt, mandatory);
+            UUID playerId = player.getUniqueId();
+            lastSentPackIds.compute(playerId, (id, previousPackId) -> {
+                player.setResourcePack(url, sha1, componentPrompt, mandatory);
+                return uuid;
+            });
         }
     }
 
     static void sendResourcePack(Audience audience, UUID uuid, String url, byte[] sha1,
                                  String prompt, boolean mandatory) {
         net.kyori.adventure.text.Component componentPrompt = AdventureUtils.MINI_MESSAGE.deserialize(prompt);
-        audience.sendResourcePacks(createResourcePackRequest(uuid, url, sha1, componentPrompt, mandatory));
+        ResourcePackRequest request = createResourcePackRequest(uuid, url, sha1, componentPrompt, mandatory);
+        sendResourcePack(audience, audience.get(Identity.UUID).orElse(null), uuid, request);
+    }
+
+    /** Sends a prepared request after removing this player's previous Oraxen pack, if present. */
+    public static void sendResourcePack(Audience audience, UUID playerId, UUID packId, ResourcePackRequest request) {
+        if (playerId == null) {
+            audience.sendResourcePacks(request);
+            return;
+        }
+
+        lastSentPackIds.compute(playerId, (id, previousPackId) -> {
+            if (previousPackId != null && !previousPackId.equals(packId)) {
+                // The new pack has a content-derived UUID. Remove Oraxen's previous pack first,
+                // or its translations remain active alongside keys omitted from the new pack.
+                audience.removeResourcePacks(previousPackId);
+            }
+
+            audience.sendResourcePacks(request);
+            return packId;
+        });
+    }
+
+    public static void forgetPack(UUID playerId) {
+        if (playerId != null) lastSentPackIds.remove(playerId);
     }
 
     private static ResourcePackRequest createResourcePackRequest(UUID uuid, String url, byte[] sha1,
@@ -133,7 +165,7 @@ public abstract class PackSender {
             }
         }
 
-        Logs.logWarning("Invalid Pack.dispatch.timeout '" + value + "'. Falling back to 30s.");
+        Logs.logWarning("Invalid pack.dispatch.timeout '" + value + "'. Falling back to 30s.");
         return DEFAULT_PRE_JOIN_TIMEOUT_MILLIS;
     }
 
@@ -150,7 +182,7 @@ public abstract class PackSender {
             case "PRE-JOIN", "PREJOIN" -> DispatchMode.PRE_JOIN;
             case "JOIN" -> DispatchMode.JOIN;
             default -> {
-                Logs.logWarning("Invalid Pack.dispatch.mode '" + mode + "'. Falling back to JOIN.");
+                Logs.logWarning("Invalid pack.dispatch.mode '" + mode + "'. Falling back to JOIN.");
                 yield DispatchMode.JOIN;
             }
         };
@@ -171,7 +203,7 @@ public abstract class PackSender {
             if (dispatchModeNormalized) return;
 
             if (isDispatchSendEnabled() && getDispatchMode() == DispatchMode.PRE_JOIN && !isPreJoinSupported()) {
-                Logs.logInfo("Pack.dispatch.mode is set to PRE-JOIN, but pre-join dispatch is not available on this server. Falling back to JOIN.");
+                Logs.logInfo("pack.dispatch.mode is set to PRE-JOIN, but pre-join dispatch is not available on this server. Falling back to JOIN.");
             }
 
             dispatchModeNormalized = true;

@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.commands.arguments.EntitySelectorArgument;
 import io.th0rgal.oraxen.commands.arguments.TextArgument;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.configs.ResourcesManager;
+import io.th0rgal.oraxen.utils.SchedulerUtil;
 import org.bukkit.entity.Player;
 
 import java.util.Collection;
@@ -37,7 +38,7 @@ public class PackCommand {
                     if (mvPackSender != null) {
                         // Multi-version mode: send version-appropriate packs
                         for (final Player target : targets) {
-                            mvPackSender.sendPack(target);
+                            SchedulerUtil.runForEntity(target, () -> mvPackSender.sendPack(target));
                         }
                     } else {
                         // Single-pack mode: use regular UploadManager
@@ -45,7 +46,7 @@ public class PackCommand {
                         var packSender = uploadManager != null ? uploadManager.getSender() : null;
                         if (packSender == null) return;
                         for (final Player target : targets) {
-                            packSender.sendPack(target);
+                            SchedulerUtil.runForEntity(target, () -> packSender.sendPack(target));
                         }
                     }
                 });

@@ -3,16 +3,26 @@ plugins {
     id("io.papermc.paperweight.userdev") version "2.0.0-beta.21"
 }
 
+apply(from = rootProject.file("nms/shared/sources.gradle.kts"))
+
 // Java 21 NMS handler for Paper/Paper-fork 1.20.x through 1.21.11.
 // Keep this module free of Java 25 bytecode so it can be loaded on Java 21 servers.
 dependencies {
     compileOnly(rootProject)
     paperweight.paperDevBundle("1.21.11-R0.1-SNAPSHOT")
+    testImplementation(rootProject)
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation("org.mockito:mockito-core:5.11.0")
 }
 
 tasks {
     compileJava {
         options.encoding = Charsets.UTF_8.name()
+    }
+
+    test {
+        useJUnitPlatform()
     }
 
     // Paper 1.21.11 runs Mojang-mapped plugins; publish the plain jar as the NMS artifact.

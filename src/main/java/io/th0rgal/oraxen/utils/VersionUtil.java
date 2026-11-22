@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.jar.Attributes;
 
 public class VersionUtil {
     private static final boolean isPaper;
@@ -62,19 +63,6 @@ public class VersionUtil {
     }
 
     /**
-     * Scoreboard/tablist background hiding tweaks are only supported from 1.21.6 through 1.21.7.
-     * Scoreboard number hiding is unaffected: it is handled per version by
-     * TextShaderGenerator#hideScoreboardNumbers.
-     */
-    public static boolean supportsScoreboardBackgroundHiding() {
-        return supportsScoreboardBackgroundHiding(MinecraftVersion.getCurrentVersion());
-    }
-
-    public static boolean supportsScoreboardBackgroundHiding(MinecraftVersion version) {
-        return PlatformCapabilities.supportsScoreboardBackgroundHiding(version);
-    }
-
-    /**
      * @return true if the server is Paper or false of not
      */
     public static boolean isPaperServer() {
@@ -104,16 +92,24 @@ public class VersionUtil {
         return isFolia;
     }
 
-    private static final String manifest = JarReader.getManifestContent();
+    private static final Attributes manifest = JarReader.getManifestAttributes();
 
     public static boolean isCompiled() {
-        List<String> split = Arrays.stream(manifest.split(":|\n")).map(String::trim).toList();
-        return Boolean.parseBoolean(split.get(split.indexOf("Compiled") + 1)) && !isValidCompiler();
+        return isCompiled(manifest);
+    }
+
+    static boolean isCompiled(Attributes attributes) {
+        String compiled = attributes.getValue("Compiled");
+        return compiled != null && Boolean.parseBoolean(compiled.trim()) && !isValidCompiler(attributes);
     }
 
     public static boolean isValidCompiler() {
-        List<String> split = Arrays.stream(manifest.split(":|\n")).map(String::trim).toList();
-        return Set.of("sivert", "thomas").contains(split.get(split.indexOf("Built-By") + 1).toLowerCase(Locale.ROOT));
+        return isValidCompiler(manifest);
+    }
+
+    static boolean isValidCompiler(Attributes attributes) {
+        String builtBy = attributes.getValue("Built-By");
+        return builtBy != null && Set.of("sivert", "thomas").contains(builtBy.trim().toLowerCase(Locale.ROOT));
     }
 
     private static boolean hasClass(String className) {

@@ -15,6 +15,7 @@ import org.jetbrains.annotations.Nullable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.function.Consumer;
+import io.th0rgal.oraxen.utils.logs.Logs;
 
 public class ItemUtils {
 
@@ -204,7 +205,7 @@ public class ItemUtils {
         try {
             return (ItemStack) FoodComponent.class.getMethod("getUsingConvertsTo").invoke(itemMeta.getFood());
         } catch (Exception e) {
-            e.printStackTrace();
+            Logs.debug(e);
             return null;
         }
     }

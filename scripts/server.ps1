@@ -1,10 +1,11 @@
+# Existing servers are temporary and used for validation. Agents should reset them.
 # Starts a local Paper/Folia server for a version used by VersionLoadingTest.
-# Usage: ./scripts/server.ps1 --version Paper/26.2 [--no-reset]
+# Usage: ./scripts/server.ps1 --version Paper/26.3 [--no-reset]
 $ErrorActionPreference = 'Stop'
 
 function Show-Usage {
     Write-Host 'Usage: ./scripts/server.ps1 --version <Paper|Folia>/<version> [--no-reset]'
-    Write-Host '  --version, -v  Server and Minecraft version, for example Paper/26.2'
+    Write-Host '  --version, -v  Server and Minecraft version, for example Paper/26.3'
     Write-Host '  --no-reset     Keep the existing plugins and world files'
     Write-Host '  --help, -h     Show this help'
 }
@@ -30,7 +31,7 @@ for ($i = 0; $i -lt $args.Count; $i++) {
 }
 if (-not $versionSpec) { throw '--version is required' }
 if ($versionSpec -cnotmatch '^(Paper|Folia)/([0-9]+(?:\.[0-9]+)*)$') {
-    throw 'Version must look like Paper/26.2 or Folia/1.21.11'
+    throw 'Version must look like Paper/26.3 or Folia/1.21.11'
 }
 $serverName = $Matches[1]
 $mcVersion = $Matches[2]
@@ -84,29 +85,53 @@ if (-not $javaCommand) {
 
 function Get-OraxenJar {
     $libsDir = Join-Path $projectDir 'build/libs'
+    Write-Host 'Building Oraxen shadowJar...'
+    $wrapper = Join-Path $projectDir 'gradlew.bat'
+    if (Test-Path -LiteralPath $wrapper -PathType Leaf) {
+        & $wrapper -p $projectDir shadowJar | Out-Host
+    } else {
+        & gradle -p $projectDir shadowJar | Out-Host
+    }
+    if ($LASTEXITCODE -ne 0) { throw "Gradle shadowJar failed with exit code $LASTEXITCODE" }
     $jars = @(Get-ChildItem -LiteralPath $libsDir -Filter 'oraxen-*.jar' -File -ErrorAction SilentlyContinue |
         Where-Object { $_.Name -notmatch '-(sources|javadoc)\.jar$' } |
         Sort-Object LastWriteTimeUtc -Descending)
-    if ($jars.Count -eq 0) {
-        Write-Host 'No Oraxen jar found; building shadowJar...'
-        $wrapper = Join-Path $projectDir 'gradlew.bat'
-        if (Test-Path -LiteralPath $wrapper -PathType Leaf) {
-            & $wrapper -p $projectDir shadowJar | Out-Host
-        } else {
-            & gradle -p $projectDir shadowJar | Out-Host
-        }
-        if ($LASTEXITCODE -ne 0) { throw "Gradle shadowJar failed with exit code $LASTEXITCODE" }
-        $jars = @(Get-ChildItem -LiteralPath $libsDir -Filter 'oraxen-*.jar' -File -ErrorAction SilentlyContinue |
-            Where-Object { $_.Name -notmatch '-(sources|javadoc)\.jar$' } |
-            Sort-Object LastWriteTimeUtc -Descending)
-    }
     if ($jars.Count -eq 0) { throw "Could not find the built Oraxen jar in $libsDir" }
     return $jars[0].FullName
 }
 
+# Keep version-specific settings and override only the properties needed by this test server.
+function Set-ServerProperties([string]$propertiesPath) {
+    $managedProperties = @('online-mode', 'white-list')
+    $serverPropertyLines = New-Object 'System.Collections.Generic.List[string]'
+
+    if (Test-Path -LiteralPath $propertiesPath -PathType Leaf) {
+        foreach ($line in [System.IO.File]::ReadAllLines($propertiesPath)) {
+            $isManagedProperty = $false
+            foreach ($propertyName in $managedProperties) {
+                $pattern = '^\s*' + [regex]::Escape($propertyName) + '(?:\s*[:=]\s*|\s+|$)'
+                if ([regex]::IsMatch($line, $pattern)) {
+                    $isManagedProperty = $true
+                    break
+                }
+            }
+            if (-not $isManagedProperty) { $serverPropertyLines.Add($line) }
+        }
+    }
+
+    if ($serverPropertyLines.Count -gt 0 -and $serverPropertyLines[$serverPropertyLines.Count - 1] -ne '') {
+        $serverPropertyLines.Add('')
+    }
+    $serverPropertyLines.Add('online-mode=false')
+    $serverPropertyLines.Add('white-list=false')
+
+    $content = [string]::Join([Environment]::NewLine, $serverPropertyLines.ToArray()) + [Environment]::NewLine
+    [System.IO.File]::WriteAllText($propertiesPath, $content, (New-Object System.Text.UTF8Encoding($false)))
+}
+
 $oraxenJar = Get-OraxenJar
 $knownDownloads = @{
-    'paper/26.3' = 'https://fill-data.papermc.io/v1/objects/ddfea9cddc8f40e33080d4d9a3e9818fd1f9ea33f6100b42ac228ef80eb7ceed/paper-26.3-31.jar'
+    'paper/26.3' = 'https://fill-data.papermc.io/v1/objects/989f93c29d5b61fe52804f834ea6b3a0a5775d05412e238ec78107197a6b5be6/paper-26.3-238.jar'
     'paper/26.2' = 'https://fill-data.papermc.io/v1/objects/36fee4f3a7020eb2e2d6f8d70d849beaf0f024d86f09302b9ccf2d96f266127e/paper-26.2-71.jar'
     'paper/26.1.2' = 'https://fill-data.papermc.io/v1/objects/d30fae0c74092b10855f0412ca6b265c60301a013d34bc28a2a41bf5682dd80b/paper-26.1.2-69.jar'
     'paper/1.21.11' = 'https://fill-data.papermc.io/v1/objects/5ffef465eeeb5f2a3c23a24419d97c51afd7dbb4923ff42df9a3f58bba1ccfba/paper-1.21.11-132.jar'
@@ -151,6 +176,7 @@ if (-not $noReset) {
 $pluginsDir = Join-Path $serverDir 'plugins'
 [void][System.IO.Directory]::CreateDirectory($pluginsDir)
 [System.IO.File]::WriteAllText((Join-Path $serverDir 'eula.txt'), "eula=true`n", (New-Object System.Text.UTF8Encoding($false)))
+Set-ServerProperties (Join-Path $serverDir 'server.properties')
 Copy-Item -LiteralPath $oraxenJar -Destination (Join-Path $pluginsDir 'Oraxen.jar') -Force
 
 Write-Host "Starting $serverName $mcVersion"

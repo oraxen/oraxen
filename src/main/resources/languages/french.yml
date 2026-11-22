@@ -98,8 +98,9 @@ command:
     success: "<prefix><#55ffa4>La marque Oraxen a été supprimée de <#43fa8c><files><#55ffa4> fichier(s) de langue. Les ressources par défaut et le son d'accueil ont été désactivés. Exécutez <#43c9fa>/oraxen reload all<#55ffa4> pour régénérer le pack et les configurations."
     failed: "<prefix><#fa4943>Impossible de supprimer la marque Oraxen. Consultez la console pour plus de détails."
   remove_defaults:
-    success: "<prefix><#55ffa4><#43fa8c><files><#55ffa4> fichier(s) par défaut supprimé(s). Les configurations par défaut, les ressources par défaut et le son d'accueil ont été désactivés. Les glyphes requis ont été conservés. Exécutez <#43c9fa>/oraxen reload all<#55ffa4> pour régénérer le pack et les configurations."
-    failed: "<prefix><#fa4943><#43fa8c><deleted><#fa4943> fichier(s) par défaut supprimé(s), mais impossible d'en supprimer <#43fa8c><failed><#fa4943>. Consultez la console pour plus de détails."
+    success: "<prefix><#55ffa4><#43fa8c><files><#55ffa4> fichier(s) par défaut et <#43fa8c><sounds><#55ffa4> définition(s) sonore(s) intégrée(s) supprimé(s) de sounds.yml. Les configurations et ressources par défaut ainsi que le son d'accueil ont été désactivés. Les glyphes requis ont été conservés. Exécutez <#43c9fa>/oraxen reload all<#55ffa4> pour régénérer le pack et les configurations."
+    failed: "<prefix><#fa4943><#43fa8c><deleted><#fa4943> fichier(s) par défaut et <#43fa8c><sounds><#fa4943> définition(s) sonore(s) intégrée(s) supprimé(s), mais <#43fa8c><failed><#fa4943> opération(s) de nettoyage ont échoué. Consultez la console pour plus de détails."
+    confirm: "<prefix><#fa9343>Cette action supprimera définitivement les objets, recettes, glyphes, modèles et textures par défaut fournis avec Oraxen, les définitions sonores intégrées non modifiées et les fichiers audio intégrés inutilisés. Exécutez <#43c9fa>/oraxen remove-defaults confirm<#fa9343> pour continuer."
 
 mechanics:
   not_enough_exp: "<prefix><#fa4943>Vous avez besoin de plus d'expérience pour faire ceci"

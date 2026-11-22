@@ -420,7 +420,15 @@ public class OraxenBlocks {
         block.setType(Material.AIR);
         BlockHelpers.removePDC(block);
         if (postRemove != null) postRemove.run();
+        if (player != null) runBreakEvents(mechanic, player);
         return true;
+    }
+
+    private static void runBreakEvents(Mechanic mechanic, Player player) {
+        if (mechanic instanceof NoteBlockMechanic noteBlock) noteBlock.runBreakEvents(player);
+        else if (mechanic instanceof StringBlockMechanic stringBlock) stringBlock.runBreakEvents(player);
+        else if (mechanic instanceof ChorusBlockMechanic chorusBlock) chorusBlock.runBreakEvents(player);
+        else if (mechanic instanceof ShapedBlockMechanic shapedBlock) shapedBlock.runBreakEvents(player);
     }
 
     @Nullable
@@ -574,6 +582,7 @@ public class OraxenBlocks {
         clearShapedBlockData(block);
         clearShapedDoorHalf(block, mechanic);
         block.setType(Material.AIR);
+        if (player != null) mechanic.runBreakEvents(player);
         return true;
     }
 

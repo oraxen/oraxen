@@ -37,12 +37,12 @@ public final class HostingProviderFactory {
         HostingProvider provider = switch (Settings.UPLOAD_TYPE.toString().toLowerCase(Locale.ROOT)) {
             case "polymath" -> new Polymath(Settings.POLYMATH_SERVER.toString());
             case "s3" -> new S3(OraxenPlugin.get().getConfigsManager().getSettings()
-                    .getConfigurationSection("Pack.upload.s3"));
+                    .getConfigurationSection("pack.upload.s3"));
             case "lobfile" -> {
                 ConfigurationSection lobfileConfig = OraxenPlugin.get().getConfigsManager().getSettings()
-                        .getConfigurationSection("Pack.upload.lobfile");
+                        .getConfigurationSection("pack.upload.lobfile");
                 if (lobfileConfig == null) {
-                    Logs.logError("Missing config section 'Pack.upload.lobfile', falling back to Polymath");
+                    Logs.logError("Missing config section 'pack.upload.lobfile', falling back to Polymath");
                     yield new Polymath(Settings.POLYMATH_SERVER.toString());
                 }
                 yield new Lobfile(lobfileConfig);
@@ -53,7 +53,7 @@ public final class HostingProviderFactory {
                     yield new Polymath(Settings.POLYMATH_SERVER.toString());
                 }
                 ConfigurationSection selfHostConfig = OraxenPlugin.get().getConfigsManager().getSettings()
-                        .getConfigurationSection("Pack.upload.self-host");
+                        .getConfigurationSection("pack.upload.self-host");
                 yield new io.th0rgal.oraxen.pack.upload.hosts.SelfHost(selfHostConfig);
             }
             case "external" -> createExternalProvider();

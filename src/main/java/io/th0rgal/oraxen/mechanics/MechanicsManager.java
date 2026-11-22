@@ -57,6 +57,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import io.th0rgal.oraxen.utils.logs.Logs;
 
 public class MechanicsManager {
 
@@ -185,7 +186,8 @@ public class MechanicsManager {
                 mechanicsConfig.save(mechanicsEntry.getKey());
             }
         } catch (final IOException e) {
-            e.printStackTrace();
+            Logs.logWarning("Failed to save migrated mechanic configuration.");
+            Logs.debug(e);
         }
     }
 

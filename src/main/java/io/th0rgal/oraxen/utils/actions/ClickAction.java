@@ -92,7 +92,7 @@ public class ClickAction {
                 }
             } catch (ParseException | EvaluationException e) {
                 Logs.logWarning("Failed to evaluate click action condition '" + condition + "' for player " + player.getName() + "; blocking action.");
-                if (Settings.DEBUG.toBool()) e.printStackTrace();
+                Logs.debug(e);
                 return false;
             }
         }

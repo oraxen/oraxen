@@ -6,7 +6,7 @@
 # Color codes: https://docs.adventure.kyori.net/minimessage.html#format
 
 legendary_hammer:
-  displayname: "<gradient:#F06966:#FAD6A6>Legendary Hammer"
+  name: "<gradient:#F06966:#FAD6A6>Legendary Hammer"
   material: DIAMOND_PICKAXE
   lore:
     - "<#ff455b>» <#D5D6D8>Strike your enemies with a devastating blow"
@@ -33,14 +33,14 @@ legendary_hammer:
         spread: 0.5                         # Particle spread radius in blocks
 
 earth_hammer:
-  displayname: "<gradient:#89E59D:#37C6BA>Earth Hammer"
+  name: "<gradient:#89E59D:#37C6BA>Earth Hammer"
   material: DIAMOND_PICKAXE
   pack:
     generate_model: false
     model: default/earth_hammer
 
 magical_wand:
-  displayname: "<gradient:#3685EC:#72C1E4>Magical Wand"
+  name: "<gradient:#3685EC:#72C1E4>Magical Wand"
   material: WOODEN_HOE
   pack:
     generate_model: false
@@ -62,7 +62,7 @@ magical_wand:
           blue: 255
 
 magical_axe:
-  displayname: "<gradient:#89E59D:#37C6BA>Axe of Experience"
+  name: "<gradient:#89E59D:#37C6BA>Axe of Experience"
   material: DIAMOND_AXE
   lore:
     - "<#6f737d>» <#D5D6D8>Convert experience to bottles"
@@ -74,14 +74,14 @@ magical_axe:
       ratio: 0.95 # So you'll lose 1/20 of your exp by converting it
 
 ice_staff:
-  displayname: "<gradient:#3685EC:#72C1E4>Ice Staff"
+  name: "<gradient:#3685EC:#72C1E4>Ice Staff"
   material: WOODEN_HOE
   pack:
     generate_model: false
     model: default/ice_staff
 
 battle_axe:
-  displayname: '<gradient:#F06966:#FAD6A6>Battle Axe'
+  name: '<gradient:#F06966:#FAD6A6>Battle Axe'
   material: DIAMOND_AXE
   AttributeModifiers:
     - attribute: ATTACK_DAMAGE
@@ -93,7 +93,7 @@ battle_axe:
     model: default/battle_axe
 
 withooker:
-  displayname: "<gradient:#3685EC:#72C1E4>Withooker"
+  name: "<gradient:#3685EC:#72C1E4>Withooker"
   material: WOODEN_HOE
   unbreakable: true
   pack:
@@ -105,7 +105,7 @@ withooker:
       delay: 3000 # in milliseconds (3000ms = 3s)
 
 divine_shield:
-  displayname: '<gradient:#F69D84:#FAD98D>Divine Shield'
+  name: '<gradient:#F69D84:#FAD98D>Divine Shield'
   material: SHIELD
   pack:
     generate_model: false
@@ -113,7 +113,7 @@ divine_shield:
     blocking_model: default/divine_shield_blocking
 
 magic_book:
-  displayname: '<gradient:#3685EC:#72C1E4>Magic Book'
+  name: '<gradient:#3685EC:#72C1E4>Magic Book'
   material: DIAMOND_SWORD
   pack:
     generate_model: false
@@ -134,7 +134,7 @@ magic_book:
 # Hold right-click to charge, release or left-click to lunge forward
 # ════════════════════════════════════════════════════════════════════════════
 lotr_pike:
-  displayname: "<gradient:#8B7355:#C4A574>Pike of the Realm"
+  name: "<gradient:#8B7355:#C4A574>Pike of the Realm"
   material: IRON_SWORD
   lore:
     - "<#6f737d>» <#D5D6D8>Hold right-click to charge"

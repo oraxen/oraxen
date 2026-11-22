@@ -240,7 +240,7 @@ public class ChorusBlockMechanicFactory extends MechanicFactory {
                         "type", MechanicConfigProperty.string("type", "ALLOW or DENY list type"),
                         "block_types", MechanicConfigProperty.list("block_types", "Block types to allow/deny")
                 )),
-                MechanicConfigProperty.list("events", "Click events with actions to run when the placed block is clicked")
+                MechanicConfigProperty.list("events", "Actions for placed block clicks or successful player breaks or placements. Use trigger: click with type: LEFT, RIGHT, or BOTH, trigger: break, or trigger: place. The trigger defaults to click; the legacy click filter remains supported.")
         );
     }
 }

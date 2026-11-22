@@ -5,12 +5,23 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
 public class ItemTemplate {
 
-    private static final Map<String, ItemLoader> itemTemplates = new HashMap<>();
+    private static volatile Map<String, ItemLoader> itemTemplates = new HashMap<>();
+
+    public static void replaceAll(Collection<ConfigurationSection> sections) {
+        Map<String, ItemLoader> templates = new HashMap<>();
+        for (ConfigurationSection section : sections) {
+            section.set("injectId", false);
+            OraxenYaml.invalidateKeyCache(section);
+            templates.put(section.getName(), new ItemLoader(section, templates));
+        }
+        itemTemplates = templates;
+    }
 
     public static void register(@NotNull ConfigurationSection section) {
         section.set("injectId", false);

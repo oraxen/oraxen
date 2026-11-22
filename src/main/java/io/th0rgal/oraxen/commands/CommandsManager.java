@@ -47,6 +47,7 @@ public class CommandsManager {
                         (new ReportCommand()).getReportCommand(),
                         (new DebugCommand()).getDebugCommand(),
                         (new ModelDataCommand()).getHighestModelDataCommand(),
+                        (new BlockLimitsCommand()).getBlockLimitsCommand(),
                         (new GlyphCommand()).getGlyphCommand(),
                         (new InfoCommand()).getInfoCommand(),
                         (new HudCommand()).getHudCommand(),

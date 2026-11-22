@@ -3,10 +3,14 @@ package io.th0rgal.oraxen.pack.generation;
 import com.google.gson.*;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.api.OraxenFurniture;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.api.events.OraxenPackGeneratedEvent;
 import io.th0rgal.oraxen.configs.AppearanceMode;
 import io.th0rgal.oraxen.configs.ResourcesManager;
 import io.th0rgal.oraxen.configs.Settings;
+import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
+import io.th0rgal.oraxen.compatibilities.provided.modelengine.ModelEngineCompatibility;
 import io.th0rgal.oraxen.glyphs.AnimatedGlyph;
 import io.th0rgal.oraxen.fonts.Font;
 import io.th0rgal.oraxen.fonts.FontManager;
@@ -18,11 +22,15 @@ import io.th0rgal.oraxen.pack.upload.UploadManager;
 import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.customarmor.ComponentArmorModels;
 import io.th0rgal.oraxen.utils.customarmor.CustomArmorType;
+import io.th0rgal.oraxen.utils.customarmor.LegacyArmorTextures;
 import io.th0rgal.oraxen.utils.customarmor.TrimArmorDatapack;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import net.kyori.adventure.key.Key;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Material;
+import org.bukkit.Bukkit;
+import org.bukkit.plugin.Plugin;
 
 import javax.imageio.ImageIO;
 import java.awt.AlphaComposite;
@@ -36,6 +44,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
 
@@ -50,7 +59,9 @@ public class ResourcePack {
     private final File pack = new File(packFolder, packFolder.getName() + ".zip");
     private final SoundGenerator soundGenerator = new SoundGenerator();
     private PackFileCollector fileCollector;
+    private PackExclusions packExclusions;
     private final TextShaderGenerator textShaderGenerator = new TextShaderGenerator();
+    private JsonArray mergedImportOverlayEntries = new JsonArray();
     /** Resolved multi-version flag (may differ from Settings if fallback occurred). */
     private boolean multiVersionResolved = false;
     private final AtomicBoolean generationInProgress = new AtomicBoolean(false);
@@ -69,6 +80,27 @@ public class ResourcePack {
             Logs.logWarning("Resource-pack generation is already in progress, skipping duplicate request");
             return;
         }
+
+        if (Settings.IMPORT_MODEL_ENGINE.toBool()
+                && CompatibilitiesManager.getActiveCompatibility("ModelEngine") instanceof ModelEngineCompatibility compatibility) {
+            var packReady = compatibility.getPackReady();
+            if (!packReady.isDone()) {
+                Logs.logInfo("Awaiting ModelEngine resource pack...");
+                packReady.copy().orTimeout(300, TimeUnit.SECONDS).whenComplete((ignored, exception) -> {
+                    if (shutdownRequested || !OraxenPlugin.get().isEnabled()) return;
+                    if (exception != null) Logs.logWarning("ModelEngine resource pack was not ready within 300 seconds; continuing pack generation");
+                    SchedulerUtil.runTask(() -> {
+                        if (!shutdownRequested) generateWhenReady();
+                    });
+                });
+                return;
+            }
+        }
+
+        generateWhenReady();
+    }
+
+    private void generateWhenReady() {
 
         // Re-evaluate dispatch mode normalization on each generation (covers reload)
         io.th0rgal.oraxen.pack.dispatch.PackSender.resetDispatchNormalization();
@@ -224,7 +256,7 @@ public class ResourcePack {
             return;
         }
         try {
-            soundGenerator.generateSound(output);
+            PackPipeline.processSnapshots(output, soundGenerator::generateSound);
 
             OraxenPackGeneratedEvent event = new OraxenPackGeneratedEvent(output);
             event.callEvent();
@@ -243,6 +275,7 @@ public class ResourcePack {
                     filterGeneratedCoreShadersBelow1214(output, MinecraftVersion.getCurrentVersion());
                     UnprotectedPackWriter.writeConfigured(output, packFolder);
                     PackObfuscator.obfuscate(output);
+                    PackPipeline.sparsifyGeneratedOverlays(output, mergedImportOverlayEntries);
                     if (shutdownRequested) return;
                     ZipUtils.writeZipFile(pack, output);
                     if (shutdownRequested) return;
@@ -302,7 +335,7 @@ public class ResourcePack {
 
     private void handleGenerationFailure(ExecutorService packWorker, String phase, Exception exception) {
         Logs.logError("Failed during " + phase);
-        exception.printStackTrace();
+        Logs.debug(exception);
         packWorker.shutdown();
         // Reset directly — do not rely on scheduler which may be unavailable during shutdown
         finishGeneration();
@@ -329,11 +362,13 @@ public class ResourcePack {
         componentArmorModels = CustomArmorType.getSetting() == CustomArmorType.COMPONENT ? new ComponentArmorModels()
                 : null;
         trimArmorDatapack = CustomArmorType.getSetting() == CustomArmorType.TRIMS ? new TrimArmorDatapack() : null;
-        fileCollector = new PackFileCollector(packFolder);
+        packExclusions = PackExclusions.load();
+        fileCollector = new PackFileCollector(packFolder, packExclusions);
 
         if (Settings.GENERATE_DEFAULT_ASSETS.toBool())
             extractDefaultFolders(missingDefaultFolders);
         extractRequired();
+        cleanLegacyArmorTextures();
 
         if (!Settings.GENERATE.toBool())
             return false;
@@ -347,7 +382,8 @@ public class ResourcePack {
         try {
             Files.deleteIfExists(pack.toPath());
         } catch (IOException e) {
-            e.printStackTrace();
+            Logs.logWarning("Failed to delete an obsolete resource pack archive.");
+            Logs.debug(e);
         }
 
         if (!isMcmetaGenerationDisabled()) {
@@ -357,6 +393,16 @@ public class ResourcePack {
         updatePackMcmeta();
 
         return true;
+    }
+
+    private void cleanLegacyArmorTextures() {
+        try {
+            int removed = LegacyArmorTextures.cleanExtractedDefaults(packFolder.toPath());
+            if (removed > 0)
+                Logs.logInfo("Removed " + removed + " unchanged legacy armor textures from the pack folder.");
+        } catch (IOException e) {
+            Logs.logWarning("Failed to clean legacy armor textures. " + e.getMessage());
+        }
     }
 
     private void cleanLegacyShaderOverlayDirectories() {
@@ -411,7 +457,7 @@ public class ResourcePack {
     private void applyArmorStandModelOverrides(List<VirtualFile> output) {
         Map<String, org.bukkit.util.Vector> scaleByModelPath = new LinkedHashMap<>();
 
-        for (Map.Entry<String, ItemBuilder> entry : OraxenItems.getEntries()) {
+        for (Map.Entry<String, ItemBuilder> entry : getRenderItems().entrySet()) {
             ItemBuilder item = entry.getValue();
             if (!item.hasOraxenMeta()) continue;
 
@@ -515,12 +561,13 @@ public class ResourcePack {
     /** Generates non-item assets: fonts, shaders, scoreboard tweaks, and armor. */
     private void generateMiscAssets() {
         generateFont();
+        // Runs before the pack.mcmeta update because it registers its own overlays.
+        textShaderGenerator.hideScoreboardOrTablistBackgrounds();
         updatePackMcmetaOverlays();
         // No version guard here: hideScoreboardNumbers() dispatches per version
         // (packet listener on Paper 1.20.3+, shaders below, warning on 26.x+).
         if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool())
             textShaderGenerator.hideScoreboardNumbers();
-        textShaderGenerator.hideScoreboardOrTablistBackgrounds();
     }
 
     /** Runs registered pack modifier callbacks. */
@@ -540,7 +587,8 @@ public class ResourcePack {
             handleCustomArmor(output);
             Collections.sort(output);
         } catch (IOException e) {
-            e.printStackTrace();
+            Logs.logError("Failed to collect resource pack files; generated output may be incomplete.");
+            Logs.debug(e);
         }
     }
 
@@ -556,8 +604,6 @@ public class ResourcePack {
                         folder.getName().matches("models|textures|lang|font|sounds") ? "assets/minecraft" : "");
             }
 
-        mergeUploadedPacks(output);
-        convertGlobalLang(output);
     }
 
     /**
@@ -566,14 +612,20 @@ public class ResourcePack {
      */
     private void postProcessOutput(List<VirtualFile> output) {
         postProcessOutputAsyncSafe(output);
-        soundGenerator.generateSound(output);
+        PackPipeline.processSnapshots(output, soundGenerator::generateSound);
     }
 
     private void postProcessOutputAsyncSafe(List<VirtualFile> output) {
-        Set<String> malformedTextures = new HashSet<>();
-        if (Settings.VERIFY_PACK_FILES.toBool())
-            malformedTextures = PackFileCollector.verifyPackFormatting(output);
+        mergeUploadedPacks(output);
+        PackPipeline.processSnapshots(output, this::convertGlobalLang);
+        Map<String, Set<String>> malformedFilesByLayer = Settings.VERIFY_PACK_FILES.toBool()
+                ? PackFileCollector.verifyPackFormatting(output)
+                : Collections.emptyMap();
+        PackPipeline.processSnapshots(output, (prefix, snapshot) ->
+                postProcessSnapshotAsyncSafe(snapshot, malformedFilesByLayer.getOrDefault(prefix, Collections.emptySet())));
+    }
 
+    private void postProcessSnapshotAsyncSafe(List<VirtualFile> output, Set<String> malformedTextures) {
         if (Settings.GENERATE_ATLAS_FILE.toBool()) {
             boolean includeSplitItemAtlas = multiVersionResolved
                     || PlatformCapabilities.supportsSplitItemAtlas(PlatformCapabilities.currentVersion());
@@ -584,7 +636,7 @@ public class ResourcePack {
             DuplicationHandler.mergeFontFiles(output);
         if (Settings.MERGE_ITEM_MODELS.toBool())
             DuplicationHandler.mergeBaseItemFiles(output);
-        DuplicationHandler.mergeVanillaItemDefinitions(output, multiVersionResolved);
+        DuplicationHandler.mergeVanillaItemDefinitions(output, multiVersionResolved, false);
 
         List<String> excludedExtensions = Settings.EXCLUDED_FILE_EXTENSIONS.toStringList();
         excludedExtensions.removeIf(f -> f.equals("png") || f.equals("json"));
@@ -616,7 +668,7 @@ public class ResourcePack {
         // Use MultiVersionPackGenerator for multi-version zip and upload
         MultiVersionPackGenerator multiVersionGenerator = new MultiVersionPackGenerator(packFolder,
                 textShaderGenerator.getGeneratedCoreShaderHashes());
-        multiVersionGenerator.generateMultipleVersions(output, switchingFromSinglePack);
+        multiVersionGenerator.generateMultipleVersions(output, switchingFromSinglePack, mergedImportOverlayEntries);
     }
 
     private void filterGeneratedCoreShadersBelow1214(List<VirtualFile> output, MinecraftVersion targetVersion) {
@@ -706,7 +758,7 @@ public class ResourcePack {
             Files.writeString(mcmetaPath, gson.toJson(root), StandardCharsets.UTF_8);
         } catch (Exception e) {
             if (Settings.DEBUG.toBool())
-                e.printStackTrace();
+                Logs.debug(e);
             Logs.logWarning("Failed to update pack.mcmeta with shader overlays. Keeping existing file.");
         }
     }
@@ -844,7 +896,7 @@ public class ResourcePack {
     }
 
     private boolean isMcmetaGenerationDisabled() {
-        return Boolean.TRUE.equals(Settings.DISABLE_MCMETA_GENERATION.getValue());
+        return !Boolean.TRUE.equals(Settings.GENERATE_MCMETA.getValue());
     }
 
 
@@ -874,14 +926,14 @@ public class ResourcePack {
     }
 
     private boolean isSuitable(String entryName, Set<String> foldersToExtract) {
+        if (LegacyArmorTextures.isLegacyPackResource(entryName)) return false;
         String name = StringUtils.substringAfter(entryName, "pack/").split("/")[0];
         return foldersToExtract.contains(name);
     }
 
     private void extractRequired() {
         ResourcesManager.browseJar(entry -> {
-            if (entry.getName().startsWith("pack/textures/models/armor/leather_layer_")
-                    || entry.getName().startsWith("pack/textures/required")
+            if (entry.getName().startsWith("pack/textures/required")
                     || entry.getName().startsWith("pack/models/required")) {
                 OraxenPlugin.get().getResourceManager().extractFileIfTrue(entry,
                         !OraxenPlugin.get().getDataFolder().toPath().resolve(entry.getName()).toFile().exists());
@@ -894,9 +946,20 @@ public class ResourcePack {
         resourcesManager.extractFileIfTrue(entry, isSuitable);
     }
 
+    private Map<String, ItemBuilder> getRenderItems() {
+        Map<String, ItemBuilder> items = new LinkedHashMap<>();
+        for (Map.Entry<String, ItemBuilder> entry : OraxenItems.getEntries()) {
+            items.put(entry.getKey(), entry.getValue());
+            FurnitureMechanic furniture = OraxenFurniture.getFurnitureMechanic(entry.getKey());
+            if (furniture != null)
+                items.putAll(furniture.getAppearanceRenderItems(entry.getValue().getType()));
+        }
+        return items;
+    }
+
     private Map<Material, Map<String, ItemBuilder>> extractTexturedItems() {
         final Map<Material, Map<String, ItemBuilder>> texturedItems = new HashMap<>();
-        for (final Map.Entry<String, ItemBuilder> entry : OraxenItems.getEntries()) {
+        for (final Map.Entry<String, ItemBuilder> entry : getRenderItems().entrySet()) {
             final String itemId = entry.getKey();
             final ItemBuilder item = entry.getValue();
             OraxenMeta oraxenMeta = item.getOraxenMeta();
@@ -1102,37 +1165,46 @@ public class ResourcePack {
         if (!fontManager.autoGenerate)
             return;
 
-        // Generate the main default font with glyphs
-        final JsonObject output = new JsonObject();
-        final JsonArray providers = new JsonArray();
-        for (final Glyph glyph : fontManager.getGlyphs()) {
+        Map<Key, JsonArray> providersByFont = new LinkedHashMap<>();
+        for (final Glyph glyph : fontManager.getBaseGlyphs()) {
             if (glyph.hasBitmap()) continue;
             JsonObject glyphJson = glyph.toJson();
-            if (glyphJson != null) providers.add(glyphJson);
+            if (glyphJson != null) fontProviders(providersByFont, glyph.getTargetFont()).add(glyphJson);
         }
         for (FontManager.GlyphBitMap glyphBitMap : FontManager.glyphBitMaps.values()) {
-            providers.add(glyphBitMap.toJson(fontManager));
+            Set<Key> targetFonts = new HashSet<>();
+            for (Glyph glyph : fontManager.getBaseGlyphs()) {
+                if (glyph.hasBitmap() && glyph.getBitMap() != null && glyph.getBitMap().equals(glyphBitMap))
+                    targetFonts.add(glyph.getTargetFont());
+            }
+            for (Key targetFont : targetFonts)
+                fontProviders(providersByFont, targetFont).add(glyphBitMap.toJson(fontManager, targetFont));
         }
         for (final Font font : fontManager.getFonts()) {
-            providers.add(font.toJson());
+            fontProviders(providersByFont, Key.key("minecraft", "default")).add(font.toJson());
         }
 
         // Add shift provider to default font for backward compatibility.
         // This allows getShift() to work in plain strings (e.g., GUI titles)
         // without requiring the oraxen:shift font to be explicitly applied.
         ShiftProvider shiftProvider = fontManager.getShiftProvider();
-        providers.add(shiftProvider.toProviderJson());
+        fontProviders(providersByFont, Key.key("minecraft", "default")).add(shiftProvider.toProviderJson());
 
-        output.add("providers", providers);
-        writeStringToVirtual("assets/minecraft/font", "default.json", output.toString());
-        if (Settings.FIX_FORCE_UNICODE_GLYPHS.toBool())
-            writeStringToVirtual("assets/minecraft/font", "uniform.json", output.toString());
+        // Process animated glyph fonts
+        boolean hasAnimatedGlyphs = processAnimatedGlyphs(fontManager, providersByFont);
+
+        if (Settings.FIX_FORCE_UNICODE_GLYPHS.toBool()) {
+            JsonArray uniformProviders = new JsonArray();
+            fontProviders(providersByFont, Key.key("minecraft", "default"))
+                    .forEach(provider -> uniformProviders.add(provider.deepCopy()));
+            fontProviders(providersByFont, Key.key("minecraft", "uniform"))
+                    .forEach(provider -> uniformProviders.add(provider.deepCopy()));
+            providersByFont.put(Key.key("minecraft", "uniform"), uniformProviders);
+        }
+        providersByFont.forEach(this::writeFont);
 
         // Generate the dedicated shift font (still useful for explicit font references)
         generateShiftFont(fontManager);
-
-        // Process animated glyph fonts
-        boolean hasAnimatedGlyphs = processAnimatedGlyphs(fontManager);
 
         // Generate text shaders when animated glyphs are present.
         // In multi-version mode the choice depends on the *server* version:
@@ -1168,7 +1240,7 @@ public class ResourcePack {
     /**
      * Processes animated glyphs: validates sprite sheets and generates font files.
      */
-    private boolean processAnimatedGlyphs(FontManager fontManager) {
+    private boolean processAnimatedGlyphs(FontManager fontManager, Map<Key, JsonArray> providersByFont) {
         Collection<AnimatedGlyph> animatedGlyphs = fontManager.getAnimatedGlyphs();
         if (animatedGlyphs.isEmpty()) {
             return false;
@@ -1183,7 +1255,7 @@ public class ResourcePack {
         }
 
         for (AnimatedGlyph animGlyph : animatedGlyphs) {
-            processAnimatedGlyph(animGlyph);
+            processAnimatedGlyph(animGlyph, providersByFont);
         }
         return true;
     }
@@ -1191,7 +1263,7 @@ public class ResourcePack {
     /**
      * Processes a single animated glyph: validates sprite sheet and generates font.
      */
-    private void processAnimatedGlyph(AnimatedGlyph animGlyph) {
+    private void processAnimatedGlyph(AnimatedGlyph animGlyph, Map<Key, JsonArray> providersByFont) {
         File textureFile = animGlyph.getTextureFile(packFolder.toPath());
 
         if (!textureFile.exists()) {
@@ -1233,7 +1305,7 @@ public class ResourcePack {
             }
 
             animGlyph.setProcessed(spriteSheetPath, frameWidthPx, frameHeightPx);
-            generateAnimationFont(animGlyph);
+            generateAnimationFont(animGlyph, providersByFont);
         } catch (IOException e) {
             Logs.logError("Failed to process sprite sheet for: " + animGlyph.getName());
             Logs.debug(e);
@@ -1326,11 +1398,11 @@ public class ResourcePack {
     /**
      * Generates the font file for an animated glyph.
      */
-    private void generateAnimationFont(AnimatedGlyph animGlyph) {
+    private void generateAnimationFont(AnimatedGlyph animGlyph, Map<Key, JsonArray> providersByFont) {
         JsonObject fontJson = animGlyph.toFontJson();
         if (fontJson != null) {
-            writeStringToVirtual("assets/oraxen/font/animations", animGlyph.getName() + ".json",
-                    fontJson.toString());
+            fontJson.getAsJsonArray("providers").forEach(provider ->
+                    fontProviders(providersByFont, animGlyph.getAnimationFont()).add(provider));
             if (Settings.DEBUG.toBool()) {
                 Logs.logSuccess("Generated animation font for: " + animGlyph.getName() +
                         " (" + animGlyph.getFrameCount() + " frames @ " + animGlyph.getFps() + " fps)");
@@ -1338,6 +1410,17 @@ public class ResourcePack {
         }
     }
 
+    private static JsonArray fontProviders(Map<Key, JsonArray> providersByFont, Key font) {
+        return providersByFont.computeIfAbsent(font, ignored -> new JsonArray());
+    }
+
+    private void writeFont(Key font, JsonArray providers) {
+        JsonObject output = new JsonObject();
+        output.add("providers", providers);
+        String path = "assets/" + font.namespace() + "/font/" + font.value() + ".json";
+        int separator = path.lastIndexOf('/');
+        writeStringToVirtual(path.substring(0, separator), path.substring(separator + 1), output.toString());
+    }
 
     public static void writeStringToVirtual(String folder, String name, String content) {
         addOutputFiles(
@@ -1380,7 +1463,8 @@ public class ResourcePack {
         } catch (IOException e) {
             Logs.logError("Failed to write generated texture: " + folder + "/" + name);
             if (Settings.DEBUG.toBool())
-                e.printStackTrace();
+                Logs.logWarning("Failed to generate or copy a resource pack texture.");
+                Logs.debug(e);
         }
     }
 
@@ -1402,12 +1486,45 @@ public class ResourcePack {
     }
 
     private void mergeUploadedPacks(List<VirtualFile> output) {
-        PackMerger packMerger = new PackMerger(packFolder);
-        List<VirtualFile> mergedFiles = packMerger.mergeUploadedPacks();
-        PackMcmetaUtils.mergeOverlayEntriesIntoOutput(output, packMerger.getMergedOverlayEntries());
-
-        if (!mergedFiles.isEmpty()) {
-            output.addAll(mergedFiles);
+        mergedImportOverlayEntries = new JsonArray();
+        boolean preserveNativeOverlays = isMcmetaGenerationDisabled();
+        PackMerger packMerger = new PackMerger(packFolder, packExclusions);
+        packMerger.setConvertLegacyItemModels(multiVersionResolved
+                || (VersionUtil.atOrAbove("1.21.4") && AppearanceMode.shouldGenerateVanillaItemDefinitions()));
+        packMerger.mergeUploadedPacks();
+        if (Settings.IMPORT_MODEL_ENGINE.toBool()) {
+            Plugin modelEngine = Bukkit.getPluginManager().getPlugin("ModelEngine");
+            if (modelEngine != null && modelEngine.isEnabled()) {
+                File modelEnginePack = new File(modelEngine.getDataFolder(), "resource pack.zip");
+                if (!modelEnginePack.isFile()) modelEnginePack = new File(modelEngine.getDataFolder(), "resource pack");
+                if (modelEnginePack.exists()) {
+                    packMerger.mergeModelEnginePack(modelEnginePack);
+                } else {
+                    Logs.logWarning("Could not find ModelEngine resource pack.zip or resource pack folder");
+                }
+            }
+        }
+        PackPipeline.mergeNativeFiles(output, !Boolean.FALSE.equals(Settings.MERGE_DUPLICATE_FONTS.getValue()));
+        List<VirtualFile> resolvedFiles = packMerger.mergeWithHigherPriorityFiles(output, preserveNativeOverlays);
+        mergedImportOverlayEntries = packMerger.getMergedOverlayEntries();
+        output.removeIf(file -> file.getPath().startsWith("assets/") || file.getPath().contains("/assets/")
+                || file.getPath().equals("pack.png"));
+        output.addAll(resolvedFiles);
+        for (VirtualFile file : output) {
+            if (!file.getPath().equals("pack.mcmeta") || !file.isJsonObject()) continue;
+            JsonObject metadata = file.toJsonObject();
+            JsonObject languages = packMerger.getMergedLanguageMetadata();
+            if (!languages.isEmpty()) metadata.add("language", languages);
+            JsonObject filters = packMerger.getMergedFilterMetadata();
+            if (!filters.isEmpty()) metadata.add("filter", filters);
+            if (preserveNativeOverlays) {
+                PackMcmetaUtils.appendOverlayEntries(metadata, mergedImportOverlayEntries);
+            } else {
+                JsonObject overlays = new JsonObject();
+                overlays.add("entries", mergedImportOverlayEntries.deepCopy());
+                metadata.add("overlays", overlays);
+            }
+            file.setInputStream(new ByteArrayInputStream(metadata.toString().getBytes(StandardCharsets.UTF_8)));
         }
     }
 
@@ -1430,17 +1547,12 @@ public class ResourcePack {
             return;
 
         for (String lang : availableLanguageCodes) {
-            File langFile = new File(packFolder, "lang/" + lang + ".json");
             JsonObject langJson = new JsonObject();
 
-            // If the file is in the pack, we want to keep the existing entries over global
-            // ones
-            if (langFile.exists()) {
-                try {
-                    langJson = JsonParser.parseString(Files.readString(langFile.toPath(), StandardCharsets.UTF_8))
-                            .getAsJsonObject();
-                } catch (IOException | IllegalStateException ignored) {
-                }
+            String localePath = "assets/minecraft/lang/" + lang + ".json";
+            for (VirtualFile file : output) {
+                if (file.getPath().equals(localePath) && file.isJsonObject())
+                    langJson = PackAssetMerger.mergeJson("assets/minecraft/lang/locale.json", langJson, file.toJsonObject());
             }
 
             for (Map.Entry<String, JsonElement> entry : globalLang.entrySet()) {

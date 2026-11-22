@@ -44,6 +44,21 @@ class TextShaderGeneratorTest {
     }
 
     @Test
+    void unifiedTextShaderGuardsFogImportsForGuiAndSeeThroughPipelines() {
+        TextShaderTarget target = TextShaderTarget.forVersion("26.2");
+        TextShaderGenerator.TextShaderFeatures features =
+                new TextShaderGenerator.TextShaderFeatures(false);
+        String guardedFogImport = """
+                #if !defined(IS_GUI) && !defined(IS_SEE_THROUGH)
+                #moj_import <minecraft:fog.glsl>
+                #endif
+                """;
+
+        assertTrue(generator.getAnimationVertexShader26_2(target, features).contains(guardedFogImport));
+        assertTrue(generator.getAnimationFragmentShader26_2(target).contains(guardedFogImport));
+    }
+
+    @Test
     void unifiedTextShaderServersKeepTheirShadersInAnOverlay() {
         for (String version : new String[]{"26.2", "26.3"}) {
             TextShaderTarget target = TextShaderTarget.forVersion(version);
@@ -51,6 +66,24 @@ class TextShaderGeneratorTest {
             assertNotNull(overlay, version);
             assertTrue(TextShaderGenerator.keepsServerShadersInOverlay(target, overlay, false), version);
         }
+    }
+
+    @Test
+    void scoreboardBackgroundShaderMatchesEachOverlaysGuiInterface() {
+        for (ShaderOverlay overlay : new ShaderOverlay[]{ShaderOverlay.V1_20_2, ShaderOverlay.V1_21_4}) {
+            String shader = TextShaderGenerator.getScoreboardBackgroundShader(overlay);
+            assertTrue(shader.contains("uniform mat4 ModelViewMat;"), overlay.name());
+            assertFalse(shader.contains("dynamictransforms"), overlay.name());
+        }
+        for (ShaderOverlay overlay : new ShaderOverlay[]{ShaderOverlay.V1_21_6, ShaderOverlay.V26, ShaderOverlay.V26_2}) {
+            String shader = TextShaderGenerator.getScoreboardBackgroundShader(overlay);
+            assertTrue(shader.contains("#moj_import <minecraft:dynamictransforms.glsl>"), overlay.name());
+            assertFalse(shader.contains("uniform mat4"), overlay.name());
+        }
+        String shaderC = TextShaderGenerator.getScoreboardBackgroundShader(ShaderOverlay.V26_3);
+        assertTrue(shaderC.contains("#include <minecraft:projection.glsl>"));
+        assertFalse(shaderC.contains("#moj_import"));
+        assertTrue(shaderC.contains("layout(location = 0) out vec4 vertexColor;"));
     }
 
     @Test

@@ -3,7 +3,7 @@
 
 # Crystal Mushroom Log - animated bark texture
 crystalmush_log:
-  displayname: "<gradient:#9966FF:#FF66CC>Crystal Mushroom Log"
+  name: "<gradient:#9966FF:#FF66CC>Crystal Mushroom Log"
   material: PAPER
   pack:
     generate_model: true
@@ -44,7 +44,7 @@ crystalmush_log:
 
 # Crystal Mushroom Planks - animated plank texture
 crystalmush_planks:
-  displayname: "<gradient:#9966FF:#FF66CC>Crystal Mushroom Planks"
+  name: "<gradient:#9966FF:#FF66CC>Crystal Mushroom Planks"
   material: PAPER
   pack:
     generate_model: true
@@ -85,7 +85,7 @@ crystalmush_planks:
 # Crystal Mushroom Leaves - transparent animated leaves using copper bulb blockstates
 # BULB type uses copper bulbs which allow custom transparent full blocks with block/leaves parent
 crystalmush_leaves:
-  displayname: "<gradient:#9966FF:#FF66CC>Crystal Mushroom Leaves"
+  name: "<gradient:#9966FF:#FF66CC>Crystal Mushroom Leaves"
   material: PAPER
   pack:
     generate_model: true
@@ -124,7 +124,7 @@ crystalmush_leaves:
 
 # Crystal Mushroom Trapdoor - animated trapdoor
 crystalmush_trapdoor:
-  displayname: "<gradient:#9966FF:#FF66CC>Crystal Mushroom Trapdoor"
+  name: "<gradient:#9966FF:#FF66CC>Crystal Mushroom Trapdoor"
   material: PAPER
   pack:
     generate_model: true
@@ -164,7 +164,7 @@ crystalmush_trapdoor:
 
 # Crystal Mushroom Door
 crystalmush_door:
-  displayname: "<gradient:#9966FF:#FF66CC>Crystal Mushroom Door"
+  name: "<gradient:#9966FF:#FF66CC>Crystal Mushroom Door"
   material: PAPER
   pack:
     generate_model: true
@@ -207,7 +207,7 @@ crystalmush_door:
 
 # Crystal Mushroom Stairs
 crystalmush_stairs:
-  displayname: "<gradient:#9966FF:#FF66CC>Crystal Mushroom Stairs"
+  name: "<gradient:#9966FF:#FF66CC>Crystal Mushroom Stairs"
   material: PAPER
   pack:
     generate_model: true
@@ -247,7 +247,7 @@ crystalmush_stairs:
 
 # Crystal Mushroom Slab
 crystalmush_slab:
-  displayname: "<gradient:#9966FF:#FF66CC>Crystal Mushroom Slab"
+  name: "<gradient:#9966FF:#FF66CC>Crystal Mushroom Slab"
   material: PAPER
   pack:
     generate_model: true

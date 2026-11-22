@@ -11,6 +11,7 @@ import org.bukkit.Sound;
 import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import io.th0rgal.oraxen.utils.logs.Logs;
 
 /**
  * A mechanic that enables a spear-style lunge attack with model swapping.
@@ -152,7 +153,7 @@ public class SpearLungeMechanic extends Mechanic {
             return Particle.CRIT;
         } catch (Exception e) {
             // Unexpected error - log with stack trace for diagnostics
-            e.printStackTrace();
+            Logs.debug(e);
             return Particle.CRIT;
         }
     }
@@ -170,7 +171,7 @@ public class SpearLungeMechanic extends Mechanic {
             return Sound.ENTITY_PLAYER_ATTACK_SWEEP;
         } catch (Exception e) {
             // Unexpected error - log with stack trace for diagnostics
-            e.printStackTrace();
+            Logs.debug(e);
             return Sound.ENTITY_PLAYER_ATTACK_SWEEP;
         }
     }

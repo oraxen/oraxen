@@ -43,10 +43,10 @@ public final class ItemComponents {
     }
 
     private void parseDataComponents(final ItemBuilder item, final ConfigurationSection section) {
-        if (section.contains("itemname") && VersionUtil.atOrAbove("1.20.5"))
-            applyItemName(item, section, "itemname");
-        else if (section.contains("displayname"))
-            applyItemName(item, section, "displayname");
+        if (section.contains("name"))
+            applyItemName(item, section, "name");
+        if (section.contains("custom-name"))
+            applyItemName(item, section, "custom-name");
 
         final ConfigurationSection components = section.getConfigurationSection("components");
         applyRemainingComponents(item, components);
@@ -63,7 +63,10 @@ public final class ItemComponents {
             Logs.logWarning("Invalid non-text \"" + key + "\" value for item \"" + this.section.getName() + "\"; skipping it.");
             return;
         }
-        item.setItemName(AdventureUtils.parseMiniMessage(name));
+        if (key.equals("name") && VersionUtil.atOrAbove("1.20.5"))
+            item.setItemName(AdventureUtils.parseMiniMessage(name));
+        else
+            item.setDisplayName(name);
     }
 
     private void applyRemainingComponents(final ItemBuilder item, final ConfigurationSection components) {

@@ -197,7 +197,7 @@ public class StringBlockMechanicListener implements Listener {
         if (mechanic.isStackable() && event.getItem() != null) {
             String heldItemId = OraxenItems.getIdByItem(event.getItem());
             if (heldItemId != null && heldItemId.equals(mechanic.getItemID())) {
-                if (handleStackInteraction(mechanic, block, event.getPlayer(), event.getItem())) {
+                if (handleStackInteraction(mechanic, block, event.getPlayer(), event.getItem(), event.getHand())) {
                     event.setCancelled(true);
                     return;
                 }
@@ -213,17 +213,33 @@ public class StringBlockMechanicListener implements Listener {
 
     /**
      * Handles stacking a block to its next stack level.
-     * Returns true if the block was stacked, false if already at max level.
+     * Returns true if stacking handled the interaction, false if already at max level.
      */
-    private boolean handleStackInteraction(StringBlockMechanic mechanic, Block block, Player player, ItemStack item) {
+    private boolean handleStackInteraction(StringBlockMechanic mechanic, Block block, Player player, ItemStack item,
+                                           EquipmentSlot hand) {
         Tripwire tripwire = (Tripwire) block.getBlockData();
         int currentVariation = StringBlockMechanicFactory.getCode(tripwire);
 
         StringBlockMechanic.StackVariation nextStack = mechanic.getNextStackVariation(currentVariation);
         if (nextStack == null) return false; // Already at max stack level
 
-        // Swap the block to the next stack variation
+        if (!AntiGriefLib.canBuild(player, block.getLocation())) return true;
+
+        var replacedState = block.getState();
         block.setBlockData(StringBlockMechanicFactory.createTripwireData(nextStack.customVariation()), false);
+
+        BlockPlaceEvent placeEvent = new BlockPlaceEvent(block, replacedState, block,
+                item, player, true, hand);
+        if (!placeEvent.callEvent() || !placeEvent.canBuild()) {
+            block.setBlockData(tripwire, false);
+            return true;
+        }
+        OraxenStringBlockPlaceEvent oraxenPlaceEvent = new OraxenStringBlockPlaceEvent(
+                mechanic, block, player, item, hand);
+        if (!oraxenPlaceEvent.callEvent()) {
+            block.setBlockData(tripwire, false);
+            return true;
+        }
 
         if (player.getGameMode() != GameMode.CREATIVE) {
             item.setAmount(item.getAmount() - 1);
@@ -237,6 +253,7 @@ public class StringBlockMechanicListener implements Listener {
                     mechanic.getBlockSounds().getPlacePitch());
         }
 
+        mechanic.runPlaceEvents(player);
         return true;
     }
 
@@ -694,6 +711,7 @@ public class StringBlockMechanicListener implements Listener {
             if (player.getGameMode() != GameMode.CREATIVE)
                 item.setAmount(item.getAmount() - 1);
             Utils.swingHand(player, hand);
+            mechanic.runPlaceEvents(player);
         } else {
             target.setType(Material.AIR);
             BlockHelpers.correctAllBlockStates(placedAgainst, player, hand, face, item, newData);

@@ -10,6 +10,7 @@ import io.th0rgal.oraxen.protection.AntiGriefLib;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.IOException;
+import io.th0rgal.oraxen.utils.logs.Logs;
 
 public class DebugCommand {
 
@@ -29,7 +30,8 @@ public class DebugCommand {
                         AntiGriefLib.setDebug(debugState);
                         Message.DEBUG_TOGGLE.send(sender, AdventureUtils.tagResolver("state", state));
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        Logs.logError("Failed to save the debug settings.");
+                        Logs.debug(e);
                     }
                 });
     }

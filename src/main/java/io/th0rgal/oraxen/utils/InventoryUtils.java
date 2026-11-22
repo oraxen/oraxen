@@ -8,6 +8,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 
 import java.lang.reflect.Method;
+import io.th0rgal.oraxen.utils.logs.Logs;
 
 public class InventoryUtils {
 
@@ -44,7 +45,7 @@ public class InventoryUtils {
         try {
             return (Component) titleMethod.invoke(event.getView());
         } catch (Exception e) {
-            if (Settings.DEBUG.toBool()) e.printStackTrace();
+            Logs.debug(e);
             return Component.empty();
         }
     }
@@ -54,7 +55,7 @@ public class InventoryUtils {
         try {
             return (Player) playerFromViewMethod.invoke(event.getView());
         } catch (Exception e) {
-            if (Settings.DEBUG.toBool()) e.printStackTrace();
+            Logs.debug(e);
             return null;
         }
     }
@@ -65,7 +66,7 @@ public class InventoryUtils {
         try {
             return (String) getTitleMethod.invoke(event.getView());
         } catch (Exception e) {
-            if (Settings.DEBUG.toBool()) e.printStackTrace();
+            Logs.debug(e);
             return "";
         }
     }
@@ -75,7 +76,7 @@ public class InventoryUtils {
         try {
             return (Inventory) topInventoryMethod.invoke(player.getOpenInventory());
         } catch (Exception e) {
-            if (Settings.DEBUG.toBool()) e.printStackTrace();
+            Logs.debug(e);
             return player.getInventory();
         }
     }

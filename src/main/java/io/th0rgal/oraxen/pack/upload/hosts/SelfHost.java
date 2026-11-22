@@ -53,7 +53,7 @@ public class SelfHost implements HostingProvider {
             return true;
         } catch (Exception e) {
             Logs.logError("Failed to self-host the resource pack");
-            e.printStackTrace();
+            Logs.debug(e);
             return false;
         }
     }

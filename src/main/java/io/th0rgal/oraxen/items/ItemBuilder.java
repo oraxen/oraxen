@@ -1028,7 +1028,7 @@ public class ItemBuilder {
             } catch (NoSuchMethodError | UnsupportedOperationException e) {
                 if (Settings.DEBUG.toBool()) {
                     Logs.logWarning("Failed to set JukeboxPlayable - this feature requires Paper");
-                    e.printStackTrace();
+                    Logs.debug(e);
                 }
             }
         }
@@ -1059,13 +1059,11 @@ public class ItemBuilder {
         if (displayName == null && displayNameMessage == null)
             return;
 
-        if (!VersionUtil.atOrAbove("1.20.5"))
-            pdc.set(ORIGINAL_NAME_KEY, DataType.STRING,
-                    displayNameMessage != null ? displayNameMessage.toString() : displayName);
-
         Component nameComponent = buildDisplayNameComponent();
         nameComponent = nameComponent.decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE)
                 .colorIfAbsent(NamedTextColor.WHITE);
+        if (!VersionUtil.atOrAbove("1.20.5"))
+            pdc.set(ORIGINAL_NAME_KEY, DataType.STRING, AdventureUtils.MINI_MESSAGE.serialize(nameComponent));
         ItemUtils.setDisplayName(itemMeta, nameComponent);
     }
 
@@ -1251,7 +1249,8 @@ public class ItemBuilder {
                         yamlConfiguration.save(entry.getKey());
                     } catch (IOException e) {
                         if (Settings.DEBUG.toBool())
-                            e.printStackTrace();
+                            Logs.logError("Failed to save the generated item configuration.");
+                            Logs.debug(e);
                     }
                 });
     }

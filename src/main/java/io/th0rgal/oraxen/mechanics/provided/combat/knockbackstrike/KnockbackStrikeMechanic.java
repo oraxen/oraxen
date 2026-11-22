@@ -194,7 +194,7 @@ public class KnockbackStrikeMechanic extends Mechanic {
             return Particle.CRIT;
         } catch (Exception e) {
             Logs.logError("Unexpected error parsing particle " + particleName + ": " + e.getMessage());
-            e.printStackTrace();
+            Logs.debug(e);
             return Particle.CRIT;
         }
     }

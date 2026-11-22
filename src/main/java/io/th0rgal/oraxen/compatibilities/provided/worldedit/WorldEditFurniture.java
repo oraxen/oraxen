@@ -103,7 +103,7 @@ public final class WorldEditFurniture implements Listener {
             // Recreated hitboxes and seats have new UUIDs. Keep their new links while
             // restoring storage, evolution, and other data from WorldEdit's snapshot.
             for (NamespacedKey key : List.of(restoreKey, restoredKey, BASE_ENTITY_KEY, INTERACTION_KEY,
-                    INTERACTIONS_KEY, SEAT_KEY, SEATS_KEY)) {
+                    INTERACTIONS_KEY, GHASTS_KEY, SHULKERS_KEY, SEAT_KEY, SEATS_KEY)) {
                 savedData.remove(key);
                 data.remove(key);
             }
@@ -167,8 +167,15 @@ public final class WorldEditFurniture implements Listener {
             });
     }
 
+    // A tick thread blocking on another region stalls both regions and can deadlock (Folia).
+    private static void ensureMayWaitForRegion() {
+        if (Bukkit.isPrimaryThread())
+            throw new IllegalStateException("Cannot edit furniture owned by another region from a tick thread");
+    }
+
     private static <T> T atEntity(Entity entity, Supplier<T> action) {
         if (Bukkit.isOwnedByCurrentRegion(entity)) return action.get();
+        ensureMayWaitForRegion();
         CompletableFuture<T> result = new CompletableFuture<>();
         SchedulerUtil.ScheduledTask task = SchedulerUtil.runForEntity(entity, () -> {
             try {
@@ -183,6 +190,7 @@ public final class WorldEditFurniture implements Listener {
 
     private static <T> T atLocation(Location location, Supplier<T> action) {
         if (Bukkit.isOwnedByCurrentRegion(location)) return action.get();
+        ensureMayWaitForRegion();
         CompletableFuture<T> result = new CompletableFuture<>();
         SchedulerUtil.runAtLocation(location, () -> {
             try {

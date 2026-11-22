@@ -6,6 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 /**
  * Represents a specific version of a resource pack targeting a Minecraft client version range.
@@ -19,7 +20,7 @@ public class PackVersion implements Comparable<PackVersion> {
     private final File packFile;
     // Written on async upload thread, read from main/event thread — must be volatile.
     private volatile UUID packUUID;
-    private volatile String packURL;
+    private volatile Supplier<String> packURL = () -> null;
     private volatile byte[] packSHA1;
 
     /**
@@ -66,11 +67,16 @@ public class PackVersion implements Comparable<PackVersion> {
     }
 
     public String getPackURL() {
-        return packURL;
+        return packURL.get();
     }
 
     public void setPackURL(String packURL) {
-        this.packURL = packURL;
+        this.packURL = () -> packURL;
+    }
+
+    /** Sets where the download URL comes from, so providers can renew expiring links. */
+    public void setPackURLSource(Supplier<String> packURLSource) {
+        this.packURL = packURLSource == null ? () -> null : packURLSource;
     }
 
     public byte[] getPackSHA1() {

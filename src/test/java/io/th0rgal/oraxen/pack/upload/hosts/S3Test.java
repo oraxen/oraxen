@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.pack.upload.hosts;
 
 import com.sun.net.httpserver.HttpServer;
+import io.th0rgal.oraxen.pack.generation.PackVersion;
 import io.th0rgal.oraxen.utils.HashUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.configuration.MemoryConfiguration;
@@ -18,9 +19,15 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mockStatic;
@@ -116,6 +123,53 @@ class S3Test {
     }
 
     @Test
+    void privateBucketRenewsSignedUrlsBeforeExpiryWithoutUploadingAgain() throws Exception {
+        config.set("public-url", "");
+        config.set("presigned-url-expiry", 3600);
+        TestClock clock = new TestClock();
+        S3 provider = new S3(config, clock);
+        assertTrue(provider.uploadPack(pack("old.zip", "old pack").toFile(), "1.21.4"));
+        String hash = provider.getOriginalSHA1();
+        UUID uuid = provider.getPackUUID();
+        String signed = provider.getPackURL();
+        // Multi-version packs keep the link of their own upload while the shared provider uploads others.
+        PackVersion packVersion = new PackVersion("1.21.4", 46, 46, 46, tempDir.resolve("old.zip").toFile());
+        packVersion.setPackURLSource(provider.getPackURLSource());
+        assertTrue(provider.uploadPack(pack("new.zip", "new pack").toFile(), "1.21.5"));
+        assertEquals(2, uploads.size());
+
+        clock.advance(Duration.ofMinutes(29));
+        assertEquals(signed, packVersion.getPackURL());
+
+        waitForNextSigningSecond();
+        clock.advance(Duration.ofMinutes(1));
+        String renewed = packVersion.getPackURL();
+        assertNotEquals(signed, renewed);
+        assertEquals(URI.create(signed).getPath(), URI.create(renewed).getPath());
+        assertTrue(URLDecoder.decode(URI.create(renewed).getRawQuery(), StandardCharsets.UTF_8).contains("X-Amz-Expires=3600"));
+        assertEquals(renewed, packVersion.getPackURL());
+        assertTrue(provider.getPackURL().contains("pack-1.21.5-"));
+        assertEquals(2, uploads.size());
+
+        assertTrue(provider.uploadPack(pack("old-again.zip", "old pack").toFile(), "1.21.4"));
+        assertEquals(hash, provider.getOriginalSHA1());
+        assertEquals(uuid, provider.getPackUUID());
+    }
+
+    @Test
+    void publicUrlDoesNotChangeOverTime() throws IOException {
+        TestClock clock = new TestClock();
+        S3 provider = new S3(config, clock);
+        assertTrue(provider.uploadPack(pack("pack.zip", "public pack").toFile()));
+        String url = provider.getPackURL();
+        Supplier<String> source = provider.getPackURLSource();
+        clock.advance(Duration.ofDays(30));
+        assertEquals(url, provider.getPackURL());
+        assertEquals(url, source.get());
+        assertEquals(1, uploads.size());
+    }
+
+    @Test
     void rejectedUploadPreservesLastSuccessfulState() throws IOException {
         S3 provider = new S3(config);
         assertTrue(provider.uploadPack(pack("old.zip", "old content").toFile()));
@@ -160,6 +214,21 @@ class S3Test {
 
     private Path pack(String name, String contents) throws IOException {
         return Files.writeString(tempDir.resolve(name), contents);
+    }
+
+    /** The SDK signs with the wall clock, which has a resolution of one second. */
+    private static void waitForNextSigningSecond() throws InterruptedException {
+        long second = Instant.now().getEpochSecond();
+        while (Instant.now().getEpochSecond() == second) Thread.sleep(10);
+    }
+
+    private static final class TestClock extends Clock {
+        private Instant now = Instant.now();
+
+        void advance(Duration duration) { now = now.plus(duration); }
+        @Override public Instant instant() { return now; }
+        @Override public ZoneId getZone() { return ZoneOffset.UTC; }
+        @Override public Clock withZone(ZoneId zone) { return this; }
     }
 
     private record Upload(String method, URI uri, byte[] body, String authorization, String contentType) {}

@@ -9,6 +9,7 @@ import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.compatibilities.provided.blocklocker.BlockLockerMechanic;
 import io.th0rgal.oraxen.mechanics.Mechanic;
+import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockEvents;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.EvolvingFurniture;
@@ -57,6 +58,8 @@ public class FurnitureMechanic extends Mechanic {
     public static final NamespacedKey BASE_ENTITY_KEY = new NamespacedKey(OraxenPlugin.get(), "base_entity");
     public static final NamespacedKey INTERACTION_KEY = new NamespacedKey(OraxenPlugin.get(), "interaction");
     public static final NamespacedKey INTERACTIONS_KEY = new NamespacedKey(OraxenPlugin.get(), "interactions");
+    public static final NamespacedKey GHASTS_KEY = new NamespacedKey(OraxenPlugin.get(), "ghasts");
+    public static final NamespacedKey SHULKERS_KEY = new NamespacedKey(OraxenPlugin.get(), "shulkers");
     public static final NamespacedKey HITBOX_OFFSET_KEY = new NamespacedKey(OraxenPlugin.get(), "hitbox_offset");
     public static final NamespacedKey MODELENGINE_KEY = new NamespacedKey(OraxenPlugin.get(), "modelengine");
     public static final NamespacedKey SEAT_KEY = new NamespacedKey(OraxenPlugin.get(), "seat");
@@ -86,12 +89,15 @@ public class FurnitureMechanic extends Mechanic {
     private final List<FurnitureLight> furnitureLights;
     private final String modelEngineID;
     private final String placedItemId;
+    private final FurnitureAppearance appearance;
     private float seatHeight;
     private final BlockEvents events;
     private FurnitureType furnitureType;
     private final DisplayEntityProperties displayEntityProperties;
     private final FurnitureHitbox hitbox;
     private final List<FurnitureHitbox> hitboxes;
+    private final List<FurnitureGhastHitbox> ghasts;
+    private final List<FurnitureShulkerHitbox> shulkers;
     private final boolean isRotatable;
     private final boolean small;
     private final ArmorStandProperties armorStandProperties;
@@ -206,6 +212,9 @@ public class FurnitureMechanic extends Mechanic {
         ConfigurationSection properties = section.getConfigurationSection("properties");
         armorStandProperties = furnitureType == FurnitureType.ARMOR_STAND && properties != null
                 ? new ArmorStandProperties(properties) : new ArmorStandProperties();
+        ConfigurationSection appearanceSection = section.getConfigurationSection("appearance");
+        appearance = appearanceSection != null ? new FurnitureAppearance(getItemID(), appearanceSection,
+                armorStandProperties.hasScale() ? armorStandProperties.getScale() : null) : null;
         boolean resolvedSmall = section.getBoolean("small", furnitureType == FurnitureType.ARMOR_STAND);
         if (furnitureType == FurnitureType.ARMOR_STAND && !smallFromConfig && armorStandProperties.hasScale())
             resolvedSmall = armorStandProperties.hintSmallFromScale();
@@ -216,24 +225,12 @@ public class FurnitureMechanic extends Mechanic {
         displayEntityProperties = furnitureType == FurnitureType.DISPLAY_ENTITY && properties != null
                 ? new DisplayEntityProperties(properties) : new DisplayEntityProperties();
 
-        barriers = new ArrayList<>();
-        if (section.getBoolean("barrier", false))
-            barriers.add(new BlockLocation(0, 0, 0));
-        if (section.isList("barriers")) {
-            for (Object barrierObject : section.getList("barriers", new ArrayList<>()))
-                if (barrierObject instanceof String string && string.equals("origin"))
-                    barriers.add(new BlockLocation(0, 0, 0));
-                else if (barrierObject instanceof Map<?, ?> barrierMap) {
-                    try {
-                        barriers.add(new BlockLocation((Map<String, Integer>) barrierMap));
-                    } catch (ClassCastException e) {
-                        Logs.logError("Invalid barrier location: " + barrierMap + " for furniture: " + getItemID());
-                    }
-                }
-        }
+        barriers = parseBarriers(section);
 
         hitboxes = parseHitboxes(section);
         hitbox = hitboxes.isEmpty() ? null : hitboxes.get(0);
+        ghasts = parseGhasts(section);
+        shulkers = parseShulkers(section);
 
         seats = parseSeats(section);
         hasSeat = !seats.isEmpty();
@@ -302,6 +299,26 @@ public class FurnitureMechanic extends Mechanic {
         textDefinitions = parseTextDefinitions(section);
     }
 
+    private List<BlockLocation> parseBarriers(ConfigurationSection section) {
+        List<BlockLocation> parsedBarriers = new ArrayList<>();
+        for (Object barrierObject : section.getList("barriers", List.of())) {
+            if (barrierObject instanceof String string) {
+                String[] coordinates = string.trim().split("\\s*,\\s*", -1);
+                if (coordinates.length == 3) {
+                    try {
+                        parsedBarriers.add(new BlockLocation(Integer.parseInt(coordinates[0]),
+                                Integer.parseInt(coordinates[1]), Integer.parseInt(coordinates[2])));
+                        continue;
+                    } catch (NumberFormatException ignored) {
+                    }
+                }
+            }
+            Logs.logError("Invalid barrier entry '" + barrierObject + "' for furniture: " + getItemID()
+                    + ". Expected '<x>,<y>,<z>' with integer coordinates.");
+        }
+        return List.copyOf(parsedBarriers);
+    }
+
     private List<FurnitureHitbox> parseHitboxes(ConfigurationSection section) {
         List<FurnitureHitbox> parsedHitboxes = new ArrayList<>();
         boolean hasHitboxesSection = section.isList("hitboxes");
@@ -314,6 +331,53 @@ public class FurnitureMechanic extends Mechanic {
         }
 
         return !hasBarriers() ? List.of(new FurnitureHitbox(1.0f, 1.0f)) : List.of();
+    }
+
+    private List<FurnitureGhastHitbox> parseGhasts(ConfigurationSection section) {
+        if (!section.contains("ghasts")) return List.of();
+        if (!VersionUtil.atOrAbove("1.21.6")) {
+            Logs.logWarning("Ghast hitboxes for furniture '" + getItemID() + "' require Minecraft 1.21.6 or newer.");
+            return List.of();
+        }
+
+        List<?> entries = section.getList("ghasts");
+        if (entries == null) {
+            Logs.logError("Expected a list of ghast hitboxes for furniture '" + getItemID() + "'.");
+            return List.of();
+        }
+
+        List<FurnitureGhastHitbox> parsed = new ArrayList<>();
+        for (Object entry : entries) {
+            FurnitureGhastHitbox ghast = FurnitureGhastHitbox.parse(entry);
+            if (ghast != null) parsed.add(ghast);
+            else Logs.logError("Invalid ghast hitbox '" + entry + "' for furniture '" + getItemID()
+                    + "'. Expected '<x>,<y>,<z> <scale>' with a scale between 0.0625 and 1.");
+        }
+        return List.copyOf(parsed);
+    }
+
+    private List<FurnitureShulkerHitbox> parseShulkers(ConfigurationSection section) {
+        if (!section.contains("shulkers")) return List.of();
+        if (!VersionUtil.atOrAbove("1.21.2")) {
+            Logs.logWarning("Shulker hitboxes for furniture '" + getItemID() + "' require Minecraft 1.21.2 or newer.");
+            return List.of();
+        }
+
+        List<?> entries = section.getList("shulkers");
+        if (entries == null) {
+            Logs.logError("Expected a list of shulker hitboxes for furniture '" + getItemID() + "'.");
+            return List.of();
+        }
+
+        List<FurnitureShulkerHitbox> parsed = new ArrayList<>();
+        for (Object entry : entries) {
+            FurnitureShulkerHitbox shulker = FurnitureShulkerHitbox.parse(entry);
+            if (shulker != null) parsed.add(shulker);
+            else Logs.logError("Invalid shulker hitbox '" + entry + "' for furniture '" + getItemID()
+                    + "'. Expected '<x>,<y>,<z> <scale> [peek] [direction]' with a scale between 0.0625 and 3,"
+                    + " a peek between 0 and 100 and a direction of UP, DOWN, NORTH, EAST, SOUTH or WEST.");
+        }
+        return List.copyOf(parsed);
     }
 
     private List<FurnitureLight> parseFurnitureLights(ConfigurationSection section) {
@@ -620,6 +684,29 @@ public class FurnitureMechanic extends Mechanic {
         return hitboxes;
     }
 
+    boolean hasGhastHitboxes() {
+        return !ghasts.isEmpty();
+    }
+
+    public static boolean isGhastHitbox(Entity entity) {
+        return VersionUtil.atOrAbove("1.21.6") && FurnitureGhastEntities.isHitbox(entity);
+    }
+
+    boolean hasShulkerHitboxes() {
+        return !shulkers.isEmpty();
+    }
+
+    public static boolean isShulkerHitbox(Entity entity) {
+        return VersionUtil.atOrAbove("1.21.2") && FurnitureShulkerEntities.isHitbox(entity);
+    }
+
+    /**
+     * Whether the entity is a solid ghast or shulker hitbox of a furniture.
+     */
+    public static boolean isSolidHitbox(Entity entity) {
+        return isGhastHitbox(entity) || isShulkerHitbox(entity);
+    }
+
     public boolean hasSeat() {
         return hasSeat;
     }
@@ -729,14 +816,16 @@ public class FurnitureMechanic extends Mechanic {
         if (entityClass == null) entityClass = ItemFrame.class;
 
         ItemStack item = OraxenItems.getOptionalItemById(placedItemId).map(b -> b.build().clone()).orElse(originalItem.clone());
+        item = applyAppearance(item, null);
         if (evolvingFurniture == null) {
             ItemUtils.editItemMeta(item, meta -> ItemUtils.setDisplayName(meta, Component.empty()));
         }
         item.setAmount(1);
 
+        ItemStack displayItem = item;
         boolean registerText = hasTextDefinitions();
         Entity baseEntity = EntityUtils.spawnEntity(correctedSpawnLocation(location, resolvedFacing, yaw), entityClass, (e) -> {
-            setEntityData(e, yaw, item, resolvedFacing);
+            setEntityData(e, yaw, displayItem, resolvedFacing);
             if (registerText) FurnitureTextRegistry.register(e, textDefinitions);
         });
         if (this.isModelEngine() && PluginUtils.isEnabled("ModelEngine")) {
@@ -744,6 +833,43 @@ public class FurnitureMechanic extends Mechanic {
         }
 
         return baseEntity;
+    }
+
+    public void initializeAppearance(Map<String, ItemBuilder> items) {
+        if (appearance == null) return;
+        ItemBuilder item = items.getOrDefault(placedItemId, items.get(getItemID()));
+        if (item != null) appearance.getRenderItems(item.getType());
+    }
+
+    public Map<String, ItemBuilder> getAppearanceRenderItems(Material material) {
+        if (appearance == null) return Map.of();
+        Material displayMaterial = OraxenItems.getOptionalItemById(placedItemId)
+                .map(ItemBuilder::getType).orElse(material);
+        return appearance.getRenderItems(displayMaterial);
+    }
+
+    public ItemStack applyAppearance(ItemStack item, @Nullable String stage) {
+        ItemStack result = item.clone();
+        if (appearance == null) return result;
+        // Render with the configured material so API callers cannot select a variant
+        // for which the resource pack has no predicates.
+        OraxenItems.getOptionalItemById(placedItemId).or(() -> OraxenItems.getOptionalItemById(getItemID()))
+                .ifPresent(builder -> result.setType(builder.getType()));
+        return appearance.apply(result, stage);
+    }
+
+    /** Restores the configured appearance after the inventory item updater has run. */
+    public ItemStack applyAppearance(Entity entity, ItemStack item) {
+        int stageIndex = entity.getPersistentDataContainer().getOrDefault(STAGE_INDEX_KEY, PersistentDataType.INTEGER, 0);
+        GrowthStage stage = hasGrowthStages() ? getGrowthStage(stageIndex) : null;
+        String modelKey = stage != null ? stage.getModelKey() : null;
+        if (appearance == null && modelKey != null && !modelKey.isEmpty() && VersionUtil.atOrAbove("1.21.2")) {
+            ItemStack result = item.clone();
+            ItemUtils.editItemMeta(result, meta -> meta.setItemModel(new NamespacedKey("oraxen",
+                    getItemID() + "/" + modelKey)));
+            return result;
+        }
+        return applyAppearance(item, stage != null ? stage.getModelKey() : null);
     }
 
     private boolean allowWallForLimitedFloor(Location location, BlockFace blockFace) {
@@ -779,7 +905,7 @@ public class FurnitureMechanic extends Mechanic {
         return correctedLocation.add(0, yCorrection, 0);
     }
     
-    private static Vector rotateGroundOffset(Vector offset, float yaw) {
+    static Vector rotateGroundOffset(Vector offset, float yaw) {
         // Standard 2D rotation: rotate the X/Z offset by the negated yaw angle.
         double radians = Math.toRadians(-(double) yaw);
         double x = offset.getX();
@@ -855,6 +981,9 @@ public class FurnitureMechanic extends Mechanic {
             }
         }
         
+        if (!ghasts.isEmpty()) FurnitureGhastEntities.spawn(entity, location, yaw, getItemID(), ghasts);
+        if (!shulkers.isEmpty()) FurnitureShulkerEntities.spawn(entity, location, yaw, getItemID(), shulkers);
+
         // Apply initial stage model for staged furniture
         // The base item shows the "seed" texture, but we need to swap to stage0's model
         if (hasGrowthStages()) {
@@ -1091,6 +1220,16 @@ public class FurnitureMechanic extends Mechanic {
         ItemStack furnitureItem = getFurnitureItem(entity);
         if (furnitureItem == null || !furnitureItem.hasItemMeta()) return;
         
+        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(itemId);
+        if (mechanic != null && mechanic.appearance != null) {
+            if (modelKey == null || mechanic.appearance.hasStage(modelKey)) {
+                setFurnitureItem(entity, mechanic.applyAppearance(furnitureItem, modelKey));
+                return;
+            }
+            // Older servers can still use separate stage items when the appearance has no stage model.
+            if (VersionUtil.atOrAbove("1.21.2")) return;
+        }
+
         if (VersionUtil.atOrAbove("1.21.2")) {
             // Use item_model component for efficient model swap
             ItemMeta itemMeta = furnitureItem.getItemMeta();
@@ -1262,6 +1401,8 @@ public class FurnitureMechanic extends Mechanic {
 
     private void removeSubEntitiesOfFurniture(Entity baseEntity) {
         removeInitialLight(baseEntity);
+        if (VersionUtil.atOrAbove("1.21.6")) FurnitureGhastEntities.remove(baseEntity);
+        if (VersionUtil.atOrAbove("1.21.2")) FurnitureShulkerEntities.remove(baseEntity);
         if (hasSeat) {
             removeFurnitureSeats(baseEntity.getPersistentDataContainer());
             removeFurnitureSeat(baseEntity.getLocation());
@@ -1326,6 +1467,18 @@ public class FurnitureMechanic extends Mechanic {
 
     public static Rotation yawToRotation(float yaw) {
         return Rotation.values()[Math.round(yaw / 45f) & 0x7];
+    }
+
+    public void runBreakEvents(Player player) {
+        events.runBreak(player);
+    }
+
+    public void runPlaceEvents(Player player) {
+        events.runPlace(player);
+    }
+
+    public void runSitEvents(Player player) {
+        events.runSit(player);
     }
 
     public boolean runEvents(Player player, Action action) {
@@ -1406,6 +1559,7 @@ public class FurnitureMechanic extends Mechanic {
         // Since ItemDisplay entities have no hitbox it will only be for ITEM_FRAME based ones
         if (getFurnitureEntityType() == entity.getType()) return entity;
         UUID baseEntityUUID = entity.getPersistentDataContainer().get(BASE_ENTITY_KEY, DataType.UUID);
+        if (isSolidHitbox(entity)) return baseEntityUUID == null ? null : Bukkit.getEntity(baseEntityUUID);
         // If the baseEntity is null but the entity is a furniture, assume the config has changed the baseEntity type
         // This would cause the above check to fail and assume it is the interaction entity or not a furniture
         if (baseEntityUUID == null && OraxenFurniture.isFurniture(entity) && !OraxenFurniture.isInteractionEntity(entity))
@@ -1540,7 +1694,12 @@ public class FurnitureMechanic extends Mechanic {
         // Teleport the seat entity to the correct position asynchronously before mounting
         FurniturePacketDispatcher.teleportAsync(bestStand, bestStand.getLocation());
         Entity finalBestStand = bestStand;
-        SchedulerUtil.runForEntity(bestStand, () -> finalBestStand.addPassenger(player), null);
+        String itemID = pdc.get(FURNITURE_KEY, PersistentDataType.STRING);
+        FurnitureMechanic mechanic = itemID != null ? OraxenFurniture.getFurnitureMechanic(itemID) : null;
+        SchedulerUtil.runForEntity(bestStand, () -> {
+            if (finalBestStand.addPassenger(player) && mechanic != null)
+                SchedulerUtil.runForEntity(player, () -> mechanic.runSitEvents(player), null);
+        }, null);
     }
 
     public RestrictedRotation getRestrictedRotation() {
@@ -1557,6 +1716,8 @@ public class FurnitureMechanic extends Mechanic {
         if (baseEntity instanceof ItemFrame frame) frame.setRotation(newRotation);
         else baseEntity.setRotation(newYaw, baseEntity.getLocation().getPitch());
         updateFurnitureHitboxes(baseEntity, newYaw);
+        if (VersionUtil.atOrAbove("1.21.6")) FurnitureGhastEntities.rotate(baseEntity, newYaw);
+        if (VersionUtil.atOrAbove("1.21.2")) FurnitureShulkerEntities.rotate(baseEntity, newYaw);
         updateFurnitureSeats(baseEntity, newYaw);
         if (hasFurnitureLights())
             createFurnitureLights(BlockHelpers.toCenterBlockLocation(baseEntity.getLocation()), newYaw);

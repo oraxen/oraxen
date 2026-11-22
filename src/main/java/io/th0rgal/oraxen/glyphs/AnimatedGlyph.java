@@ -295,8 +295,7 @@ public class AnimatedGlyph {
     }
 
     /**
-     * Gets the font key for this animated glyph.
-     * Animated glyphs use a separate font file.
+     * Gets the generated font resource key used by this animated glyph.
      *
      * @return Font key in format oraxen:animations/<name>
      */
@@ -306,7 +305,7 @@ public class AnimatedGlyph {
     }
 
     /**
-     * Gets the appearance font (for normal glyph rendering).
+     * Gets the configured font, falling back to the appearance font.
      */
     @NotNull
     public Key getFont() {

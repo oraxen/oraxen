@@ -29,7 +29,9 @@ public class CommandsParser {
         if (section.isList("player"))
             this.playerCommands = section.getStringList("player");
 
-        if (section.isList("opped_player"))
+        if (section.isList("opped-player"))
+            this.oppedPlayerCommands = section.getStringList("opped-player");
+        else if (section.isList("opped_player"))
             this.oppedPlayerCommands = section.getStringList("opped_player");
     }
 

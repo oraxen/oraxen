@@ -17,6 +17,8 @@ public enum Message {
     NOT_PLAYER("general.not_player"),
     COOLDOWN("general.cooldown"),
     RELOAD("general.reload"),
+    RECIPE_RELOAD_REQUIRES_RESTART("general.recipe_reload_requires_restart"),
+    REGISTRY_RELOAD_REQUIRES_RESTART("general.registry_reload_requires_restart"),
     PACK_UPLOADING("general.pack_uploading"),
     PACK_NOT_UPLOADED("general.pack_not_uploaded"),
     PACK_UPLOADED("general.pack_uploaded"),

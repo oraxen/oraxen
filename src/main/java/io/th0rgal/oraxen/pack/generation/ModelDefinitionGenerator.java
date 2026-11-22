@@ -81,7 +81,7 @@ public class ModelDefinitionGenerator {
         JsonArray tints = new JsonArray();
         JsonObject dye = new JsonObject();
         dye.addProperty("type", "minecraft:dye");
-        dye.addProperty("default", DEFAULT_TINT_COLOR);
+        dye.addProperty("default", LeatherTintDefaults.defaultColor(baseModel));
         tints.add(dye);
         baseModel.add("tints", tints);
     }

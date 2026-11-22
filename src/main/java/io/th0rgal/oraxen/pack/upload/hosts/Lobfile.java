@@ -65,7 +65,7 @@ public class Lobfile implements HostingProvider {
 
     private boolean uploadPackWithName(File resourcePack, String uploadPackName) {
         if (apiKey.isBlank()) {
-            Logs.logError("The Lobfile resource pack could not be uploaded because Pack.upload.lobfile.api-key is not set.");
+            Logs.logError("The Lobfile resource pack could not be uploaded because pack.upload.lobfile.api-key is not set.");
             return false;
         }
 

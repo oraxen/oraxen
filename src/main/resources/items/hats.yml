@@ -6,7 +6,7 @@
 # Color codes: https://docs.adventure.kyori.net/minimessage.html#format
 
 anubis_head:
-  displayname: "<gradient:#3948AE:#6699FF>Anubis Head"
+  name: "<gradient:#3948AE:#6699FF>Anubis Head"
   material: PAPER
   lore:
     - "<#6f737d>» <#D5D6D8>NightVision when worn"
@@ -29,7 +29,7 @@ anubis_head:
         icon: true # whether this effect has an icon or not
 
 crown:
-  displayname: "<gradient:#F06966:#FAD6A6>Crown"
+  name: "<gradient:#F06966:#FAD6A6>Crown"
   material: PAPER
   AttributeModifiers:
     - { attribute: ARMOR, amount: 3, operation: 0, slot: HEAD }
@@ -42,7 +42,7 @@ crown:
       slot: HEAD
 
 pharaoh_head:
-  displayname: "<gradient:#F06966:#FAD6A6>Pharaoh Head"
+  name: "<gradient:#F06966:#FAD6A6>Pharaoh Head"
   material: PAPER
   AttributeModifiers:
     - { attribute: ARMOR, amount: 3, operation: 0, slot: HEAD }
@@ -55,7 +55,7 @@ pharaoh_head:
       slot: HEAD
 
 witch_hat:
-  displayname: "<gradient:#DF98FA:#9055FF>Witch Hat"
+  name: "<gradient:#DF98FA:#9055FF>Witch Hat"
   material: PAPER
   AttributeModifiers:
     - { attribute: ARMOR, amount: 3, operation: 0, slot: HEAD }
@@ -68,7 +68,7 @@ witch_hat:
       slot: HEAD
 
 space_helmet:
-  displayname: "<#D5D6D8>Space Helmet"
+  name: "<#D5D6D8>Space Helmet"
   material: PAPER
   pack:
     generate_model: false

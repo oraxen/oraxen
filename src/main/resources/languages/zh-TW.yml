@@ -98,8 +98,9 @@ command:
     success: "<prefix><#55ffa4>已從 <#43fa8c><files><#55ffa4> 個語言檔案中移除 Oraxen 品牌內容。已停用預設資源和歡迎音效。執行 <#43c9fa>/oraxen reload all<#55ffa4> 以重新產生資源包和設定。"
     failed: "<prefix><#fa4943>無法移除 Oraxen 品牌內容。請查看控制台了解詳細資訊。"
   remove_defaults:
-    success: "<prefix><#55ffa4>已移除 <#43fa8c><files><#55ffa4> 個預設檔案。已停用預設設定、預設資源和歡迎音效。已保留必要字形。執行 <#43c9fa>/oraxen reload all<#55ffa4> 以重新產生資源包和設定。"
-    failed: "<prefix><#fa4943>已移除 <#43fa8c><deleted><#fa4943> 個預設檔案，但無法移除 <#43fa8c><failed><#fa4943>。請查看控制台了解詳細資訊。"
+    success: "<prefix><#55ffa4>已移除 <#43fa8c><files><#55ffa4> 個預設檔案，並從 sounds.yml 移除 <#43fa8c><sounds><#55ffa4> 個內建音效定義。已停用預設設定、預設資源和歡迎音效。已保留必要字形。執行 <#43c9fa>/oraxen reload all<#55ffa4> 以重新產生資源包和設定。"
+    failed: "<prefix><#fa4943>已移除 <#43fa8c><deleted><#fa4943> 個預設檔案和 <#43fa8c><sounds><#fa4943> 個內建音效定義，但有 <#43fa8c><failed><#fa4943> 項清理操作失敗。請查看控制台了解詳細資訊。"
+    confirm: "<prefix><#fa9343>此操作將永久刪除 Oraxen 隨附的預設物品、配方、字形、模型和材質，移除未修改的內建音效定義，並刪除未使用的內建音訊檔案。執行 <#43c9fa>/oraxen remove-defaults confirm<#fa9343> 以繼續。"
 
 mechanics:
   not_enough_exp: "<prefix><#fa4943>你需要更多經驗欸"

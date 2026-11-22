@@ -98,8 +98,9 @@ command:
     success: "<prefix><#55ffa4>Branding Oraxenu byl odstraněn z <#43fa8c><files><#55ffa4> jazykových souborů. Výchozí assety a uvítací zvuk byly vypnuty. Spusťte <#43c9fa>/oraxen reload all<#55ffa4> pro opětovné vygenerování balíčku a konfigurací."
     failed: "<prefix><#fa4943>Nepodařilo se odstranit branding Oraxenu. Podrobnosti najdete v konzoli."
   remove_defaults:
-    success: "<prefix><#55ffa4>Odstraněno <#43fa8c><files><#55ffa4> výchozích souborů. Výchozí konfigurace, výchozí assety a uvítací zvuk byly vypnuty. Povinné glyfy byly zachovány. Spusťte <#43c9fa>/oraxen reload all<#55ffa4> pro opětovné vygenerování balíčku a konfigurací."
-    failed: "<prefix><#fa4943>Odstraněno <#43fa8c><deleted><#fa4943> výchozích souborů, ale nepodařilo se odstranit <#43fa8c><failed><#fa4943>. Podrobnosti najdete v konzoli."
+    success: "<prefix><#55ffa4>Odstraněno <#43fa8c><files><#55ffa4> výchozích souborů a <#43fa8c><sounds><#55ffa4> přednastavených zvukových definic ze sounds.yml. Výchozí konfigurace, assety a uvítací zvuk byly vypnuty. Povinné glyfy byly zachovány. Spusťte <#43c9fa>/oraxen reload all<#55ffa4> pro opětovné vygenerování balíčku a konfigurací."
+    failed: "<prefix><#fa4943>Odstraněno <#43fa8c><deleted><#fa4943> výchozích souborů a <#43fa8c><sounds><#fa4943> přednastavených zvukových definic, ale <#43fa8c><failed><#fa4943> operací úklidu se nezdařilo. Podrobnosti najdete v konzoli."
+    confirm: "<prefix><#fa9343>Tato akce trvale odstraní výchozí předměty, recepty, glyfy, modely a textury dodané s Oraxen, nezměněné přednastavené zvukové definice a nepoužívané přednastavené zvukové soubory. Pokračujte příkazem <#43c9fa>/oraxen remove-defaults confirm<#fa9343>."
 
 mechanics:
   not_enough_exp: "<prefix><#fa4943>Pro tohle potřebuješ více zkušeností"

@@ -155,6 +155,12 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation("org.mockito:mockito-core:5.11.0")
     testImplementation("org.mockito:mockito-junit-jupiter:5.11.0")
+    testImplementation(oraxenLibs.blocklocker) {
+        isTransitive = false
+    }
+    testImplementation(oraxenLibs.modelengine) {
+        isTransitive = false
+    }
     testImplementation(oraxenLibs.worldedit.bukkit) {
         exclude("com.google.code.gson", "gson")
     }
@@ -248,6 +254,10 @@ tasks {
     runServer {
         minecraftVersion(runServerVersion)
         jvmArgs("-Dcom.mojang.eula.agree=true")
+    }
+
+    jar {
+        archiveClassifier.set("plain")
     }
 
     shadowJar {

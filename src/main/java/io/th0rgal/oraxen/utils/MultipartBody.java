@@ -1,5 +1,7 @@
 package io.th0rgal.oraxen.utils;
 
+import io.th0rgal.oraxen.OraxenPlugin;
+
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -29,13 +31,15 @@ public final class MultipartBody implements AutoCloseable {
     private final String boundary = "OraxenBoundary" + UUID.randomUUID().toString().replace("-", "");
     private final List<Supplier<InputStream>> parts = new ArrayList<>();
     private final List<Path> snapshots = new ArrayList<>();
+    private final Path snapshotDirectory;
     private long contentLength = 0;
 
-    private MultipartBody() {
+    MultipartBody(Path snapshotDirectory) {
+        this.snapshotDirectory = snapshotDirectory;
     }
 
     public static MultipartBody create() {
-        return new MultipartBody();
+        return new MultipartBody(OraxenPlugin.get().getDataFolder().toPath().resolve(".cache"));
     }
 
     public String contentType() {
@@ -63,7 +67,8 @@ public final class MultipartBody implements AutoCloseable {
         Path snapshot = null;
         long snapshotSize;
         try {
-            snapshot = Files.createTempFile("oraxen-upload-", ".snapshot");
+            Files.createDirectories(snapshotDirectory);
+            snapshot = Files.createTempFile(snapshotDirectory, "oraxen-upload-", ".snapshot");
             Files.copy(file.toPath(), snapshot, StandardCopyOption.REPLACE_EXISTING);
             snapshotSize = Files.size(snapshot);
         } catch (java.io.IOException exception) {

@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.events.OraxenItemsLoadedEvent;
+import io.th0rgal.oraxen.configs.Settings;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicConfigProperty;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
@@ -16,6 +17,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.text.FurnitureTex
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Entity;
@@ -34,6 +36,8 @@ public class FurnitureFactory extends MechanicFactory {
     public final List<String> toolTypes;
     public final int evolutionCheckDelay;
     private boolean evolvingFurnitures;
+    private boolean warnedAboutGhastDebugVisibility;
+    private boolean warnedAboutShulkerDebugVisibility;
     private static EvolutionTask evolutionTask;
     public final boolean customSounds;
     public final boolean detectViabackwards;
@@ -52,6 +56,10 @@ public class FurnitureFactory extends MechanicFactory {
         );
         if (VersionUtil.atOrAbove("1.21.5"))
             MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new FurniturePickItemListener());
+        if (VersionUtil.atOrAbove("1.21.6"))
+            MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new FurnitureGhastEntities());
+        if (VersionUtil.atOrAbove("1.21.2"))
+            MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new FurnitureShulkerEntities());
         evolvingFurnitures = false;
         instance = this;
         FurniturePacketDispatcher.init();
@@ -71,9 +79,22 @@ public class FurnitureFactory extends MechanicFactory {
 
     @Override
     public Mechanic parse(ConfigurationSection itemMechanicConfiguration) {
-        Mechanic mechanic = new FurnitureMechanic(this, itemMechanicConfiguration);
+        FurnitureMechanic mechanic = new FurnitureMechanic(this, itemMechanicConfiguration);
         addToImplemented(mechanic);
+        if (!warnedAboutGhastDebugVisibility && mechanic.hasGhastHitboxes() && Settings.DEBUG.toBool()) {
+            warnedAboutGhastDebugVisibility = true;
+            Logs.logWarning("Ghast type furniture hitboxes are visible while in debug mode.");
+        }
+        if (!warnedAboutShulkerDebugVisibility && mechanic.hasShulkerHitboxes() && Settings.DEBUG.toBool()) {
+            warnedAboutShulkerDebugVisibility = true;
+            Logs.logWarning("Shulker type furniture hitboxes are visible while in debug mode.");
+        }
         return mechanic;
+    }
+
+    public void resetHitboxDebugWarnings() {
+        warnedAboutGhastDebugVisibility = false;
+        warnedAboutShulkerDebugVisibility = false;
     }
 
     public static boolean isEnabled() {
@@ -186,6 +207,13 @@ public class FurnitureFactory extends MechanicFactory {
                 MechanicConfigProperty.enumType("type", "Entity type for the furniture",
                         List.of("DISPLAY_ENTITY", "ITEM_FRAME", "GLOW_ITEM_FRAME", "ARMOR_STAND")),
                 MechanicConfigProperty.integer("hardness", "Break hardness (higher = slower to break)", 1, 0),
+                MechanicConfigProperty.object("appearance", "Placed furniture appearance; uses the same options as pack", Map.of(
+                        "model", MechanicConfigProperty.string("model", "Placed furniture model path"),
+                        "generate_model", MechanicConfigProperty.bool("generate_model", "Generate the furniture model from textures", false),
+                        "textures", MechanicConfigProperty.list("textures", "Furniture model textures"),
+                        "parent_model", MechanicConfigProperty.string("parent_model", "Parent for generated furniture models"),
+                        "models", MechanicConfigProperty.object("models", "Named furniture stage model paths", Map.of())
+                )),
                 MechanicConfigProperty.string("item", "Alternative Oraxen item ID to display"),
                 MechanicConfigProperty.string("modelengine_id", "ModelEngine model ID to use"),
                 MechanicConfigProperty.bool("farmland_required", "Whether farmland is required for placement", false),
@@ -196,9 +224,11 @@ public class FurnitureFactory extends MechanicFactory {
                 MechanicConfigProperty.bool("rotatable", "Whether furniture can be rotated after placement", true),
                 MechanicConfigProperty.bool("small", "Whether an armor stand furniture uses the small variant", true),
                 MechanicConfigProperty.list("hitboxes", "List of hitbox offsets and dimensions formatted '<x>,<y>,<z> <width>,<height>'"),
+                MechanicConfigProperty.list("ghasts", "List of solid hitboxes formatted '<x>,<y>,<z> <scale>'. Requires Minecraft 1.21.6 or newer"),
+                MechanicConfigProperty.list("shulkers", "List of solid hitboxes formatted '<x>,<y>,<z> <scale> [peek] [direction]'. Requires Minecraft 1.21.2 or newer"),
                 MechanicConfigProperty.list("seats", "List of seat offsets relative to the furniture center formatted '<x>,<y>,<z>' or '<x>,<y>,<z> <yaw>'"),
-                MechanicConfigProperty.list("barriers", "List of barrier block positions relative to furniture"),
-                MechanicConfigProperty.list("events", "Click events with actions to run when furniture barriers or hitboxes are clicked"),
+                MechanicConfigProperty.list("barriers", "List of barrier block offsets relative to furniture formatted '<x>,<y>,<z>' with integer coordinates"),
+                MechanicConfigProperty.list("events", "Actions for furniture clicks or successful player breaks or placements. Use trigger: click with type: LEFT, RIGHT, or BOTH, trigger: break, or trigger: place. The trigger defaults to click; the legacy click filter remains supported."),
                 MechanicConfigProperty.object("properties", "Furniture entity properties; unsupported properties are ignored", Map.of(
                         "display_transform", MechanicConfigProperty.enumType("display_transform", "Display transform mode",
                                 List.of("NONE", "THIRDPERSON_LEFTHAND", "THIRDPERSON_RIGHTHAND", "FIRSTPERSON_LEFTHAND",

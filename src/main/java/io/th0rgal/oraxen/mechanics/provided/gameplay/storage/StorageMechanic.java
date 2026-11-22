@@ -16,6 +16,7 @@ import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.ItemUtils;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import net.kyori.adventure.sound.Sound;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -42,6 +43,7 @@ public class StorageMechanic {
     private static final Map<Block, StorageGui> blockStorages = new ConcurrentHashMap<>();
     private static final Map<Entity, StorageGui> frameStorages = new ConcurrentHashMap<>();
     private static final Set<Block> lockedBlockStorages = ConcurrentHashMap.newKeySet();
+    private static final Map<Block, ItemStack[]> pendingBlockContents = new ConcurrentHashMap<>();
     private static final Set<UUID> lockedEntityStorages = ConcurrentHashMap.newKeySet();
     public static final NamespacedKey STORAGE_KEY = new NamespacedKey(OraxenPlugin.get(), "storage");
     public static final NamespacedKey PERSONAL_STORAGE_KEY = new NamespacedKey(OraxenPlugin.get(), "personal_storage");
@@ -444,8 +446,10 @@ public class StorageMechanic {
         // Slight delay to catch stacks sometimes moving too fast
         gui.setDefaultClickAction(event -> {
             if (event.getCursor() != null && event.getCursor().getType() != Material.AIR || event.getCurrentItem() != null) {
-                SchedulerUtil.runForEntityLater(player, 3L, () ->
-                        storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents()), () -> {});
+                SchedulerUtil.runForEntityLater(player, 3L, () -> {
+                    if (!gui.getInventory().getViewers().contains(player)) return;
+                    storagePDC.set(PERSONAL_STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents());
+                }, () -> {});
             }
         });
 
@@ -483,16 +487,30 @@ public class StorageMechanic {
         });
         gui.setOpenGuiAction(event -> {
             if (isBlockStorageLocked(block)) return;
-            if (storagePDC.has(STORAGE_KEY, DataType.ITEM_STACK_ARRAY))
+            ItemStack[] pending = pendingBlockContents.get(block);
+            if (pending != null) gui.getInventory().setContents(pending);
+            else if (storagePDC.has(STORAGE_KEY, DataType.ITEM_STACK_ARRAY))
                 gui.getInventory().setContents(storagePDC.getOrDefault(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[]{}));
         });
 
         gui.setCloseGuiAction(event -> {
-            if (!canPersistBlockStorage(block, gui)) return;
-            storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents());
-            if (hasCloseSound() && block.getLocation().isChunkLoaded())
-                AdventureUtils.playSound(location, closeSound, Sound.Source.MASTER, volume, pitch);
-            if (frame != null) playOpenAnimation(frame, closeAnimation);
+            ItemStack[] contents = snapshotContents(gui);
+            Runnable persist = () -> {
+                pendingBlockContents.remove(block, contents);
+                if (!canPersistBlockStorage(block, gui)) return;
+                storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, contents);
+                if (hasCloseSound() && block.getLocation().isChunkLoaded())
+                    AdventureUtils.playSound(location, closeSound, Sound.Source.MASTER, volume, pitch);
+                if (frame != null) playOpenAnimation(frame, closeAnimation);
+            };
+            if (Bukkit.isOwnedByCurrentRegion(location)) {
+                persist.run();
+                return;
+            }
+            // The viewer closed from another region (teleport, quit) and the chunk PDC belongs to the block's region.
+            // Reopening before the write lands must use this snapshot, not the older PDC contents.
+            pendingBlockContents.put(block, contents);
+            SchedulerUtil.runAtLocation(location, persist);
         });
 
         return gui;

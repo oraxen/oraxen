@@ -9,6 +9,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.logging.Level;
+import io.th0rgal.oraxen.utils.logs.Logs;
 
 public final class AntiGriefLib {
 
@@ -96,7 +97,7 @@ public final class AntiGriefLib {
                         "Protection check failed; denying the action. Further failures are only logged with Oraxen debug enabled.",
                         exception);
             } else if (debug) {
-                exception.printStackTrace();
+                Logs.debug(exception);
             }
             return false;
         }

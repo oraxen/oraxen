@@ -9,10 +9,16 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicListener;
 import io.th0rgal.oraxen.packets.PacketAdapter;
+import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.drops.Drop;
+import java.util.Set;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Tag;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
@@ -21,20 +27,40 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.PluginManager;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.InOrder;
 import org.mockito.MockedStatic;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class CustomBlockBreakCancellationTest extends MechanicTestSupport {
+
+    @BeforeAll
+    static void initialiseBlockHelpers() throws Exception {
+        when(Bukkit.getServer().getTag(anyString(), any(NamespacedKey.class), any())).thenAnswer(invocation -> {
+            @SuppressWarnings("unchecked")
+            Tag<Material> tag = mock(Tag.class);
+            when(tag.getValues()).thenReturn(Set.of());
+            return tag;
+        });
+        Class.forName(BlockHelpers.class.getName());
+    }
+
 
     @Test
     void cancelledNoteBlockBreakEventCancelsVanillaBreak() {
@@ -50,7 +76,7 @@ class CustomBlockBreakCancellationTest extends MechanicTestSupport {
         cancelOraxenBreakEvents(OraxenNoteBlockBreakEvent.class);
 
         try (MockedStatic<OraxenPlugin> plugin = mockPlugin();
-                MockedStatic<OraxenBlocks> blocks = mockStatic(OraxenBlocks.class)) {
+                MockedStatic<OraxenBlocks> blocks = mockStatic(OraxenBlocks.class, CALLS_REAL_METHODS)) {
             blocks.when(() -> OraxenBlocks.isOraxenNoteBlock(block)).thenReturn(true);
             blocks.when(() -> OraxenBlocks.getNoteBlockMechanic(block)).thenReturn(mechanic);
             blocks.when(() -> OraxenBlocks.remove(location, player)).thenCallRealMethod();
@@ -59,6 +85,7 @@ class CustomBlockBreakCancellationTest extends MechanicTestSupport {
             new NoteBlockMechanicListener().onBreakingCustomBlock(event);
         }
 
+        verify(mechanic, never()).runBreakEvents(any());
         verify(block, never()).setType(Material.AIR);
         assertTrue(event.isCancelled());
         assertFalse(event.isDropItems());
@@ -73,7 +100,7 @@ class CustomBlockBreakCancellationTest extends MechanicTestSupport {
         BlockBreakEvent event = new BlockBreakEvent(block, player);
 
         try (MockedStatic<OraxenPlugin> plugin = mockPlugin();
-                MockedStatic<OraxenBlocks> blocks = mockStatic(OraxenBlocks.class)) {
+                MockedStatic<OraxenBlocks> blocks = mockStatic(OraxenBlocks.class, CALLS_REAL_METHODS)) {
             blocks.when(() -> OraxenBlocks.isOraxenNoteBlock(block)).thenReturn(false);
 
             new NoteBlockMechanicListener().onBreakingCustomBlock(event);
@@ -102,7 +129,7 @@ class CustomBlockBreakCancellationTest extends MechanicTestSupport {
         cancelOraxenBreakEvents(OraxenStringBlockBreakEvent.class);
 
         try (MockedStatic<OraxenPlugin> plugin = mockPlugin();
-                MockedStatic<OraxenBlocks> blocks = mockStatic(OraxenBlocks.class)) {
+                MockedStatic<OraxenBlocks> blocks = mockStatic(OraxenBlocks.class, CALLS_REAL_METHODS)) {
             blocks.when(() -> OraxenBlocks.getStringMechanic(block)).thenReturn(mechanic);
             blocks.when(() -> OraxenBlocks.isOraxenStringBlock(block)).thenReturn(true);
             blocks.when(() -> OraxenBlocks.remove(location, player)).thenCallRealMethod();
@@ -112,6 +139,7 @@ class CustomBlockBreakCancellationTest extends MechanicTestSupport {
         }
 
         verify(mechanic, never()).getStorage();
+        verify(mechanic, never()).runBreakEvents(any());
         verify(block, never()).setType(Material.AIR);
         assertTrue(event.isCancelled());
         assertFalse(event.isDropItems());
@@ -145,6 +173,47 @@ class CustomBlockBreakCancellationTest extends MechanicTestSupport {
         }
 
         assertTrue(event.isCancelled());
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void successfulRemovalRunsBreakEventsOnlyWithPlayer(boolean hasPlayer) {
+        World world = mock(World.class);
+        Block block = mock(Block.class);
+        Block above = mock(Block.class);
+        Location location = new Location(world, 0, 64, 0);
+        Player player = hasPlayer ? playerWithTool() : null;
+        NoteBlockMechanic mechanic = mock(NoteBlockMechanic.class);
+        when(world.getBlockAt(0, 64, 0)).thenReturn(block);
+        when(world.getBlockAt(location)).thenReturn(block);
+        when(block.getWorld()).thenReturn(world);
+        when(block.getLocation()).thenReturn(location);
+        when(block.getType()).thenReturn(Material.NOTE_BLOCK);
+        when(block.getRelative(BlockFace.UP)).thenReturn(above);
+        when(block.getRelative(BlockFace.UP, 2)).thenReturn(above);
+        when(above.getType()).thenReturn(Material.AIR);
+        if (hasPlayer) {
+            when(player.getGameMode()).thenReturn(GameMode.CREATIVE);
+            when(Bukkit.getServer().getPluginManager()).thenReturn(mock(PluginManager.class));
+        }
+
+        try (MockedStatic<OraxenBlocks> blocks = mockStatic(OraxenBlocks.class, CALLS_REAL_METHODS);
+                MockedStatic<BlockHelpers> helpers = mockStatic(BlockHelpers.class)) {
+            blocks.when(() -> OraxenBlocks.isOraxenNoteBlock(block)).thenReturn(true);
+            blocks.when(() -> OraxenBlocks.getNoteBlockMechanic(block)).thenReturn(mechanic);
+
+            assertTrue(OraxenBlocks.remove(location, player));
+        }
+
+        if (hasPlayer) {
+            InOrder order = inOrder(block, mechanic);
+            order.verify(block).setType(Material.AIR);
+            order.verify(mechanic).runBreakEvents(player);
+            verify(mechanic, times(1)).runBreakEvents(player);
+        } else {
+            verify(block).setType(Material.AIR);
+            verify(mechanic, never()).runBreakEvents(any());
+        }
     }
 
     private static Player playerWithTool() {

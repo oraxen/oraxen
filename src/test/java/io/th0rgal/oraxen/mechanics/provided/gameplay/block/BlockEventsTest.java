@@ -13,6 +13,7 @@ import org.mockito.MockedStatic;
 import java.util.List;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -85,6 +86,90 @@ class BlockEventsTest {
 
             verify(player).setOp(true);
             verify(player).setOp(false);
+        }
+    }
+
+    @Test
+    void breakAndClickTriggersRunOnlyTheirOwnActions() {
+        Player player = mock(Player.class);
+        when(player.getName()).thenReturn("testPlayer");
+        YamlConfiguration config = new YamlConfiguration();
+        config.set("events", List.of(
+                Map.of("trigger", "break", "actions", List.of(
+                        Map.of("command", "say broken <player>"),
+                        Map.of("command", "say denied", "condition", "player.hasPermission('denied')"))),
+                Map.of("trigger", "click", "type", "RIGHT", "click", "LEFT",
+                        "actions", List.of(Map.of("command", "say clicked")))));
+        BlockEvents events = new BlockEvents(config, "test");
+
+        try (MockedStatic<CompatibilitiesManager> compatibilities = mockStatic(CompatibilitiesManager.class)) {
+            assertFalse(events.hasLeftClickEvent());
+            assertTrue(events.hasClickEvents());
+            assertFalse(events.run(player, Action.LEFT_CLICK_BLOCK));
+            assertTrue(events.run(player, Action.RIGHT_CLICK_BLOCK));
+            verify(player).performCommand("say clicked");
+            verify(player, never()).performCommand("say broken testPlayer");
+            assertTrue(events.runBreak(player));
+            verify(player).performCommand("say broken testPlayer");
+            verify(player, never()).performCommand("say denied");
+            verify(player, times(1)).performCommand("say clicked");
+        }
+    }
+
+    @Test
+    void omittedTriggerPreservesLegacyClickFilterAndBothDefault() {
+        Player player = mock(Player.class);
+        when(player.getName()).thenReturn("testPlayer");
+        YamlConfiguration config = new YamlConfiguration();
+        config.set("events", List.of(
+                Map.of("click", "RIGHT", "actions", List.of(Map.of("command", "say right"))),
+                Map.of("actions", List.of(Map.of("command", "say both")))));
+        BlockEvents events = new BlockEvents(config, "test");
+
+        try (MockedStatic<CompatibilitiesManager> compatibilities = mockStatic(CompatibilitiesManager.class)) {
+            assertTrue(events.hasLeftClickEvent());
+            assertFalse(events.runBreak(player));
+            events.run(player, Action.LEFT_CLICK_BLOCK);
+            verify(player, never()).performCommand("say right");
+            events.run(player, Action.RIGHT_CLICK_BLOCK);
+            verify(player).performCommand("say right");
+            verify(player, times(2)).performCommand("say both");
+        }
+    }
+
+    @Test
+    void breakOnlyEventsDoNotCountAsLeftClicks() {
+        YamlConfiguration config = new YamlConfiguration();
+        config.set("events", List.of(Map.of("trigger", "break",
+                "actions", List.of(Map.of("command", "say broken")))));
+        BlockEvents events = new BlockEvents(config, "test", "furniture.events");
+
+        assertFalse(events.isEmpty());
+        assertFalse(events.hasClickEvents());
+        assertFalse(events.hasLeftClickEvent());
+        assertFalse(events.run(mock(Player.class), Action.LEFT_CLICK_BLOCK));
+        assertFalse(events.run(mock(Player.class), Action.RIGHT_CLICK_BLOCK));
+    }
+
+    @Test
+    void placeTriggerRunsOnlyOnPlacement() {
+        Player player = mock(Player.class);
+        when(player.getName()).thenReturn("testPlayer");
+        YamlConfiguration config = new YamlConfiguration();
+        config.set("events", List.of(
+                Map.of("trigger", "PLACE", "actions", List.of(Map.of("command", "say placed <player>"))),
+                Map.of("trigger", "break", "actions", List.of(Map.of("command", "say broken")))));
+        BlockEvents events = new BlockEvents(config, "test");
+
+        try (MockedStatic<CompatibilitiesManager> compatibilities = mockStatic(CompatibilitiesManager.class)) {
+            assertFalse(events.hasClickEvents());
+            assertFalse(events.hasLeftClickEvent());
+            assertFalse(events.run(player, Action.RIGHT_CLICK_BLOCK));
+            assertTrue(events.runBreak(player));
+            verify(player, never()).performCommand("say placed testPlayer");
+            assertTrue(events.runPlace(player));
+            verify(player).performCommand("say placed testPlayer");
+            verify(player, times(1)).performCommand("say broken");
         }
     }
 

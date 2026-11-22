@@ -35,7 +35,7 @@ public class CookingBuilder extends RecipeBuilder {
         ConfigurationSection newCraftSection = getConfig().createSection(name);
         setSerializedItem(newCraftSection.createSection("result"), content[2]);
         setSerializedItem(newCraftSection.createSection("input"), content[0]);
-        newCraftSection.set("cookingTime", cookingTime);
+        newCraftSection.set("cooking-time", cookingTime);
         newCraftSection.set("experience", experience);
 
         if (permission != null && !permission.isEmpty())

@@ -24,6 +24,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import io.th0rgal.oraxen.utils.logs.Logs;
 
 public class WorldEditUtils {
 
@@ -55,7 +56,7 @@ public class WorldEditUtils {
                 editSession.close();
             } catch (WorldEditException e) {
                 OraxenPlugin.get().getLogger().warning("Could not paste schematic for sapling-mechanic");
-                if (Settings.DEBUG.toBool()) e.printStackTrace();
+                Logs.debug(e);
             }
 
         } catch (Exception e) {

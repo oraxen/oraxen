@@ -97,6 +97,7 @@ class BackpackMechanicTest extends MechanicTestSupport {
         when(event.getPlayer()).thenReturn(player);
         when(player.getInventory()).thenReturn(inventory);
         when(inventory.getItemInMainHand()).thenReturn(backpack);
+        when(backpack.clone()).thenReturn(backpack);
         when(factory.getMechanic("test_backpack")).thenReturn(mechanic);
 
         try (MockedStatic<OraxenItems> items = mockStatic(OraxenItems.class)) {

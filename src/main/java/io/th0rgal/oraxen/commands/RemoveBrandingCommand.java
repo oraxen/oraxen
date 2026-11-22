@@ -49,7 +49,7 @@ public class RemoveBrandingCommand {
         } catch (IOException e) {
             Logs.logError("Failed to remove Oraxen branding from pack language files");
             if (Settings.DEBUG.toBool())
-                e.printStackTrace();
+                Logs.debug(e);
             Message.REMOVE_BRANDING_FAILED.send(sender);
             return;
         }
@@ -73,7 +73,7 @@ public class RemoveBrandingCommand {
                         } catch (IOException e) {
                             Logs.logWarning("Failed to update branding entries in " + path.getFileName());
                             if (Settings.DEBUG.toBool())
-                                e.printStackTrace();
+                                Logs.debug(e);
                             return 0;
                         }
                     })

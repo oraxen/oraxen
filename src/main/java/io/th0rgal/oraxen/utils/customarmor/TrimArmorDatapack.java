@@ -83,7 +83,8 @@ public class TrimArmorDatapack extends OraxenDatapack {
             vanillaArmorJson.createNewFile();
             FileUtils.writeStringToFile(vanillaArmorJson, vanillaTrimPattern.toString(), StandardCharsets.UTF_8);
         } catch (IOException e) {
-            e.printStackTrace();
+            Logs.logError("Failed to write an armor trim pattern.");
+            Logs.debug(e);
         }
     }
 
@@ -102,7 +103,8 @@ public class TrimArmorDatapack extends OraxenDatapack {
                 armorJson.createNewFile();
                 FileUtils.writeStringToFile(armorJson, trimPattern.toString(), StandardCharsets.UTF_8);
             } catch (IOException e) {
-                e.printStackTrace();
+                Logs.logError("Failed to update the armor trim atlas.");
+                Logs.debug(e);
             }
         }
     }
@@ -139,7 +141,8 @@ public class TrimArmorDatapack extends OraxenDatapack {
                 atlasJson.add("sources", sourcesArray);
                 trimsAtlas.get().setInputStream(IOUtils.toInputStream(atlasJson.toString(), StandardCharsets.UTF_8));
             } catch (IOException e) {
-                e.printStackTrace();
+                Logs.logError("Failed to write the armor trim atlas.");
+                Logs.debug(e);
             }
         } else {
             JsonObject atlasJson = new JsonObject();
@@ -186,7 +189,7 @@ public class TrimArmorDatapack extends OraxenDatapack {
             }
         }
 
-        String resourcePath = "pack/textures/models/armor/";
+        String resourcePath = LegacyArmorTextures.RESOURCE_DIRECTORY;
         if (output.stream().noneMatch(v -> v.getPath().equals(vanillaTrimPath + material + ".png")))
             output.add(new VirtualFile(vanillaTrimPath, material + ".png",
                     OraxenPlugin.get().getResource(resourcePath + material + "_layer_1.png")));

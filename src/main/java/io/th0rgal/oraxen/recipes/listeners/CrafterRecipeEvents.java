@@ -11,7 +11,13 @@ public class CrafterRecipeEvents implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onCraft(CrafterCraftEvent event) {
         if (!(event.getBlock().getState() instanceof Crafter crafter)) return;
-        if (RecipesEventsManager.containsRestrictedCraftingIngredient(crafter.getInventory().getContents()))
+        RecipesEventsManager recipes = RecipesEventsManager.get();
+        try {
+            var result = recipes.craftWithCrafter(event.getRecipe(), event.getBlock(), crafter.getInventory(), event.getResult());
+            if (result == null) event.setCancelled(true);
+            else event.setResult(result);
+        } catch (IllegalArgumentException | IllegalStateException exception) {
             event.setCancelled(true);
+        }
     }
 }

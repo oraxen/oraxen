@@ -276,7 +276,7 @@ public class ConfigsManager {
             YamlConfiguration defaultConfiguration) {
         File configurationFile = resourcesManager.extractConfiguration(configName);
         YamlConfiguration configuration = OraxenYaml.loadConfiguration(configurationFile);
-        boolean updated = configName.equals("settings.yml") && SettingsUpdater.migrateInventoryMenu(configuration);
+        boolean updated = configName.equals("settings.yml") && SettingsUpdater.migrateBeforeDefaults(configuration);
         boolean miningConfigMigrated = configName.equals("mechanics.yml")
                 && MiningConfigMigration.migrateFactory(configuration);
         updated |= miningConfigMigrated;
@@ -346,8 +346,8 @@ public class ConfigsManager {
 
     // Skip optional keys and subkeys
     private final List<String> skippedYamlKeys = List.of(
-            "inventory-menu.layout",
-            "Misc.armor_equip_event_bypass");
+            "inventory.layout",
+            "utils.armor-equip-event-bypass");
 
     private final List<String> removedYamlKeys = List.of(
             "armorpotioneffects",
@@ -838,11 +838,49 @@ public class ConfigsManager {
         return (char) min;
     }
 
+    // ItemLoader also reads item files, whose existing key spelling must stay compatible.
+    static ConfigurationSection fallbackItemConfig(ConfigurationSection fallback) {
+        YamlConfiguration copy = new YamlConfiguration();
+        ConfigurationSection item = copy.createSection(fallback.getName());
+        for (var entry : fallback.getValues(true).entrySet()) {
+            if (entry.getValue() instanceof ConfigurationSection) item.createSection(entry.getKey());
+            else item.set(entry.getKey(), entry.getValue());
+        }
+        for (var entry : Map.of("exclude-from-inventory", "excludeFromInventory",
+                "inject-id", "injectId").entrySet()) {
+            if (fallback.contains(entry.getKey())) {
+                item.set(entry.getValue(), fallback.get(entry.getKey()));
+                item.set(entry.getKey(), null);
+            }
+        }
+        return item;
+    }
+
+    static void persistFallbackItemConfig(ConfigurationSection fallback, ConfigurationSection item) {
+        for (String key : new ArrayList<>(fallback.getKeys(false))) fallback.set(key, null);
+        for (var entry : item.getValues(true).entrySet()) {
+            if (entry.getValue() instanceof ConfigurationSection) {
+                fallback.createSection(entry.getKey());
+                continue;
+            }
+            String key = switch (entry.getKey()) {
+                case "excludeFromInventory" -> "exclude-from-inventory";
+                case "injectId" -> "inject-id";
+                default -> entry.getKey();
+            };
+            fallback.set(key, entry.getValue());
+        }
+    }
+
     public Map<File, Map<String, ItemBuilder>> parseItemConfig() {
         Map<File, Map<String, ItemBuilder>> parseMap = new LinkedHashMap<>();
-        ItemLoader errorLoader = new ItemLoader(Settings.ERROR_ITEM.toConfigSection());
+        ConfigurationSection fallback = Settings.ERROR_ITEM.toConfigSection();
+        ConfigurationSection itemConfig = fallbackItemConfig(fallback);
+        ItemLoader errorLoader = new ItemLoader(itemConfig);
         ItemValidator.Result errorResult = errorLoader.load();
         if (errorResult.configUpdated()) {
+            persistFallbackItemConfig(fallback, itemConfig);
+            Settings.invalidateCache();
             try {
                 getSettings().save(getSettingsFile());
             } catch (IOException e) {
@@ -856,9 +894,28 @@ public class ConfigsManager {
     }
 
     public void assignAllUsedModelDatas() {
+        migrateFurnitureBarriers();
         Map<Material, Map<Integer, String>> assignedModelDatas = new HashMap<>();
         for (File file : getItemFiles())
             assignUsedModelData(file, assignedModelDatas);
+    }
+
+    private void migrateFurnitureBarriers() {
+        Map<File, YamlConfiguration> configurations = new LinkedHashMap<>();
+        List<ConfigurationSection> items = new ArrayList<>();
+        for (File file : getItemFiles()) {
+            if (file == null || !file.exists()) continue;
+            YamlConfiguration configuration = OraxenYaml.loadConfiguration(file);
+            configurations.put(file, configuration);
+            for (String key : configuration.getKeys(false)) {
+                ConfigurationSection item = configuration.getConfigurationSection(key);
+                if (item != null) items.add(item);
+            }
+        }
+        Set<ConfigurationSection> updated = FurnitureConfigMigration.migrateBarriers(items);
+        for (Map.Entry<File, YamlConfiguration> entry : configurations.entrySet())
+            if (updated.stream().anyMatch(item -> item.getRoot() == entry.getValue()))
+                saveUpdatedItemConfig(entry.getKey(), entry.getValue(), true);
     }
 
     private void assignUsedModelData(File file, Map<Material, Map<Integer, String>> assignedModelDatas) {
@@ -924,6 +981,7 @@ public class ConfigsManager {
     }
 
     public void parseAllItemTemplates() {
+        List<ConfigurationSection> templates = new ArrayList<>();
         for (File file : getItemFiles()) {
             if (file == null || !file.exists())
                 continue;
@@ -941,10 +999,11 @@ public class ConfigsManager {
                 }
                 configUpdated |= migrator.configUpdated();
                 blockConfigMigrated |= migrator.blockConfigMigrated();
-                ItemTemplate.register(itemSection);
+                templates.add(itemSection);
             }
             if (configUpdated) saveUpdatedItemConfig(file, configuration, blockConfigMigrated);
         }
+        ItemTemplate.replaceAll(templates);
     }
 
     private String getItemModelFromConfigurationSection(ConfigurationSection packSection) {
@@ -1013,10 +1072,6 @@ public class ConfigsManager {
             MigrationBackups.moveToMigrated(plugin.getDataFolder(), itemFile);
 
         String content = config.saveToString();
-        if (VersionUtil.atOrAbove("1.20.5"))
-            content = content.replace("displayname: ", "itemname: ");
-        else
-            content = content.replace("itemname: ", "displayname: ");
 
         try {
             FileUtils.writeStringToFile(itemFile, content, StandardCharsets.UTF_8);
@@ -1026,7 +1081,8 @@ public class ConfigsManager {
                 config.save(itemFile);
             } catch (Exception e1) {
                 if (Settings.DEBUG.toBool())
-                    e1.printStackTrace();
+                    Logs.logError("Failed to save the item configuration using the fallback serializer.");
+                    Logs.debug(e1);
             }
         }
     }

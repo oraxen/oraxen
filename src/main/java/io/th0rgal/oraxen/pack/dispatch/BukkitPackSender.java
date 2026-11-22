@@ -71,4 +71,5 @@ public class BukkitPackSender extends PackSender implements Listener {
         else SchedulerUtil.runForEntityLater(player, delay * 20L, () ->
                 sendPack(player), null);
     }
+
 }

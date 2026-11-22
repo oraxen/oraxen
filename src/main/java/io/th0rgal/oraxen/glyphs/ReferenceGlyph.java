@@ -207,6 +207,13 @@ public class ReferenceGlyph extends Glyph {
                 : Key.key("minecraft", "default");
     }
 
+    @Override
+    public Key getTargetFont() {
+        return resolvedSourceGlyph != null
+                ? resolvedSourceGlyph.getTargetFont()
+                : super.getTargetFont();
+    }
+
     /**
      * Gets the texture from the source glyph.
      */

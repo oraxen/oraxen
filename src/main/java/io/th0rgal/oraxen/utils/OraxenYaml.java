@@ -205,7 +205,8 @@ public class OraxenYaml extends YamlConfiguration {
             // You can choose to do nothing and keep the existing data in the file
             // or provide default values and continue.
         } catch (IOException e) {
-            e.printStackTrace();
+            Logs.logError("Failed to read YAML configuration from a file.");
+            Logs.debug(e);
         }
         return config;
     }
@@ -221,7 +222,8 @@ public class OraxenYaml extends YamlConfiguration {
             Logs.logError("Ensure that your config is formatted correctly:");
             Logs.logWarning(e.getMessage());
         } catch (IOException e) {
-            e.printStackTrace();
+            Logs.logError("Failed to read YAML configuration from a reader.");
+            Logs.debug(e);
         }
         return config;
     }

@@ -116,11 +116,11 @@ public final class UpdateChecker implements Listener {
         // Read the raw value: a numeric YAML value (e.g. "interval: 24") is not a String
         long interval = parseIntervalMillis(String.valueOf(value));
         if (interval < 0) {
-            Logs.logWarning("Invalid update-checker.interval '" + value + "'; using 24h.");
+            Logs.logWarning("Invalid general.update-checker.interval '" + value + "'; using 24h.");
             return DEFAULT_INTERVAL;
         }
         if (interval < MIN_INTERVAL) {
-            Logs.logWarning("update-checker.interval '" + value + "' is too short; using the 10m minimum.");
+            Logs.logWarning("general.update-checker.interval '" + value + "' is too short; using the 10m minimum.");
             return MIN_INTERVAL;
         }
         return interval;

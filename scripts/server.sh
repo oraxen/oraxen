@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
+# Existing servers are temporary and used for validation. Agents should reset them.
 set -euo pipefail
 
 # Starts a local Paper/Folia server for a version used by VersionLoadingTest.
 #
 # Usage:
-#   ./scripts/server.sh --version Paper/26.2
+#   ./scripts/server.sh --version Paper/26.3
 #   ./scripts/server.sh --version Folia/1.21.11 --no-reset
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
@@ -18,7 +19,7 @@ usage() {
 Usage: ./scripts/server.sh --version <Paper|Folia>/<version> [--no-reset]
 
 Options:
-  --version, -v  Server and Minecraft version, for example Paper/26.2
+  --version, -v  Server and Minecraft version, for example Paper/26.3
   --no-reset     Keep the existing plugins and world files
   --help, -h     Show this help
 EOF
@@ -65,7 +66,7 @@ if [[ "$VERSION_SPEC" =~ ^(Paper|Folia)/([0-9]+(\.[0-9]+)*)$ ]]; then
     SERVER_NAME="${BASH_REMATCH[1]}"
     MC_VERSION="${BASH_REMATCH[2]}"
 else
-    error "version must look like Paper/26.2 or Folia/1.21.11"
+    error "version must look like Paper/26.3 or Folia/1.21.11"
 fi
 
 PROJECT_NAME="$(printf '%s' "$SERVER_NAME" | tr '[:upper:]' '[:lower:]')"
@@ -145,25 +146,18 @@ find_java() {
 find_oraxen_jar() {
     local jar
     local jars=()
+    echo "Building Oraxen shadowJar..." >&2
+    if [[ -x "$PROJECT_DIR/gradlew" ]]; then
+        "$PROJECT_DIR/gradlew" -p "$PROJECT_DIR" shadowJar >&2 || error "Gradle shadowJar failed"
+    else
+        (cd "$PROJECT_DIR" && sh ./gradlew shadowJar >&2) || error "Gradle shadowJar failed"
+    fi
+
     shopt -s nullglob
     for jar in "$PROJECT_DIR"/build/libs/oraxen-*.jar; do
         [[ "$jar" == *-sources.jar || "$jar" == *-javadoc.jar ]] || jars+=("$jar")
     done
     shopt -u nullglob
-
-    if ((${#jars[@]} == 0)); then
-        echo "No Oraxen jar found; building shadowJar..." >&2
-        if [[ -x "$PROJECT_DIR/gradlew" ]]; then
-            "$PROJECT_DIR/gradlew" -p "$PROJECT_DIR" shadowJar >&2
-        else
-            (cd "$PROJECT_DIR" && sh ./gradlew shadowJar >&2)
-        fi
-        shopt -s nullglob
-        for jar in "$PROJECT_DIR"/build/libs/oraxen-*.jar; do
-            [[ "$jar" == *-sources.jar || "$jar" == *-javadoc.jar ]] || jars+=("$jar")
-        done
-        shopt -u nullglob
-    fi
 
     ((${#jars[@]} > 0)) || error "could not find the built Oraxen jar in $PROJECT_DIR/build/libs"
 
@@ -177,7 +171,7 @@ find_oraxen_jar() {
 
 known_download_url() {
     case "$PROJECT_NAME/$MC_VERSION" in
-        paper/26.3) printf '%s\n' 'https://fill-data.papermc.io/v1/objects/ddfea9cddc8f40e33080d4d9a3e9818fd1f9ea33f6100b42ac228ef80eb7ceed/paper-26.3-31.jar' ;;
+        paper/26.3) printf '%s\n' 'https://fill-data.papermc.io/v1/objects/989f93c29d5b61fe52804f834ea6b3a0a5775d05412e238ec78107197a6b5be6/paper-26.3-238.jar' ;;
         paper/26.2) printf '%s\n' 'https://fill-data.papermc.io/v1/objects/36fee4f3a7020eb2e2d6f8d70d849beaf0f024d86f09302b9ccf2d96f266127e/paper-26.2-71.jar' ;;
         paper/26.1.2) printf '%s\n' 'https://fill-data.papermc.io/v1/objects/d30fae0c74092b10855f0412ca6b265c60301a013d34bc28a2a41bf5682dd80b/paper-26.1.2-69.jar' ;;
         paper/1.21.11) printf '%s\n' 'https://fill-data.papermc.io/v1/objects/5ffef465eeeb5f2a3c23a24419d97c51afd7dbb4923ff42df9a3f58bba1ccfba/paper-1.21.11-132.jar' ;;
@@ -238,6 +232,40 @@ regenerate_server_files() {
     printf 'eula=true\n' > "$SERVER_DIR/eula.txt"
 }
 
+# Keep version-specific settings and override only the properties needed by this test server.
+configure_server_properties() {
+    local properties_file="$SERVER_DIR/server.properties"
+    local temporary_file="$SERVER_DIR/server.properties.tmp"
+
+    if [[ -f "$properties_file" ]]; then
+        cp -p "$properties_file" "$temporary_file"
+        awk '
+            function has_property(line, key, remainder) {
+                sub(/^[[:space:]]*/, "", line)
+                if (substr(line, 1, length(key)) != key) return 0
+                remainder = substr(line, length(key) + 1)
+                return remainder == "" || remainder ~ /^[[:space:]]/ || remainder ~ /^[=:]/
+            }
+            {
+                line = $0
+                sub(/\r$/, "", line)
+                if (has_property(line, "online-mode") || has_property(line, "white-list")) next
+                print line
+                wrote_other_line = 1
+            }
+            END {
+                if (wrote_other_line) print ""
+                print "online-mode=false"
+                print "white-list=false"
+            }
+        ' "$properties_file" > "$temporary_file"
+    else
+        printf 'online-mode=false\nwhite-list=false\n' > "$temporary_file"
+    fi
+
+    mv -f "$temporary_file" "$properties_file"
+}
+
 java_command="$(find_java "$(required_java_version)")" \
     || error "Java $(required_java_version) is required for ${MC_VERSION}; set JAVA_$(required_java_version)_HOME or JAVA_HOME"
 
@@ -245,6 +273,7 @@ oraxen_jar="$(find_oraxen_jar)"
 download_server_jar
 reset_server_files
 regenerate_server_files
+configure_server_properties
 cp "$oraxen_jar" "$SERVER_DIR/plugins/Oraxen.jar"
 
 cat <<EOF

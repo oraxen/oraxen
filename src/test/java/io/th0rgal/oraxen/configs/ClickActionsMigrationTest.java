@@ -33,7 +33,8 @@ class ClickActionsMigrationTest {
             assertNotNull(events);
             assertEquals(2, events.size());
             Map<?, ?> migrated = (Map<?, ?>) events.get(1);
-            assertEquals("RIGHT", migrated.get("click"));
+            assertEquals("click", migrated.get("trigger"));
+            assertEquals("RIGHT", migrated.get("type"));
             List<?> actions = (List<?>) migrated.get("actions");
             assertEquals(1, actions.size());
             assertEquals(List.of("[console] say one", "[message] two"), ((Map<?, ?>) actions.get(0)).get("legacy"));

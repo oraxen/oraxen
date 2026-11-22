@@ -236,6 +236,7 @@ public class FurnitureListener implements Listener {
             item.setAmount(item.getAmount() - 1);
         event.setUseInteractedBlock(Event.Result.DENY);
         baseEntity.getWorld().sendGameEvent(player, GameEvent.BLOCK_PLACE, baseEntity.getLocation().toVector());
+        mechanic.runPlaceEvents(player);
     }
 
     private Block getTarget(Block placedAgainst, BlockFace blockFace) {
@@ -405,6 +406,11 @@ public class FurnitureListener implements Listener {
         Entity hitEntity = event.getHitEntity();
         Projectile projectile = event.getEntity();
         Player player = projectile.getShooter() instanceof Player ? (Player) projectile.getShooter() : null;
+        if (player != null && !Bukkit.isOwnedByCurrentRegion(player)) {
+            // A shooter owned by another region cannot be checked or credited from this thread (Folia).
+            if (isProjectileHitFurniture(block, hitEntity)) event.setCancelled(true);
+            return;
+        }
         Location location = block != null && block.getType() == Material.BARRIER ? block.getLocation()
                 : hitEntity != null ? hitEntity.getLocation() : null;
         if (location == null || !isProjectileHitFurniture(block, hitEntity)) return;
@@ -446,6 +452,8 @@ public class FurnitureListener implements Listener {
         Player player = projectile.getShooter() instanceof Player ? (Player) projectile.getShooter() : null;
 
         event.setCancelled(true);
+        // A shooter owned by another region cannot be checked or credited from this thread (Folia).
+        if (player != null && !Bukkit.isOwnedByCurrentRegion(player)) return;
         if (mechanic != null && !mechanic.isBreakable()) return;
         if ((mechanic != null && mechanic.hasBarriers()) || !isDamagingProjectile(projectile))
             return;
@@ -465,26 +473,22 @@ public class FurnitureListener implements Listener {
         Entity baseEntity = event.getRightClicked();
         final Player player = event.getPlayer();
         EquipmentSlot hand = event.getHand();
+        boolean solidHitbox = FurnitureMechanic.isSolidHitbox(baseEntity);
+        if (solidHitbox) event.setCancelled(true);
 
         if (!AntiGriefLib.canInteract(player, baseEntity.getLocation()))
             return;
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
         if (mechanic == null)
             return;
-        Entity resolvedBaseEntity = baseEntity instanceof Interaction interactionEntity
-                ? mechanic.getBaseEntity(interactionEntity) : baseEntity;
+        Entity resolvedBaseEntity = baseEntity instanceof Interaction || solidHitbox
+                ? mechanic.getBaseEntity(baseEntity) : baseEntity;
+        if (solidHitbox && (resolvedBaseEntity == null || !Bukkit.isOwnedByCurrentRegion(resolvedBaseEntity))) return;
         if (!BlockLockerCompatibility.canInteract(player, blockLockerBlock(mechanic, resolvedBaseEntity, baseEntity.getLocation().getBlock()), mechanic)) {
             event.setCancelled(true);
             return;
         }
-        // Swap baseEntity to the baseEntity if interacted with entity is Interaction
-        // type
-        Entity interaction = null;
-        if (baseEntity instanceof Interaction interactionEntity) {
-            interaction = interactionEntity;
-            baseEntity = resolvedBaseEntity != null ? resolvedBaseEntity : interaction;
-        }
-
+        if (resolvedBaseEntity != null) baseEntity = resolvedBaseEntity;
         ItemStack itemInHand = hand == EquipmentSlot.HAND ? player.getInventory().getItemInMainHand()
                 : player.getInventory().getItemInOffHand();
         new OraxenFurnitureInteractEvent(mechanic, baseEntity, player, itemInHand, hand).callEvent();
@@ -541,6 +545,10 @@ public class FurnitureListener implements Listener {
     public void onPlayerAttackFurniture(PrePlayerAttackEntityEvent event) {
         if (!FurnitureFactory.isEnabled()) return;
         Entity entity = event.getAttacked();
+        if (FurnitureMechanic.isSolidHitbox(entity)) {
+            if (!event.isCancelled()) onSolidHitboxAttack(event, entity);
+            return;
+        }
         if (event.isCancelled() && !(entity instanceof Interaction)) return;
         Player player = event.getPlayer();
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
@@ -550,6 +558,26 @@ public class FurnitureListener implements Listener {
         if (!BlockLockerCompatibility.canInteract(player,
                 blockLockerBlock(mechanic, baseEntity, entity.getLocation().getBlock()), mechanic)) return;
         mechanic.runEvents(player, Action.LEFT_CLICK_BLOCK);
+    }
+
+    private void onSolidHitboxAttack(PrePlayerAttackEntityEvent event, Entity hitbox) {
+        event.setCancelled(true);
+        Player player = event.getPlayer();
+        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(hitbox);
+        if (mechanic == null) {
+            if (AntiGriefLib.canBreak(player, hitbox.getLocation())) OraxenFurniture.remove(hitbox, player);
+            return;
+        }
+        Entity baseEntity = mechanic.getBaseEntity(hitbox);
+        if (baseEntity == null || !Bukkit.isOwnedByCurrentRegion(baseEntity)) return;
+        if (!BlockLockerCompatibility.canInteract(player,
+                blockLockerBlock(mechanic, baseEntity, hitbox.getLocation().getBlock()), mechanic)) return;
+        if (AntiGriefLib.canInteract(player, hitbox.getLocation()))
+            mechanic.runEvents(player, Action.LEFT_CLICK_BLOCK);
+        if (!mechanic.isBreakable() || !AntiGriefLib.canBreak(player, baseEntity.getLocation())) return;
+        OraxenFurnitureBreakEvent breakEvent = new OraxenFurnitureBreakEvent(mechanic, baseEntity, player,
+                baseEntity.getLocation().getBlock());
+        if (breakEvent.callEvent()) OraxenFurniture.remove(baseEntity, player, breakEvent.getDrop());
     }
 
     private Block blockLockerBlock(FurnitureMechanic mechanic, Entity baseEntity, Block fallback) {

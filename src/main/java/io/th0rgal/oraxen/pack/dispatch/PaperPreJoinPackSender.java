@@ -17,7 +17,7 @@ final class PaperPreJoinPackSender implements Listener {
 
     @EventHandler(priority = EventPriority.NORMAL)
     public void onPlayerConfigure(PlayerConnectionInitialConfigureEvent event) {
-        // The NMS listener owns callback-aware pre-join dispatch when available.
+        // The shared listener owns callback-aware pre-join dispatch when available.
         // Keep this listener only as a fallback for servers where guarded NMS setup failed.
         if (NMSHandlers.hasPackDispatchListener()) return;
         if (!PackSender.isPreJoinDispatchActive()) return;

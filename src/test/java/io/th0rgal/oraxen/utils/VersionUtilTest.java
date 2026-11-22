@@ -1,10 +1,36 @@
 package io.th0rgal.oraxen.utils;
 
 import org.junit.jupiter.api.Test;
+import java.util.jar.Attributes;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class VersionUtilTest {
+
+    @Test
+    void missingManifestKeysDoNotBorrowUnrelatedValues() {
+        Attributes attributes = new Attributes();
+        attributes.putValue("Unrelated", "true");
+        assertFalse(VersionUtil.isCompiled(attributes));
+        assertFalse(VersionUtil.isValidCompiler(attributes));
+        attributes.putValue("Compiled", "true");
+        assertTrue(VersionUtil.isCompiled(attributes));
+    }
+
+    @Test
+    void compilerRulesPreserveTrustedNamesAndBooleanSemantics() {
+        Attributes attributes = new Attributes();
+        attributes.putValue("Compiled", " TRUE ");
+        for (String compiler : new String[]{" SIVERT ", "Thomas"}) {
+            attributes.putValue("Built-By", compiler);
+            assertTrue(VersionUtil.isValidCompiler(attributes));
+            assertFalse(VersionUtil.isCompiled(attributes));
+        }
+        attributes.putValue("Built-By", "other");
+        assertTrue(VersionUtil.isCompiled(attributes));
+        attributes.putValue("Compiled", "invalid");
+        assertFalse(VersionUtil.isCompiled(attributes));
+    }
 
     @Test
     void snapshotParsingDoesNotRequireAnInitializedPacketAdapter() {
@@ -46,14 +72,5 @@ class VersionUtilTest {
         assertTrue(VersionUtil.supportsNmsHandler(new MinecraftVersion("1.21.2")));
         assertTrue(VersionUtil.supportsNmsHandler(new MinecraftVersion("26.1.2")));
         assertEquals("Paper and Paper forks 1.21.2+ / 26.x through the guarded NMS handler", VersionUtil.supportedVersions());
-    }
-
-    @Test
-    void scoreboardBackgroundHidingIsLimitedToCompatibleVersions() {
-        assertFalse(VersionUtil.supportsScoreboardBackgroundHiding(new MinecraftVersion("1.21.5")));
-        assertTrue(VersionUtil.supportsScoreboardBackgroundHiding(new MinecraftVersion("1.21.6")));
-        assertTrue(VersionUtil.supportsScoreboardBackgroundHiding(new MinecraftVersion("1.21.7")));
-        assertFalse(VersionUtil.supportsScoreboardBackgroundHiding(new MinecraftVersion("1.21.8")));
-        assertFalse(VersionUtil.supportsScoreboardBackgroundHiding(new MinecraftVersion("26.1")));
     }
 }

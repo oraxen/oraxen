@@ -2,11 +2,11 @@ package io.th0rgal.oraxen.nms;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.configs.Settings;
+import io.th0rgal.oraxen.pack.dispatch.PackDispatchListener;
 import io.th0rgal.oraxen.utils.MinecraftVersion;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
-import org.bukkit.event.Listener;
 import org.jetbrains.annotations.NotNull;
 
 public class NMSHandlers {
@@ -55,14 +55,14 @@ public class NMSHandlers {
                 Logs.logSuccess("Version " + version + " has been detected.");
                 Logs.logInfo("Oraxen will use " + handlerClass + ".");
             }
-            Listener packDispatchListener = handler.packDispatchListener();
-            if (packDispatchListener != null) {
-                Bukkit.getPluginManager().registerEvents(packDispatchListener, OraxenPlugin.get());
+            // Configuration/reconfiguration events are unavailable before Paper 1.21.7.
+            if (VersionUtil.atOrAbove("1.21.7")) {
+                Bukkit.getPluginManager().registerEvents(new PackDispatchListener(), OraxenPlugin.get());
                 packDispatchListenerRegistered = true;
             }
         } catch (ReflectiveOperationException | LinkageError e) {
             Logs.logWarning("Failed to load guarded NMS handler; NMS features will be disabled...");
-            if (Settings.DEBUG.toBool()) e.printStackTrace();
+            Logs.debug(e);
             handler = new NMSHandler.EmptyNMSHandler();
         }
     }

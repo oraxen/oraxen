@@ -67,7 +67,8 @@ public final class ClickActionsMigration {
             migrated.put("conditions", conditions);
 
         Map<String, Object> event = new LinkedHashMap<>();
-        event.put("click", "RIGHT");
+        event.put("trigger", "click");
+        event.put("type", "RIGHT");
         event.put("actions", List.of(migrated));
         return event;
     }

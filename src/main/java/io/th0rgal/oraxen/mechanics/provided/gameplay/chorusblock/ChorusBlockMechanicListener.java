@@ -603,6 +603,7 @@ public class ChorusBlockMechanicListener implements Listener {
         if (player.getGameMode() != GameMode.CREATIVE)
             item.setAmount(item.getAmount() - 1);
         Utils.swingHand(player, hand);
+        mechanic.runPlaceEvents(player);
 
         target.getWorld().sendGameEvent(player, GameEvent.BLOCK_PLACE, target.getLocation().toVector());
     }

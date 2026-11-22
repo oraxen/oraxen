@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.recipes.loaders;
 
 import io.th0rgal.oraxen.recipes.listeners.RecipesEventsManager;
+import io.th0rgal.oraxen.recipes.RecipeTransforms;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.SmithingTransformRecipe;
 
@@ -11,7 +12,11 @@ public class SmithingLoader extends RecipeLoader {
     public void registerRecipe() {
         SmithingTransformRecipe recipe = new SmithingTransformRecipe(getNamespacedKey(), getValidResult(),
                 getRequiredChoice("template"), getRequiredChoice("base"), getRequiredChoice("addition"));
+        String source = getSection().getString("transform.source", "base");
+        if (!source.equals("base"))
+            throw new IllegalArgumentException("Invalid smithing transform source " + source);
+        RecipeTransforms.Transform transform = RecipeTransforms.parse(getSection());
         loadRecipe(recipe);
-        RecipesEventsManager.get().registerSmithingRecipe(recipe.getKey(), getPermission());
+        RecipesEventsManager.get().registerSmithingRecipe(recipe, getPermission(), transform);
     }
 }

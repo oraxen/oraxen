@@ -6,17 +6,17 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public enum UpdatedSettings {
-    GUI_INVENTORY("gui_inventory", "inventory-menu.layout"),
-    MERGE_ITEM_MODELS("Plugin.experimental.merge_item_base_models", "Pack.import.merge_item_base_models"),
-    MERGE_FONTS("Plugin.experimental.merge_font_files", "Pack.import.merge_font_files"),
-    GENERATE_ATLAS_FILE("Pack.generation.generate_atlas_file", "Pack.generation.atlas.generate"),
-    AUTO_UPDATE_ITEMS("Misc.auto_update_items", "ItemUpdater.auto_update_items"),
-    SEND_PACK_ADVANCED_MANDATORY("Pack.dispatch.send_pack_advanced.mandatory", "Pack.dispatch.mandatory"),
-    SEND_PACK_ADVANCED_MESSAGE("Pack.dispatch.send_pack_advanced.message", "Pack.dispatch.prompt"),
-    VERIFY_PACK_FILES("Plugin.experimental.verify_pack_files", "Pack.generation.verify_pack_files"),
-    EXCLUDE_MALFORMED_ATLAS("Plugin.experimental.exclude_malformed_from_atlas", "Pack.generation.atlas.exclude_malformed_from_atlas"),
-    SHOW_PERMISSION_EMOJIS("Plugin.commands.emoji_list.only_show_emojis_with_permission", "Glyphs.emoji_list_permission_only"),
-    UNICODE_COMPLETIONS("Misc.unicode_completions", "Glyphs.unicode_completions"),
+    GUI_INVENTORY("gui_inventory", "inventory.layout"),
+    MERGE_ITEM_MODELS("Plugin.experimental.merge_item_base_models", "pack.import.merge.item-base-models"),
+    MERGE_FONTS("Plugin.experimental.merge_font_files", "pack.import.merge.fonts"),
+    GENERATE_ATLAS_FILE("Pack.generation.generate_atlas_file", "pack.generation.atlas.generate"),
+    AUTO_UPDATE_ITEMS("Misc.auto_update_items", "updater.items.update-items"),
+    SEND_PACK_ADVANCED_MANDATORY("Pack.dispatch.send_pack_advanced.mandatory", "pack.dispatch.mandatory"),
+    SEND_PACK_ADVANCED_MESSAGE("Pack.dispatch.send_pack_advanced.message", "pack.dispatch.prompt"),
+    VERIFY_PACK_FILES("Plugin.experimental.verify_pack_files", "pack.verification"),
+    EXCLUDE_MALFORMED_ATLAS("Plugin.experimental.exclude_malformed_from_atlas", "pack.generation.atlas.exclude-malformed-from-atlas"),
+    SHOW_PERMISSION_EMOJIS("Plugin.commands.emoji_list.only_show_emojis_with_permission", "glyphs.emoji-list-permission-only"),
+    UNICODE_COMPLETIONS("Misc.unicode_completions", "glyphs.unicode-completions"),
     ;
 
     private final String path;

@@ -82,6 +82,12 @@ public class AtlasGenerator {
                 resolution.bridgedVanillaItemTextures(),
                 generationType
         );
+        // Run imported operations after generated defaults so their filters and aliases retain effect.
+        for (VirtualFile file : output) {
+            if (file.getPath().equals("assets/minecraft/atlases/blocks.json") && file.isJsonObject()) {
+                blocksAtlas = PackAssetMerger.mergeJson(file.getPath(), blocksAtlas, file.toJsonObject());
+            }
+        }
         upsertVirtualFile(output, "assets/minecraft/atlases", "blocks.json", blocksAtlas.toString());
 
         if (includeSplitItemAtlas && !resolution.itemAtlasTextures().isEmpty()) {
@@ -90,6 +96,11 @@ public class AtlasGenerator {
                     Collections.emptySet(),
                     generationType
             );
+            for (VirtualFile file : output) {
+                if (file.getPath().equals("assets/minecraft/atlases/items.json") && file.isJsonObject()) {
+                    itemsAtlas = PackAssetMerger.mergeJson(file.getPath(), itemsAtlas, file.toJsonObject());
+                }
+            }
             upsertVirtualFile(output, "assets/minecraft/atlases", "items.json", itemsAtlas.toString());
         }
     }

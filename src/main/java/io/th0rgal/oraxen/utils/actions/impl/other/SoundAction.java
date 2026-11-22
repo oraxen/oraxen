@@ -12,6 +12,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Locale;
+import io.th0rgal.oraxen.utils.logs.Logs;
 
 public class SoundAction extends Action<Player> {
 
@@ -32,7 +33,8 @@ public class SoundAction extends Action<Player> {
         try {
             AdventureUtils.playSound(player, Sound.sound(Key.key(parsed), source, volume, pitch));
         } catch (InvalidKeyException e) {
-            e.printStackTrace();
+            Logs.logWarning("Could not parse the configured sound action; skipping sound playback.");
+            Logs.debug(e);
         }
     }
 

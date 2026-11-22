@@ -55,7 +55,8 @@ public enum RemovedSettings {
     WORLDEDIT_STRINGBLOCKS("WorldEdit.stringblock_mechanic"),
     WORLDEDIT_NOTEBLOCKS("WorldEdit.noteblock_mechanic"),
     WORLDEDIT_FURNITURE("WorldEdit.furniture_mechanic"),
-    WORLDEDIT("WorldEdit")
+    WORLDEDIT("WorldEdit"),
+    HIDE_TABLIST_BACKGROUND("utils.hide.tablist.background")
 
     ;
 

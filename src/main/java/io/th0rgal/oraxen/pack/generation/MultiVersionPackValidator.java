@@ -32,13 +32,13 @@ public final class MultiVersionPackValidator {
         if ("self-host".equals(uploadType)) {
             Logs.logError("Multi-version packs are incompatible with 'self-host' upload type!");
             Logs.logError("Self-host can only serve a single pack file at /pack.zip");
-            Logs.logError("Change 'Pack.upload.type' to 'lobfile', 'polymath', 's3', or 'external' to use multi-version packs");
+            Logs.logError("Change 'pack.upload.type' to 'lobfile', 'polymath', 's3', or 'external' to use multi-version packs");
             hasErrors = true;
         }
 
         if (!Settings.UPLOAD.toBool()) {
             Logs.logWarning("Multi-version packs are enabled but pack upload is disabled!");
-            Logs.logWarning("Set 'Pack.upload.enabled: true' to upload packs to players");
+            Logs.logWarning("Set 'pack.upload.enabled: true' to upload packs to players");
         }
 
         boolean hasViaVersion = PluginUtils.isEnabled("ViaVersion") || PluginUtils.isEnabled("ViaBackwards");

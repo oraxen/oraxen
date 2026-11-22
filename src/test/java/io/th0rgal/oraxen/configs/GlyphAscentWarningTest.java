@@ -187,6 +187,9 @@ class GlyphAscentWarningTest {
         Field field = ConfigsManager.class.getDeclaredField("glyphsFolder");
         field.setAccessible(true);
         field.set(manager, glyphs.toFile());
+        var settings = new org.bukkit.configuration.file.YamlConfiguration();
+        settings.set(Settings.FIX_FORCE_UNICODE_GLYPHS.getPath(), true);
+        doReturn(settings).when(manager).getSettings();
         return manager;
     }
 }
