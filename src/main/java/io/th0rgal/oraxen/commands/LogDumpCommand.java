@@ -32,7 +32,6 @@ public class LogDumpCommand {
                 .withPermission("oraxen.command.dumplog")
                 .executes((sender, args) -> {
                     SchedulerUtil.runTaskAsync(() -> {
-                        String packUrl = "http://atlas.oraxen.com:8080/.*";
                         String logfile;
 
                         try {
@@ -105,37 +104,21 @@ public class LogDumpCommand {
         conn.setRequestProperty("Content-Length", Integer.toString(postDataLength));
         conn.setUseCaches(false);
 
-        String response = null;
-        DataOutputStream wr = null;
-        InputStreamReader inputReader = null;
-        BufferedReader reader = null;
         try {
-            wr = new DataOutputStream(conn.getOutputStream());
-            wr.write(postData);
-            inputReader = new InputStreamReader(conn.getInputStream());
-            reader = new BufferedReader(inputReader);
-            response = reader.readLine();
-        } catch (IOException e) {
-            Logs.logWarning("Failed to read hastebin result.");
-            if (Settings.DEBUG.toBool())
-                Logs.debug(e);
+            try (DataOutputStream wr = new DataOutputStream(conn.getOutputStream())) {
+                wr.write(postData);
+            }
+            String response;
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
+                response = reader.readLine();
+            }
+
+            if (response == null || !response.contains("key"))
+                throw new IOException("Unexpected hastebin response: " + response);
+            return "https://hastebin.com/raw/" + response.substring(response.indexOf(":") + 2, response.length() - 2);
         } finally {
-            if (inputReader != null)
-                inputReader.close();
-            if (wr != null)
-                wr.close();
-            if (reader != null)
-                reader.close();
+            conn.disconnect();
         }
-
-        if (response != null && response.contains("key")) {
-            response = response.substring(response.indexOf(":") + 2, response.length() - 2);
-
-            String postURL = "https://hastebin.com/raw/";
-            response = postURL + response;
-        }
-
-        return response;
     }
 
 }
