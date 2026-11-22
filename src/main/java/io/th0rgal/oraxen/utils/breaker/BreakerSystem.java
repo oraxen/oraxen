@@ -144,6 +144,7 @@ public class BreakerSystem implements Listener {
         if (triggeredModifier == null) return;
         final long period = triggeredModifier.getPeriod(player, block, item);
         if (period == 0) return;
+        final long delay = Math.max(0, triggeredModifier.getDelay(player, block, item));
 
         NoteBlockMechanic noteMechanic = OraxenBlocks.getNoteBlockMechanic(block);
         StringBlockMechanic stringMechanic = OraxenBlocks.getStringMechanic(block);
@@ -228,10 +229,10 @@ public class BreakerSystem implements Listener {
                 final float clientBreakSpeed = block.getBreakSpeed(player);
 
                 final int[] valueHolder = {0};
-                final float[] clientProgress = {0f};
+                final float[] clientProgress = {clientBreakSpeed * delay};
                 final float[] serverProgress = {0f};
                 final long timerPeriod = useAttributeTiming ? 1L : period;
-                SchedulerUtil.ScheduledTask breakerTask = SchedulerUtil.runAtLocationTimer(location, timerPeriod, timerPeriod, () -> {
+                SchedulerUtil.ScheduledTask breakerTask = SchedulerUtil.runAtLocationTimer(location, delay + timerPeriod, timerPeriod, () -> {
                     if (!breakerLocations.contains(location)) {
                         stopBlockBreaker(location);
                         stopBlockHitSound(location);

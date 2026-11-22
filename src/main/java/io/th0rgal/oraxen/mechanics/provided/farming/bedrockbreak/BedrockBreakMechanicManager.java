@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.mechanics.provided.farming.bedrockbreak;
 
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockDurability;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
 import org.bukkit.Location;
@@ -8,6 +9,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
 public class BedrockBreakMechanicManager {
@@ -37,6 +39,7 @@ public class BedrockBreakMechanicManager {
                     world.dropItemNaturally(loc, new ItemStack(Material.BEDROCK));
 
                 block.breakNaturally(true);
+                BlockDurability.damageItemStack(player, EquipmentSlot.HAND, factory.getDurabilityCost());
             }
 
             @Override
@@ -44,6 +47,13 @@ public class BedrockBreakMechanicManager {
                 String itemID = OraxenItems.getIdByItem(tool);
                 BedrockBreakMechanic mechanic = (BedrockBreakMechanic) factory.getMechanic(itemID);
                 return mechanic.getPeriod();
+            }
+
+            @Override
+            public long getDelay(Player player, Block block, ItemStack tool) {
+                String itemID = OraxenItems.getIdByItem(tool);
+                BedrockBreakMechanic mechanic = (BedrockBreakMechanic) factory.getMechanic(itemID);
+                return mechanic.getDelay();
             }
         });
     }

@@ -23,6 +23,10 @@ public class BedrockBreakMechanic extends Mechanic {
         this.probability = (int) (1D / section.getDouble("probability"));
     }
 
+    public long getDelay() {
+        return delay;
+    }
+
     public long getPeriod() {
         return period;
     }
