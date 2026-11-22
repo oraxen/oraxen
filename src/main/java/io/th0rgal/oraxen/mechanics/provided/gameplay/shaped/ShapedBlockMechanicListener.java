@@ -376,7 +376,7 @@ public class ShapedBlockMechanicListener implements Listener {
         if (!AntiGriefLib.canBuild(player, targetBlock.getLocation())) return false;
 
         if (mechanic.hasLimitedPlacing()) {
-            if (!mechanic.getLimitedPlacing().checkLimitedMechanic(clickedBlock)) return false;
+            if (!mechanic.getLimitedPlacing().allowsPlacementOn(clickedBlock)) return false;
         }
         return true;
     }
@@ -621,7 +621,7 @@ public class ShapedBlockMechanicListener implements Listener {
                 stairs.setHalf(org.bukkit.block.data.Bisected.Half.TOP);
             } else {
                 // Side face: use click position on the block to determine top/bottom
-                double clickY = interactionPoint != null ? interactionPoint.getY() % 1 : 0.5;
+                double clickY = getClickHeight(interactionPoint);
                 stairs.setHalf(clickY > 0.5 ?
                     org.bukkit.block.data.Bisected.Half.TOP :
                     org.bukkit.block.data.Bisected.Half.BOTTOM);
@@ -637,7 +637,7 @@ public class ShapedBlockMechanicListener implements Listener {
                 slab.setType(Slab.Type.TOP);
             } else {
                 // Side face: use click position on the block to determine top/bottom
-                double clickY = interactionPoint != null ? interactionPoint.getY() % 1 : 0.5;
+                double clickY = getClickHeight(interactionPoint);
                 slab.setType(clickY > 0.5 ? Slab.Type.TOP : Slab.Type.BOTTOM);
             }
         }
@@ -673,12 +673,19 @@ public class ShapedBlockMechanicListener implements Listener {
                 trapdoor.setHalf(org.bukkit.block.data.Bisected.Half.TOP);
             } else {
                 // Side face: use click position on the block to determine top/bottom
-                double clickY = interactionPoint != null ? interactionPoint.getY() % 1 : 0.5;
+                double clickY = getClickHeight(interactionPoint);
                 trapdoor.setHalf(clickY > 0.5 ?
                     org.bukkit.block.data.Bisected.Half.TOP :
                     org.bukkit.block.data.Bisected.Half.BOTTOM);
             }
         }
+    }
+
+    private static double getClickHeight(@Nullable Location interactionPoint) {
+        if (interactionPoint == null) return 0.5;
+        double y = interactionPoint.getY();
+        // Below y=0 the remainder is negative, so take the offset from the block floor
+        return y - Math.floor(y);
     }
 
     private void applyBulbData(BlockData data) {

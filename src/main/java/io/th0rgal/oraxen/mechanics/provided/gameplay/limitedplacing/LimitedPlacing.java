@@ -4,6 +4,8 @@ import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
+import io.th0rgal.oraxen.utils.logs.Logs;
+import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -14,6 +16,7 @@ import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 
@@ -49,13 +52,24 @@ public class LimitedPlacing {
         floor = section.getBoolean("floor", true);
         roof = section.getBoolean("roof", true);
         wall = section.getBoolean("wall", true);
-        type = LimitedPlacingType.valueOf(section.getString("type", "DENY"));
+        type = parseType(section);
         blockTypes = getLimitedBlockMaterials(section.getStringList("block_types"));
         blockTags = getLimitedBlockTags(section.getStringList("block_tags"));
         oraxenBlocks =  getLimitedOraxenBlocks(section.getStringList("oraxen_blocks"));
 
         ConfigurationSection radiusSection = section.getConfigurationSection("radius_limitation");
         radiusLimitation = radiusSection != null ? new RadiusLimitation(radiusSection) : null;
+    }
+
+    private static LimitedPlacingType parseType(ConfigurationSection section) {
+        String value = section.getString("type", "DENY");
+        try {
+            return LimitedPlacingType.valueOf(value.toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException e) {
+            Logs.logWarning("Invalid limited_placing type " + value + " in " + section.getCurrentPath() + ", using DENY");
+            Logs.logWarning("Valid types are: " + StringUtils.join(LimitedPlacingType.values(), ", "));
+            return LimitedPlacingType.DENY;
+        }
     }
 
     public boolean isRadiusLimited() {
@@ -106,6 +120,10 @@ public class LimitedPlacing {
 
     public Set<Tag<Material>> getLimitedTags() {
         return blockTags;
+    }
+
+    public boolean allowsPlacementOn(Block block) {
+        return checkLimitedMechanic(block) == (type == LimitedPlacingType.ALLOW);
     }
 
     public boolean checkLimitedMechanic(Block block) {
