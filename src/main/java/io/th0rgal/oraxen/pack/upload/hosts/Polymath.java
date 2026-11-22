@@ -54,7 +54,7 @@ public class Polymath implements HostingProvider {
                 return false;
             }
             if (jsonOutput.has("url") && jsonOutput.has("sha1")) {
-                packUrl = jsonOutput.get("url").getAsString();
+                packUrl = normalizePackUrl(jsonOutput.get("url").getAsString());
                 sha1 = jsonOutput.get("sha1").getAsString();
                 packUUID = UUID.nameUUIDFromBytes(HashUtils.hexToBytes(sha1));
                 return true;
@@ -78,6 +78,17 @@ public class Polymath implements HostingProvider {
             Logs.debug(ex);
             return false;
         }
+    }
+
+    static String normalizePackUrl(String rawUrl) {
+        if (rawUrl == null) return null;
+        if (rawUrl.startsWith("http://atlas.oraxen.com:8080/")) {
+            return "https://atlas.oraxen.com/" + rawUrl.substring("http://atlas.oraxen.com:8080/".length());
+        }
+        if (rawUrl.startsWith("http://atlas.oraxen.com/")) {
+            return "https://atlas.oraxen.com/" + rawUrl.substring("http://atlas.oraxen.com/".length());
+        }
+        return rawUrl;
     }
 
     @Override

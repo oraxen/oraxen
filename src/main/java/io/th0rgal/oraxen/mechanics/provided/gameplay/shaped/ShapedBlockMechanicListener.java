@@ -5,8 +5,10 @@ import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.configs.Settings;
 import io.th0rgal.oraxen.mechanics.Mechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockStateCodec;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
+import io.th0rgal.oraxen.utils.blocksounds.BlockAudioEngine;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
@@ -458,10 +460,7 @@ public class ShapedBlockMechanicListener implements Listener {
 
     private void playPlaceSound(Block block, ShapedBlockMechanic mechanic) {
         if (mechanic.hasBlockSounds()) {
-            BlockSounds sounds = mechanic.getBlockSounds();
-            if (sounds.hasPlaceSound()) {
-                BlockHelpers.playCustomBlockSound(block.getLocation(), sounds.getPlaceSound(), sounds.getPlaceVolume(), sounds.getPlacePitch());
-            }
+            BlockAudioEngine.playPlaceSound(block.getLocation(), mechanic.getBlockSounds());
         } else {
             block.getWorld().playSound(block.getLocation(), Sound.BLOCK_COPPER_PLACE, 1.0f, 1.0f);
         }
@@ -518,11 +517,7 @@ public class ShapedBlockMechanicListener implements Listener {
 
     private void playBreakSound(Block block, ShapedBlockMechanic mechanic) {
         if (!mechanic.hasBlockSounds()) return;
-
-        BlockSounds sounds = mechanic.getBlockSounds();
-        if (sounds.hasBreakSound()) {
-            BlockHelpers.playCustomBlockSound(block.getLocation(), sounds.getBreakSound(), sounds.getBreakVolume(), sounds.getBreakPitch());
-        }
+        BlockAudioEngine.playBreakSound(block.getLocation(), mechanic.getBlockSounds());
     }
 
     private void schedulePostBreakUpdates(Block block, ShapedBlockMechanic mechanic) {
@@ -854,58 +849,7 @@ public class ShapedBlockMechanicListener implements Listener {
      * Copy block data properties from one BlockData to another (same block type family).
      */
     private void copyBlockData(BlockData from, BlockData to) {
-        if (from instanceof org.bukkit.block.data.type.Stairs fromStairs && to instanceof org.bukkit.block.data.type.Stairs toStairs) {
-            copyStairsData(fromStairs, toStairs);
-        } else if (from instanceof Slab fromSlab && to instanceof Slab toSlab) {
-            copySlabData(fromSlab, toSlab);
-        } else if (from instanceof org.bukkit.block.data.type.Door fromDoor && to instanceof org.bukkit.block.data.type.Door toDoor) {
-            copyDoorData(fromDoor, toDoor);
-        } else if (from instanceof org.bukkit.block.data.type.TrapDoor fromTrap && to instanceof org.bukkit.block.data.type.TrapDoor toTrap) {
-            copyTrapDoorData(fromTrap, toTrap);
-        } else if (from instanceof org.bukkit.block.data.type.CopperBulb fromBulb && to instanceof org.bukkit.block.data.type.CopperBulb toBulb) {
-            copyBulbData(fromBulb, toBulb);
-        } else {
-            copyWaterloggedData(from, to);
-        }
-    }
-
-    private void copyStairsData(org.bukkit.block.data.type.Stairs from, org.bukkit.block.data.type.Stairs to) {
-        to.setFacing(from.getFacing());
-        to.setHalf(from.getHalf());
-        to.setShape(from.getShape());
-        copyWaterloggedData(from, to);
-    }
-
-    private void copySlabData(Slab from, Slab to) {
-        to.setType(from.getType());
-        copyWaterloggedData(from, to);
-    }
-
-    private void copyDoorData(org.bukkit.block.data.type.Door from, org.bukkit.block.data.type.Door to) {
-        to.setFacing(from.getFacing());
-        to.setHalf(from.getHalf());
-        to.setHinge(from.getHinge());
-        to.setOpen(from.isOpen());
-        to.setPowered(from.isPowered());
-    }
-
-    private void copyTrapDoorData(org.bukkit.block.data.type.TrapDoor from, org.bukkit.block.data.type.TrapDoor to) {
-        to.setFacing(from.getFacing());
-        to.setHalf(from.getHalf());
-        to.setOpen(from.isOpen());
-        to.setPowered(from.isPowered());
-        copyWaterloggedData(from, to);
-    }
-
-    private void copyBulbData(org.bukkit.block.data.type.CopperBulb from, org.bukkit.block.data.type.CopperBulb to) {
-        to.setLit(from.isLit());
-        to.setPowered(from.isPowered());
-    }
-
-    private void copyWaterloggedData(BlockData from, BlockData to) {
-        if (from instanceof Waterlogged fromWL && to instanceof Waterlogged toWL) {
-            toWL.setWaterlogged(fromWL.isWaterlogged());
-        }
+        BlockStateCodec.copyPose(from, to);
     }
 
     // ==================== VANILLA WAXED MARKER METHODS ====================

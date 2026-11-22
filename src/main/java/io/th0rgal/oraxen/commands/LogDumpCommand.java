@@ -73,7 +73,7 @@ public class LogDumpCommand {
     static String redactSensitiveLogContent(String logContent, String studioSecret) {
         if (logContent == null) return "";
         String redacted = logContent
-                .replaceAll("http://atlas\\.oraxen\\.com:8080/.*", "*redacted pack url*")
+                .replaceAll("https?://atlas\\.oraxen\\.com(?::8080)?/.*", "*redacted pack url*")
                 .replaceAll("oxn_studio_[A-Za-z0-9._-]+", "*redacted studio secret*");
         if (studioSecret != null && !studioSecret.isBlank()) {
             redacted = redacted.replace(studioSecret, "*redacted studio secret*");

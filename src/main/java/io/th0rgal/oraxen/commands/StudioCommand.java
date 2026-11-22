@@ -49,12 +49,17 @@ public class StudioCommand {
     private OraxenCommand pushCommand() {
         return new OraxenCommand("push")
                 .withPermission("oraxen.command.studio.push")
-                .executes((sender, args) -> {
-                    StudioSyncService studio = OraxenPlugin.get().getStudioSyncService();
-                    if (studio != null) {
-                        studio.pushToStudio(sender);
-                    }
-                });
+                .withSubcommand(new OraxenCommand("force")
+                        .withPermission("oraxen.command.studio.push")
+                        .executes((sender, args) -> push(sender, true)))
+                .executes((sender, args) -> push(sender, false));
+    }
+
+    private void push(CommandSender sender, boolean force) {
+        StudioSyncService studio = OraxenPlugin.get().getStudioSyncService();
+        if (studio != null) {
+            studio.pushToStudio(sender, force);
+        }
     }
 
     private OraxenCommand disconnectCommand() {
@@ -76,7 +81,7 @@ public class StudioCommand {
         String wsState = wsConnected ? "<#55ffa4>connected" : (hasSecret ? "<#facc43>configured (connecting)" : "<#fa4943>not connected");
         String workspaceInfo = studio.getConnectedWorkspaceId().isEmpty()
                 ? ""
-                : " <gray>(workspace: <#43c9fa>" + studio.getConnectedWorkspaceId() + "</#43c9fa>)";
+                : " <gray>(workspace: <#43c9fa>" + studio.getConnectedWorkspaceName() + "</#43c9fa>)";
         String msg = "<prefix><#529ced>Oraxen Studio: " + wsState + workspaceInfo
                 + " <gray>| URL: <#43c9fa>" + studio.getStudioBaseUrl()
                 + "</#43c9fa> | Last rev: <#43fa8c>#" + studio.getLastSyncedRevision();

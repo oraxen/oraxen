@@ -40,51 +40,41 @@ public class DuplicationHandler {
 
     public static void mergeBaseItemFiles(List<VirtualFile> output) {
         Logs.logSuccess("Attempting to merge imported base-item json files");
-        Map<String, List<VirtualFile>> baseItemsToMerge = new HashMap<>();
+        PackAssetIndex index = new PackAssetIndex(output);
+        Map<String, List<VirtualFile>> baseItemsToMerge = index.findDuplicates(path -> {
+            if (!path.startsWith("assets/minecraft/models/item/") || !path.endsWith(".json")) {
+                return false;
+            }
+            return Material.getMaterial(FilenameUtils.getBaseName(path).toUpperCase(Locale.ROOT)) != null;
+        });
 
-        for (VirtualFile virtual : output.stream().filter(v -> v.getPath().startsWith("assets/minecraft/models/item/"))
-                .toList()) {
-            if (Material.getMaterial(FilenameUtils.getBaseName(virtual.getPath()).toUpperCase()) == null)
+        for (List<VirtualFile> duplicates : baseItemsToMerge.values()) {
+            if (duplicates.isEmpty())
                 continue;
-            if (baseItemsToMerge.containsKey(virtual.getPath())) {
-                List<VirtualFile> newList = new ArrayList<>(baseItemsToMerge.get(virtual.getPath()).stream().toList());
-                newList.add(virtual);
-                baseItemsToMerge.put(virtual.getPath(), newList);
-            } else {
-                baseItemsToMerge.put(virtual.getPath(), List.of(virtual));
-            }
+
+            JsonObject mainItem = new JsonObject();
+            List<JsonObject> duplicateJsonObjects = duplicates.stream().map(VirtualFile::toJsonElement)
+                    .filter(e -> e != null && e.isJsonObject()).map(JsonElement::getAsJsonObject).toList();
+            JsonArray overrides = getItemOverrides(duplicateJsonObjects);
+            JsonObject baseTextures = getItemTextures(duplicateJsonObjects);
+            String parent = getItemParent(duplicateJsonObjects);
+            if (parent == null)
+                parent = "item/generated";
+
+            mainItem.addProperty("parent", parent);
+            mainItem.add("overrides", overrides);
+            mainItem.add("textures", baseTextures);
+
+            VirtualFile first = duplicates.get(0);
+            InputStream newInput = new ByteArrayInputStream(mainItem.toString().getBytes(StandardCharsets.UTF_8));
+            VirtualFile newItem = new VirtualFile(FilenameUtils.getFullPath(first.getPath()),
+                    FilenameUtils.getName(first.getPath()), newInput);
+            newItem.setPath(PackAssetIndex.normalizePath(newItem.getPath()));
+            newItem.setInputStream(newInput);
+
+            output.removeAll(duplicates);
+            output.add(newItem);
         }
-
-        if (!baseItemsToMerge.isEmpty())
-            for (List<VirtualFile> duplicates : baseItemsToMerge.values()) {
-                if (duplicates.isEmpty())
-                    continue;
-
-                JsonObject mainItem = new JsonObject();
-                List<JsonObject> duplicateJsonObjects = duplicates.stream().map(VirtualFile::toJsonElement)
-                        .filter(JsonElement::isJsonObject).map(JsonElement::getAsJsonObject).toList();
-                JsonArray overrides = getItemOverrides(duplicateJsonObjects);
-                JsonObject baseTextures = getItemTextures(duplicateJsonObjects);
-                String parent = getItemParent(duplicateJsonObjects);
-                if (parent != null)
-                    parent = "item/generated";
-
-                mainItem.addProperty("parent", parent);
-                mainItem.add("overrides", overrides);
-                mainItem.add("textures", baseTextures);
-
-                // Generate the template new item file
-                VirtualFile first = duplicates.stream().findFirst().get();
-                InputStream newInput = new ByteArrayInputStream(mainItem.toString().getBytes(StandardCharsets.UTF_8));
-                VirtualFile newItem = new VirtualFile(FilenameUtils.getFullPath(first.getPath()),
-                        FilenameUtils.getName(first.getPath()), newInput);
-                newItem.setPath(newItem.getPath().replace("//", "/"));
-                newItem.setInputStream(newInput);
-
-                // Remove all the old fonts from output
-                output.removeAll(duplicates);
-                output.add(newItem);
-            }
     }
 
     /**
@@ -115,20 +105,10 @@ public class DuplicationHandler {
         // definitions
         convertLegacyPredicatesToItemDefinitions(output);
 
-        Map<String, List<VirtualFile>> itemDefsToMerge = new HashMap<>();
-
-        // Find all vanilla item definition files
-        for (VirtualFile virtual : output.stream()
-                .filter(v -> v.getPath().startsWith("assets/minecraft/items/") && v.getPath().endsWith(".json"))
-                .toList()) {
-            String path = virtual.getPath();
-            itemDefsToMerge.computeIfAbsent(path, k -> new ArrayList<>()).add(virtual);
-        }
-
-        // Only process paths with duplicates
-        Map<String, List<VirtualFile>> duplicatesOnly = itemDefsToMerge.entrySet().stream()
-                .filter(e -> e.getValue().size() > 1)
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        PackAssetIndex index = new PackAssetIndex(output);
+        Map<String, List<VirtualFile>> duplicatesOnly = index.findDuplicates(
+                path -> path.startsWith("assets/minecraft/items/") && path.endsWith(".json")
+        );
 
         if (duplicatesOnly.isEmpty())
             return;
@@ -671,23 +651,10 @@ public class DuplicationHandler {
 
     // Experimental way of combining 2 fonts instead of making glyphconfigs later
     public static void mergeFontFiles(List<VirtualFile> output) {
-        Map<String, List<VirtualFile>> fontsToMerge = new HashMap<>();
-
-        // Generate a map of all duplicate fonts
-        for (VirtualFile virtual : output.stream().filter(v -> v.getPath().matches("assets/.*/font/.*.json"))
-                .toList()) {
-            if (fontsToMerge.containsKey(virtual.getPath())) {
-                List<VirtualFile> newList = new ArrayList<>(fontsToMerge.get(virtual.getPath()).stream().toList());
-                newList.add(virtual);
-                fontsToMerge.put(virtual.getPath(), newList);
-            } else {
-                fontsToMerge.put(virtual.getPath(), List.of(virtual));
-            }
-        }
-
-        Map<String, List<VirtualFile>> finalFontsToMerge = fontsToMerge.entrySet().stream()
-                .filter(e -> e.getValue().size() > 1)
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        PackAssetIndex index = new PackAssetIndex(output);
+        Map<String, List<VirtualFile>> finalFontsToMerge = index.findDuplicates(
+                path -> path.matches("assets/.*/font/.*\\.json")
+        );
 
         if (!finalFontsToMerge.isEmpty()) {
             Logs.logWarning("Attempting to merge imported font files...");

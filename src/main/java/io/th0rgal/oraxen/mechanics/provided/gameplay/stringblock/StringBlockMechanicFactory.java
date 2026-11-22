@@ -6,6 +6,8 @@ import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicConfigProperty;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockStateCodec;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.block.CustomBlockService;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingTask;
 import io.th0rgal.oraxen.nms.NMSHandlers;
@@ -53,6 +55,8 @@ public class StringBlockMechanicFactory extends MechanicFactory {
     public StringBlockMechanicFactory(ConfigurationSection section, boolean registerListeners) {
         super(section);
         instance = this;
+        BLOCK_PER_VARIATION.clear();
+        CustomBlockService.clearStringBlocks();
         variants = new JsonObject();
         variants.add("east=false,west=false,south=false,north=false,attached=false,disarmed=false,powered=false", getModelJson("block/barrier"));
         toolTypes = section.getStringList("tool_types");
@@ -71,18 +75,12 @@ public class StringBlockMechanicFactory extends MechanicFactory {
     }
 
     public static String getBlockstateVariantName(int id) {
-        return "east=" + ((id & 1) == 1 ? "true" : "false")
-                + ",west=" + (((id >> 1) & 1) == 1 ? "true" : "false")
-                + ",south=" + (((id >> 2) & 1) == 1 ? "true" : "false")
-                + ",north=" + (((id >> 3) & 1) == 1 ? "true" : "false")
-                + ",attached=" + (((id >> 4) & 1) == 1 ? "true" : "false")
-                + ",disarmed=" + (((id >> 5) & 1) == 1 ? "true" : "false")
-                + ",powered=" + (((id >> 6) & 1) == 1 ? "true" : "false");
+        return BlockStateCodec.formatTripwireVariantKey(id);
     }
 
     @org.jetbrains.annotations.Nullable
     public static StringBlockMechanic getBlockMechanic(int customVariation) {
-        return BLOCK_PER_VARIATION.get(customVariation);
+        return CustomBlockService.getStringBlock(customVariation);
     }
 
     public static boolean isEnabled() {
@@ -165,7 +163,7 @@ public class StringBlockMechanicFactory extends MechanicFactory {
         variants.add(getBlockstateVariantName(mechanic.getCustomVariation()),
                 getModelJson(mechanic.getModel(itemMechanicConfiguration.getParent()
                         .getParent())));
-        BLOCK_PER_VARIATION.put(mechanic.getCustomVariation(), mechanic);
+        CustomBlockService.registerStringBlock(mechanic.getCustomVariation(), mechanic);
 
         // Register stackable variations: each stack level gets its own blockstate entry
         // but maps back to the parent mechanic for unified drop/interaction handling
@@ -182,7 +180,7 @@ public class StringBlockMechanicFactory extends MechanicFactory {
                     : mechanic.getModel(itemMechanicConfiguration.getParent().getParent());
             variants.add(getBlockstateVariantName(sv.customVariation()), getModelJson(stackModel));
             // Map stack variations back to the parent mechanic
-            BLOCK_PER_VARIATION.put(sv.customVariation(), mechanic);
+            CustomBlockService.registerStringBlock(sv.customVariation(), mechanic);
         }
 
         addToImplemented(mechanic);
@@ -200,18 +198,7 @@ public class StringBlockMechanicFactory extends MechanicFactory {
     }
 
     public static int getCode(final Tripwire blockData) {
-        final List<BlockFace> properties = Arrays
-                .asList(BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH, BlockFace.NORTH);
-        int sum = 0;
-        for (final BlockFace blockFace : blockData.getFaces())
-            sum += (int) Math.pow(2, properties.indexOf(blockFace));
-        if (blockData.isAttached())
-            sum += (int) Math.pow(2, 4);
-        if (blockData.isDisarmed())
-            sum += (int) Math.pow(2, 5);
-        if (blockData.isPowered())
-            sum += (int) Math.pow(2, 6);
-        return sum;
+        return BlockStateCodec.decodeTripwireVariation(blockData);
     }
 
     /**
@@ -220,15 +207,7 @@ public class StringBlockMechanicFactory extends MechanicFactory {
      * @param code The block id.
      */
     public static BlockData createTripwireData(final int code) {
-        Tripwire data = ((Tripwire) Bukkit.createBlockData(Material.TRIPWIRE));
-        int i = 0;
-        for (BlockFace face : new BlockFace[]{BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH,
-                BlockFace.NORTH})
-            data.setFace(face, (code & 0x1 << i++) != 0);
-        data.setAttached((code & 0x1 << i++) != 0);
-        data.setDisarmed((code & 0x1 << i++) != 0);
-        data.setPowered((code & 0x1 << i) != 0);
-        return data;
+        return BlockStateCodec.encodeTripwireVariation(code);
     }
 
     /**
