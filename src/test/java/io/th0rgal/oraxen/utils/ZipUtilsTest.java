@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.utils;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.configs.ConfigsManager;
 import io.th0rgal.oraxen.configs.Settings;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,6 +25,7 @@ import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.*;
 
 class ZipUtilsTest {
@@ -93,6 +95,20 @@ class ZipUtilsTest {
         try (ZipInputStream zip = new ZipInputStream(Files.newInputStream(output))) {
             assertNotNull(zip.getNextEntry());
             assertThrows(ZipException.class, zip::readAllBytes);
+        }
+    }
+
+    @Test
+    void invalidCompressionFallsBackAndStillWritesEveryEntry() throws Exception {
+        settings.set(Settings.COMPRESSION.getPath(), "BEST_COMPRESION");
+        Settings.invalidateCache();
+        Path output;
+        try (MockedStatic<Logs> logs = mockStatic(Logs.class)) {
+            output = writePack("fallback.zip");
+            logs.verify(() -> Logs.logWarning(contains("BEST_COMPRESION")));
+        }
+        try (ZipFile zip = new ZipFile(output.toFile())) {
+            assertEquals(contents.size(), zip.size());
         }
     }
 
