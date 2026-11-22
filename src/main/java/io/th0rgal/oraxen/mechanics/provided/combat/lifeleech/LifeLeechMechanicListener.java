@@ -38,13 +38,14 @@ public class LifeLeechMechanicListener implements Listener {
             return;
 
         AttributeInstance damagerMaxHealth = damager.getAttribute(AttributeWrapper.MAX_HEALTH);
-        AttributeInstance victimMaxHealth = livingEntity.getAttribute(AttributeWrapper.MAX_HEALTH);
-        if (damagerMaxHealth == null || victimMaxHealth == null)
+        if (damagerMaxHealth == null)
             return;
 
-        int amount = mechanic.getAmount();
-        damager.setHealth(clamp(damager.getHealth() + amount, damagerMaxHealth.getValue()));
-        livingEntity.setHealth(clamp(livingEntity.getHealth() - amount, victimMaxHealth.getValue()));
+        // Adding the leech to the hit itself lets armor, totems and kill credit apply without a second damage event
+        double hitDamage = event.getFinalDamage();
+        event.setDamage(event.getDamage() + mechanic.getAmount());
+        double drained = Math.max(0, Math.min(event.getFinalDamage() - hitDamage, livingEntity.getHealth() - hitDamage));
+        damager.setHealth(clamp(damager.getHealth() + drained, damagerMaxHealth.getValue()));
     }
 
     private static double clamp(double health, double maxHealth) {

@@ -2,11 +2,13 @@ package io.th0rgal.oraxen.mechanics.provided.cosmetic.hat;
 
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorEquipEvent;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -68,6 +70,8 @@ public class HatMechanicListener implements Listener {
 
         if (item == null || factory.isNotImplementedIn(itemID)) return;
         if (inventory.getHelmet() != null) return;
+        if (!player.isSneaking() && BlockHelpers.isInteractable(event.getClickedBlock())
+                && event.useInteractedBlock() == Event.Result.ALLOW) return;
 
         event.setCancelled(true);
         if (!ArmorEquipEvent.OraxenHatEquipEvent(player, null, item).callEvent()) return;
@@ -117,12 +121,13 @@ public class HatMechanicListener implements Listener {
             }
 
             if (currentItem == null || currentItem.getType() == Material.AIR) {
+                clone.setAmount(1);
                 final ArmorEquipEvent armorEquipEvent = ArmorEquipEvent.OraxenHatEquipEvent(player, currentItem, clone);
                 if (!armorEquipEvent.callEvent()) return;
 
                 e.setCancelled(true);
                 player.getInventory().setHelmet(armorEquipEvent.getNewArmorPiece());
-                cursor.setAmount(0);
+                cursor.setAmount(cursor.getAmount() - 1);
             }
         }
     }

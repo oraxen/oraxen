@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.mechanics.provided.cosmetic.aura.aura.Aura;
 import io.th0rgal.oraxen.mechanics.provided.cosmetic.aura.aura.HelixAura;
 import io.th0rgal.oraxen.mechanics.provided.cosmetic.aura.aura.RingAura;
 import io.th0rgal.oraxen.mechanics.provided.cosmetic.aura.aura.SimpleAura;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.oraxen.utils.wrappers.ParticleWrapper;
 import org.bukkit.Particle;
 import org.bukkit.configuration.ConfigurationSection;
@@ -26,12 +27,21 @@ public class AuraMechanic extends Mechanic {
 
     public AuraMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         super(mechanicFactory, section);
-        particle = ParticleWrapper.resolve(section.getString("particle"));
-        switch (section.getString("type")) {
+        String particleName = section.getString("particle");
+        String type = section.getString("type");
+        particle = particleName == null || particleName.isBlank() ? null : ParticleWrapper.resolve(particleName);
+        if (particle == null) {
+            Logs.logError("Aura mechanic of item " + getItemID() + " has no particle set, the aura is disabled");
+            aura = null;
+        } else switch (type == null ? "" : type) {
             case "simple" -> aura = new SimpleAura(this);
             case "ring" -> aura = new RingAura(this);
             case "helix" -> aura = new HelixAura(this);
-            default -> aura = null;
+            default -> {
+                Logs.logError("Aura mechanic of item " + getItemID() + " has unknown type '" + type
+                        + "', expected simple, ring or helix. The aura is disabled");
+                aura = null;
+            }
         }
         players = ConcurrentHashMap.newKeySet();
     }

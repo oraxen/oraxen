@@ -8,6 +8,7 @@ import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.timers.Timer;
 import io.th0rgal.oraxen.utils.timers.TimersFactory;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -80,8 +81,12 @@ public abstract class SpellMechanic extends Mechanic {
             List<Component> lore = itemMeta.lore();
             if(lore == null) return;
             lore = new ArrayList<>(lore);
-            lore.set(0, Component.text("Charges " + (chargesLeft - 1) + "/" + this.getMaxCharges()));
-            itemMeta.lore(lore);
+            for (int i = 0; i < lore.size(); i++) {
+                if (!PlainTextComponentSerializer.plainText().serialize(lore.get(i)).startsWith("Charges ")) continue;
+                lore.set(i, Component.text("Charges " + (chargesLeft - 1) + "/" + this.getMaxCharges()));
+                itemMeta.lore(lore);
+                return;
+            }
         }));
     }
 }

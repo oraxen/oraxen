@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.mechanics;
 
 import io.papermc.paper.registry.RegistryKey;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.configs.ConfigsManager;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
@@ -96,6 +97,18 @@ abstract class MechanicTestSupport {
 
     static MechanicFactory mechanicFactory() {
         return mock(MechanicFactory.class);
+    }
+
+    /**
+     * Logs needs the language file for its prefix. Without it the first log call fails the
+     * AdventureUtils initialiser for every later test in the same JVM.
+     */
+    static void allowLogging() {
+        ConfigsManager configs = mock(ConfigsManager.class);
+        YamlConfiguration language = new YamlConfiguration();
+        language.set("general.prefix", "");
+        when(configs.getLanguage()).thenReturn(language);
+        when(OraxenPlugin.get().getConfigsManager()).thenReturn(configs);
     }
 
     static ConfigurationSection mechanicSection(String mechanicId) {
