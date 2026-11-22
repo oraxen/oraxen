@@ -131,16 +131,23 @@ public final class AtlasDependencyResolver {
     ) {
         Map<String, ParsedModel> modelsByKey = new LinkedHashMap<>();
         Set<TextureRef> allPackTextures = new LinkedHashSet<>();
+        Set<TextureRef> excludedDirPackTextures = new LinkedHashSet<>();
         Set<TextureRef> fontTextures = new LinkedHashSet<>();
-        indexPackAssets(files, malformedPaths, modelsByKey, allPackTextures, fontTextures);
+        indexPackAssets(files, malformedPaths, modelsByKey, allPackTextures, excludedDirPackTextures, fontTextures);
 
         Set<TextureRef> usedBy2DModels = new LinkedHashSet<>(explicitItemLayerTextures);
+        for (TextureRef explicit : explicitItemLayerTextures) {
+            if (excludedDirPackTextures.contains(explicit)) {
+                allPackTextures.add(explicit);
+            }
+        }
         Set<TextureRef> usedBy3DModels = new LinkedHashSet<>();
         Set<TextureRef> bridgedVanillaItemTextures = new LinkedHashSet<>();
         Map<String, Set<TextureRef>> missingTexturesByModel = new LinkedHashMap<>();
         classifyModelTextures(
                 modelsByKey,
                 allPackTextures,
+                excludedDirPackTextures,
                 malformedPaths,
                 usedBy2DModels,
                 usedBy3DModels,
@@ -177,14 +184,19 @@ public final class AtlasDependencyResolver {
             @NotNull Set<String> malformedPaths,
             @NotNull Map<String, ParsedModel> modelsByKey,
             @NotNull Set<TextureRef> allPackTextures,
+            @NotNull Set<TextureRef> excludedDirPackTextures,
             @NotNull Set<TextureRef> fontTextures
     ) {
         for (VirtualFile file : files) {
             String path = file.getPath();
-            if (isTextureFile(path)) {
+            if (isAnyPackTextureFile(path)) {
                 TextureRef ref = textureRefFromPackPath(path);
                 if (ref != null && !isIgnoredTexture(ref, malformedPaths)) {
-                    allPackTextures.add(ref);
+                    if (isDefaultExcludedTexturePath(path)) {
+                        excludedDirPackTextures.add(ref);
+                    } else {
+                        allPackTextures.add(ref);
+                    }
                 }
             } else if (isFontFile(path)) {
                 JsonObject fontJson = readJsonObjectNonDestructive(file);
@@ -204,6 +216,7 @@ public final class AtlasDependencyResolver {
     private void classifyModelTextures(
             @NotNull Map<String, ParsedModel> modelsByKey,
             @NotNull Set<TextureRef> allPackTextures,
+            @NotNull Set<TextureRef> excludedDirPackTextures,
             @NotNull Set<String> malformedPaths,
             @NotNull Set<TextureRef> usedBy2DModels,
             @NotNull Set<TextureRef> usedBy3DModels,
@@ -216,6 +229,9 @@ public final class AtlasDependencyResolver {
             for (TextureRef tex : resolvedTextures) {
                 if (isIgnoredTexture(tex, malformedPaths)) {
                     continue;
+                }
+                if (excludedDirPackTextures.contains(tex)) {
+                    allPackTextures.add(tex);
                 }
                 recordModelTextureUsage(kind, tex, usedBy2DModels, usedBy3DModels, bridgedVanillaItemTextures);
                 if (!allPackTextures.contains(tex) && !isLikelyVanillaTexture(tex)) {
@@ -388,18 +404,21 @@ public final class AtlasDependencyResolver {
         }
     }
 
-    private static boolean isTextureFile(String path) {
+    private static boolean isAnyPackTextureFile(String path) {
         String[] parts = path.split("/");
         return parts.length > 3
                 && "assets".equals(parts[0])
                 && "textures".equals(parts[2])
-                && path.endsWith(".png")
-                && !path.endsWith("_layer_1.png")
-                && !path.endsWith("_layer_2.png")
-                && !path.contains("/textures/entity/equipment/")
-                && !path.contains("/textures/colormap/")
-                && !path.contains("/textures/gui/")
-                && !path.contains("/textures/environment/");
+                && path.endsWith(".png");
+    }
+
+    private static boolean isDefaultExcludedTexturePath(String path) {
+        return path.endsWith("_layer_1.png")
+                || path.endsWith("_layer_2.png")
+                || path.contains("/textures/entity/equipment/")
+                || path.contains("/textures/colormap/")
+                || path.contains("/textures/gui/")
+                || path.contains("/textures/environment/");
     }
 
     private static boolean isFontFile(String path) {

@@ -43,6 +43,16 @@ public class SnapshotVersion implements Comparable<SnapshotVersion> {
         return semanticVersion.snapshotRevision();
     }
 
+    /**
+     * Retrieve the snapshot version within a week, starting at zero ({@code 'a' -> 0}).
+     * Preserved for binary compatibility with third-party plugins.
+     *
+     * @return The zero-based weekly revision index
+     */
+    public int getSnapshotWeekVersion() {
+        return semanticVersion.snapshotRevision() - 'a';
+    }
+
     public int getSnapshotWeek() {
         return semanticVersion.snapshotWeek();
     }
@@ -61,8 +71,10 @@ public class SnapshotVersion implements Comparable<SnapshotVersion> {
 
     public @NotNull LocalDate getSnapshotLocalDate() {
         if (snapshotDate == null) {
-            snapshotDate = LocalDate.now()
-                    .withYear(2000 + getSnapshotYear())
+            int isoYear = 2000 + getSnapshotYear();
+            // January 4 is always in ISO week 1 of its own ISO week-based year.
+            snapshotDate = LocalDate.of(isoYear, 1, 4)
+                    .with(IsoFields.WEEK_BASED_YEAR, isoYear)
                     .with(IsoFields.WEEK_OF_WEEK_BASED_YEAR, getSnapshotWeek())
                     .with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         }

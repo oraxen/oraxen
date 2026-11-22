@@ -8,6 +8,7 @@ import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDate;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -186,5 +187,19 @@ class SemanticServerVersionTest {
         SchedulerUtil.runTask(() -> executed.set(true));
         assertTrue(executed.get());
         assertTrue(SchedulerUtil.isGlobalThread());
+    }
+
+    @Test
+    void snapshotVersionPreservesWeekVersionAndIsoWeekYear() {
+        SnapshotVersion s25w03a = new SnapshotVersion("25w03a");
+        assertEquals(0, s25w03a.getSnapshotWeekVersion());
+        assertEquals('a', s25w03a.getSnapshotIdentifier());
+        assertEquals(LocalDate.of(2025, 1, 13), s25w03a.getSnapshotLocalDate());
+
+        SnapshotVersion s25w03c = new SnapshotVersion("25w03c");
+        assertEquals(2, s25w03c.getSnapshotWeekVersion());
+
+        SnapshotVersion s26w01a = new SnapshotVersion("26w01a");
+        assertEquals(LocalDate.of(2025, 12, 29), s26w01a.getSnapshotLocalDate());
     }
 }

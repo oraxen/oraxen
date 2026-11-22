@@ -214,4 +214,35 @@ class AtlasDependencyResolverTest {
         assertNotNull(index.getFirst("pack.png"));
         assertEquals("pack.png", index.getFirst("pack.png").getPath());
     }
+
+    @Test
+    void includesModelReferencedTextureFromExcludedDirectoryWhileKeepingUnreferencedExcluded() {
+        List<VirtualFile> files = List.of(
+                virtualFile("assets/oraxen/textures/gui", "icon.png", "PNG"),
+                virtualFile("assets/oraxen/textures/gui", "unreferenced_bg.png", "PNG"),
+                virtualFile("assets/oraxen/models/item", "gui_icon_item.json", """
+                        {
+                          "parent": "minecraft:item/generated",
+                          "textures": {
+                            "layer0": "oraxen:gui/icon"
+                          }
+                        }
+                        """)
+        );
+
+        AtlasDependencyResolver.AtlasResolutionResult result =
+                new AtlasDependencyResolver().resolve(files, Set.of(), Set.of(), true);
+
+        AtlasDependencyResolver.TextureRef referencedGui = new AtlasDependencyResolver.TextureRef("oraxen", "gui/icon");
+        AtlasDependencyResolver.TextureRef unreferencedGui = new AtlasDependencyResolver.TextureRef("oraxen", "gui/unreferenced_bg");
+
+        assertTrue(result.itemAtlasTextures().contains(referencedGui),
+                "Model-referenced texture from excluded directory must be included in its atlas");
+        assertFalse(result.blockAtlasTextures().contains(unreferencedGui),
+                "Unreferenced gui texture must remain excluded from block atlas");
+        assertFalse(result.itemAtlasTextures().contains(unreferencedGui),
+                "Unreferenced gui texture must remain excluded from item atlas");
+        assertTrue(result.missingTexturesByModel().isEmpty(),
+                "Model-referenced texture from excluded directory must not be flagged as missing");
+    }
 }
