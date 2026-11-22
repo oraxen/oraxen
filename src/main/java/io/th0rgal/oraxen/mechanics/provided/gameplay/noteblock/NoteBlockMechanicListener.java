@@ -438,7 +438,10 @@ public class NoteBlockMechanicListener implements Listener {
         if (placed.getType() != Material.NOTE_BLOCK) return;
         if (OraxenBlocks.isOraxenNoteBlock(OraxenItems.getIdByItem(event.getItemInHand()))) return;
 
-        placed.setBlockData(Bukkit.createBlockData(Material.NOTE_BLOCK), false);
+        // Only unpowered harp states are free of custom blocks, so keep just the placed note
+        NoteBlock data = (NoteBlock) Bukkit.createBlockData(Material.NOTE_BLOCK);
+        if (placed.getBlockData() instanceof NoteBlock placedData) data.setNote(placedData.getNote());
+        placed.setBlockData(data, false);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
