@@ -17,6 +17,7 @@ public class ModelDataCommand {
                 .executes((sender, args) -> {
                     Map<Material, Integer> itemMap = new HashMap<>();
                     for (ItemBuilder builder : OraxenItems.getItems()) {
+                        if (builder == null || !builder.hasOraxenMeta()) continue;
                         Integer currentModelData = builder.getOraxenMeta().getCustomModelData();
                         if (currentModelData == null || currentModelData == 0) {
                             continue;
