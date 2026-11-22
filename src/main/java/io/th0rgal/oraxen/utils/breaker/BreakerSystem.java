@@ -340,15 +340,14 @@ public class BreakerSystem implements Listener {
             return;
         }
 
-        // Folia does not allow arbitrary nearby-entity scans from a region thread.
-        // Hop to each player's entity scheduler before reading their location/world.
+        // Folia does not allow arbitrary nearby-entity scans from a region thread. A region
+        // always owns the chunks around the block it ticks, so every player within range is
+        // owned by this region and can be read here. Players owned elsewhere are out of range.
         for (final Player viewer : Bukkit.getOnlinePlayers()) {
-            SchedulerUtil.runForEntity(viewer, () -> {
-                if (!viewer.isOnline() || !viewer.getWorld().equals(world)) return;
-                if (viewer.getLocation().distanceSquared(origin) > 16 * 16) return;
-                for (Location breakLocation : breakLocations)
-                    sendBlockBreak(viewer, breakLocation, stage);
-            }, null);
+            if (!Bukkit.isOwnedByCurrentRegion(viewer) || !viewer.getWorld().equals(world)) continue;
+            if (viewer.getLocation().distanceSquared(origin) > 16 * 16) continue;
+            for (Location breakLocation : breakLocations)
+                sendBlockBreak(viewer, breakLocation, stage);
         }
     }
 
