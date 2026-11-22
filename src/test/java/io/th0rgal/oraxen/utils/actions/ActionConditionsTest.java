@@ -33,6 +33,8 @@ class ActionConditionsTest {
                 ActionConditions.normalize("!#player.isSneaking() && #player.getLevel() > 5"));
         assertEquals("!#player.isFlying() or #player.getLevel() > 5",
                 ActionConditions.normalize("!#player.isFlying() or #player.getLevel() > 5"));
+        assertEquals("!#player.isSneaking() ? #player.getLevel() >= 5 : false",
+                ActionConditions.normalize("!#player.isSneaking() ? #player.getLevel() >= 5 : false"));
     }
 
     @Test
