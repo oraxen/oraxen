@@ -32,6 +32,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -71,6 +72,11 @@ public class BreakerSystem implements Listener {
     private final Map<Location, SchedulerUtil.ScheduledTask> breakerTasks = new ConcurrentHashMap<>();
     private final Map<Location, SchedulerUtil.ScheduledTask> breakerPlaySound = new ConcurrentHashMap<>();
     private final Map<Location, Player> clientSideBreakSuppressions = new ConcurrentHashMap<>();
+    private volatile CustomBlockSoundToggles customBlockSoundToggles;
+
+    private record CustomBlockSoundToggles(YamlConfiguration mechanics, boolean blocks, boolean stringBlocks,
+                                           boolean furniture) {
+    }
 
     /**
      * Adds the hardness modifier of the given owner, replacing the one it registered before.
@@ -513,31 +519,45 @@ public class BreakerSystem implements Listener {
         Optional.ofNullable(breakerPlaySound.remove(location)).ifPresent(SchedulerUtil.ScheduledTask::cancel);
     }
 
+    // A reload replaces the mechanics config, so custom_block_sounds is only re-read after one.
+    private CustomBlockSoundToggles customBlockSoundToggles() {
+        final YamlConfiguration mechanics = OraxenPlugin.get().getConfigsManager().getMechanics();
+        CustomBlockSoundToggles toggles = customBlockSoundToggles;
+        if (toggles != null && toggles.mechanics() == mechanics) return toggles;
+
+        final ConfigurationSection soundSection = mechanics.getConfigurationSection("custom_block_sounds");
+        toggles = new CustomBlockSoundToggles(mechanics,
+                soundSection != null && BlockSounds.isBlockSoundEnabled(soundSection),
+                soundSection != null && BlockSounds.isStringBlockSoundEnabled(soundSection),
+                soundSection != null && BlockSounds.isFurnitureSoundEnabled(soundSection));
+        customBlockSoundToggles = toggles;
+        return toggles;
+    }
+
     private BlockSounds getBlockSounds(Block block) {
-        ConfigurationSection soundSection = OraxenPlugin.get().getConfigsManager().getMechanics().getConfigurationSection("custom_block_sounds");
-        if (soundSection == null) return null;
+        final CustomBlockSoundToggles toggles = customBlockSoundToggles();
         switch (block.getType()) {
             case NOTE_BLOCK -> {
                 NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
                 if (mechanic == null || !mechanic.hasBlockSounds()) return null;
-                if (!BlockSounds.isBlockSoundEnabled(soundSection)) return null;
+                if (!toggles.blocks()) return null;
                 else return mechanic.getBlockSounds();
             }
             case TRIPWIRE -> {
                 StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(block);
                 if (mechanic == null || !mechanic.hasBlockSounds()) return null;
-                if (!BlockSounds.isStringBlockSoundEnabled(soundSection)) return null;
+                if (!toggles.stringBlocks()) return null;
                 else return mechanic.getBlockSounds();
             }
             case BARRIER -> {
                 FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
                 if (mechanic == null || !mechanic.hasBlockSounds()) return null;
-                if (!BlockSounds.isFurnitureSoundEnabled(soundSection)) return null;
+                if (!toggles.furniture()) return null;
                 else return mechanic.getBlockSounds();
             }
             default -> {
                 ShapedBlockMechanic mechanic = OraxenBlocks.getShapedMechanic(block);
-                return mechanic != null && mechanic.hasBlockSounds() && BlockSounds.isBlockSoundEnabled(soundSection)
+                return mechanic != null && mechanic.hasBlockSounds() && toggles.blocks()
                         ? mechanic.getBlockSounds()
                         : null;
             }
@@ -545,8 +565,6 @@ public class BreakerSystem implements Listener {
     }
 
     private String getHitSound(Block block) {
-        ConfigurationSection soundSection = OraxenPlugin.get().getConfigsManager().getMechanics().getConfigurationSection("custom_block_sounds");
-        if (soundSection == null) return null;
         BlockSounds sounds = getBlockSounds(block);
         if (sounds == null) return null;
         return switch (block.getType()) {
