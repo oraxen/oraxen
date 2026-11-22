@@ -16,6 +16,7 @@ import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.VersionUtil;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
@@ -55,10 +56,14 @@ public class ReloadCommand {
         }
 
         if (Settings.UPDATE_FURNITURE.toBool() && Settings.UPDATE_FURNITURE_ON_RELOAD.toBool()) {
-            Message.UPDATING_PLACED_FURNITURES.log();
-            for (World world : Bukkit.getServer().getWorlds())
-                world.getEntities().stream().filter(OraxenFurniture::isBaseEntity)
-                        .forEach(entity -> SchedulerUtil.runForEntity(entity, () -> OraxenFurniture.updateFurniture(entity)));
+            if (VersionUtil.isFoliaServer()) {
+                Logs.debug("Skipping placed furniture updates on Folia; furniture is updated when it loads if update-on-load is enabled.");
+            } else {
+                Message.UPDATING_PLACED_FURNITURES.log();
+                for (World world : Bukkit.getServer().getWorlds())
+                    world.getEntities().stream().filter(OraxenFurniture::isBaseEntity)
+                            .forEach(entity -> SchedulerUtil.runForEntity(entity, () -> OraxenFurniture.updateFurniture(entity)));
+            }
         }
 
     }
