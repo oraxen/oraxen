@@ -52,6 +52,7 @@ public class GlyphTag {
 
         // Regular glyph
         Glyph glyph = fontManager.getGlyphFromName(glyphId);
+        if (glyph == null) return Tag.selfClosingInserting(Component.text("<glyph:" + glyphId + ">"));
 
         // Collect all arguments
         List<String> arguments = new ArrayList<>();

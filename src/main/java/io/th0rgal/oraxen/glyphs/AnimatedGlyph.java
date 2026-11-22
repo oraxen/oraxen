@@ -213,7 +213,7 @@ public class AnimatedGlyph {
         // Build regex patterns
         String placeholderRegex = String.join("|",
                 Arrays.stream(placeholders).map(Pattern::quote).toArray(String[]::new));
-        String baseRegexPattern = "((<(glyph|g):" + name + ")(:[^:>]+)*>"
+        String baseRegexPattern = "((<(glyph|g):" + Pattern.quote(name) + ")(:[^:>]+)*>"
                 + (placeholders.length > 0 ? "|" + placeholderRegex : "") + ")";
         this.baseRegex = Pattern.compile("(?<!\\\\)" + baseRegexPattern);
         this.escapedRegex = Pattern.compile("\\\\" + baseRegexPattern);

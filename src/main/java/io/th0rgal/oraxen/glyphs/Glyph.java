@@ -76,7 +76,7 @@ public class Glyph {
                 Arrays.stream(placeholders).map(Pattern::quote).toArray(String[]::new));
         // Match glyph tags with any colon-separated arguments (c, colorable, s, shadow,
         // indexes, ranges, hex colors)
-        String baseRegex = "((<(glyph|g):" + name + ")(:[^:>]+)*>"
+        String baseRegex = "((<(glyph|g):" + Pattern.quote(name) + ")(:[^:>]+)*>"
                 + (placeholders.length > 0 ? "|" + placeholderRegex : "") + ")";
         this.baseRegex = Pattern.compile("(?<!\\\\)" + baseRegex);
         escapedRegex = Pattern.compile("\\\\" + baseRegex);

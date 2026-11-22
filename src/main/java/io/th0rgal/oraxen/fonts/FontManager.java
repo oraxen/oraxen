@@ -16,7 +16,6 @@ import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -170,6 +169,10 @@ public class FontManager {
     private void loadFonts(final ConfigurationSection section) {
         for (final String fontName : section.getKeys(false)) {
             final ConfigurationSection fontSection = section.getConfigurationSection(fontName);
+            if (fontSection == null || fontSection.getString("file") == null) {
+                Logs.logWarning("Font " + fontName + " in font.yml has no file, skipping it");
+                continue;
+            }
             fonts.add(new Font(fontSection.getString("type"),
                     fontSection.getString("file"),
                     (float) fontSection.getDouble("shift_x"),
@@ -197,18 +200,29 @@ public class FontManager {
             else if (!Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool()) {
                 List<String> tempKeys = OraxenYaml.loadConfiguration(tempFile).getKeys(false).stream().toList();
                 List<String> requiredKeys = OraxenYaml.loadConfiguration(file).getKeys(false).stream().toList();
-                if (!new HashSet<>(requiredKeys).containsAll(tempKeys)) {
-                    file.renameTo(new File(OraxenPlugin.get().getDataFolder() + "/glyphs/" + file.getName() + ".old"));
-                    OraxenPlugin.get().saveResource("glyphs/" + file.getName(), true);
+                if (!new HashSet<>(requiredKeys).containsAll(tempKeys) && regenerateYaml(file))
                     Logs.logWarning("glyphs/" + file.getName()
                             + " was incorrect, renamed to .old and regenerated the default one");
-                }
             }
         } catch (IOException e) {
-            file.renameTo(new File(OraxenPlugin.get().getDataFolder() + "/glyphs/" + file.getName() + ".old"));
-            OraxenPlugin.get().saveResource("glyphs/" + file.getName(), true);
+            regenerateYaml(file);
         }
         tempFile.delete();
+    }
+
+    private boolean regenerateYaml(File file) {
+        if (file.exists()) {
+            try {
+                Files.move(file.toPath(), file.toPath().resolveSibling(file.getName() + ".old"),
+                        StandardCopyOption.REPLACE_EXISTING);
+            } catch (IOException e) {
+                Logs.logError("Failed to back up glyphs/" + file.getName() + " to " + file.getName() + ".old");
+                Logs.debug(e);
+                return false;
+            }
+        }
+        OraxenPlugin.get().saveResource("glyphs/" + file.getName(), true);
+        return true;
     }
 
     /**
@@ -307,9 +321,9 @@ public class FontManager {
      * Get a Glyph from a given Glyph-ID
      * 
      * @param id The Glyph-ID
-     * @return Returns the Glyph if it exists, otherwise the required Glyph
+     * @return Returns the Glyph if it exists, otherwise the required Glyph, or null if that is missing too
      */
-    @NotNull
+    @Nullable
     public Glyph getGlyphFromName(final String id) {
         return glyphMap.get(id) != null ? glyphMap.get(id) : glyphMap.get("required");
     }
@@ -357,7 +371,7 @@ public class FontManager {
         return shiftProvider.getShiftString(length);
     }
 
-    private final Map<UUID, List<String>> currentGlyphCompletions = new ConcurrentHashMap<>();
+    private static final Map<UUID, List<String>> currentGlyphCompletions = new ConcurrentHashMap<>();
 
     public void sendGlyphTabCompletion(Player player) {
         List<String> completions = getGlyphTabCompletions(getGlyphByPlaceholderMap().values(),
@@ -370,7 +384,7 @@ public class FontManager {
     }
 
     public void clearGlyphTabCompletions(Player player) {
-        this.currentGlyphCompletions.remove(player.getUniqueId());
+        currentGlyphCompletions.remove(player.getUniqueId());
     }
 
     public static List<String> getGlyphTabCompletions(Collection<Glyph> glyphs, boolean includeUnicodeCompletions) {
