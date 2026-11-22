@@ -261,10 +261,18 @@ public class StringBlockMechanicFactory extends MechanicFactory {
                         "silktouch", MechanicConfigProperty.bool("silktouch", "Require silk touch", false),
                         "loots", MechanicConfigProperty.list("loots", "List of loot entries")
                 )),
-                MechanicConfigProperty.object("sapling", "Sapling growth configuration", Map.of(
-                        "min_light", MechanicConfigProperty.integer("min_light", "Minimum light level to grow", 9, 0, 15),
-                        "grow_block", MechanicConfigProperty.string("grow_block", "Block ID when grown"),
-                        "grow_chance", MechanicConfigProperty.decimal("grow_chance", "Growth chance per check", 0.1, 0.0, 1.0)
+                MechanicConfigProperty.object("sapling", "Sapling growth configuration", Map.ofEntries(
+                        Map.entry("canGrowNaturally", MechanicConfigProperty.bool("canGrowNaturally", "Whether the sapling grows over time", true)),
+                        Map.entry("naturalGrowthTime", MechanicConfigProperty.integer("naturalGrowthTime", "Ticks until the sapling grows", 6000, 0)),
+                        Map.entry("canGrowFromBoneMeal", MechanicConfigProperty.bool("canGrowFromBoneMeal", "Whether bone meal speeds up growth", true)),
+                        Map.entry("boneMealGrowthSpeedup", MechanicConfigProperty.integer("boneMealGrowthSpeedup", "Ticks of growth each bone meal adds", 1200, 0)),
+                        Map.entry("growSound", MechanicConfigProperty.string("growSound", "Sound played when the sapling grows")),
+                        Map.entry("minLightLevel", MechanicConfigProperty.integer("minLightLevel", "Minimum light level to grow", 0, 0, 15)),
+                        Map.entry("requiresWaterSource", MechanicConfigProperty.bool("requiresWaterSource", "Whether the sapling needs water below it", false)),
+                        Map.entry("schematicName", MechanicConfigProperty.string("schematicName", "Schematic pasted when the sapling grows")),
+                        Map.entry("replaceBlocks", MechanicConfigProperty.bool("replaceBlocks", "Whether the schematic may replace existing blocks", false)),
+                        Map.entry("shouldCopyBiomes", MechanicConfigProperty.bool("shouldCopyBiomes", "Whether the schematic pastes its biomes", false)),
+                        Map.entry("shouldCopyEntities", MechanicConfigProperty.bool("shouldCopyEntities", "Whether the schematic pastes its entities", false))
                 )),
                 MechanicConfigProperty.list("stackable", "List of stack variations (custom_variation + model per level)")
         );

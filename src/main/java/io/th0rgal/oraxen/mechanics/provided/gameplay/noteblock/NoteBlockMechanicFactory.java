@@ -295,7 +295,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
                 MechanicConfigProperty.string("model", "Block model path"),
                 MechanicConfigProperty.decimal("hardness", "Block break hardness", 1.0, 0.0),
                 MechanicConfigProperty.integer("light", "Light level emitted (0-15)", 0, 0, 15),
-                MechanicConfigProperty.bool("canIgnite", "Whether the block can be ignited", false),
+                MechanicConfigProperty.bool("can_ignite", "Whether the block can be ignited", false),
                 MechanicConfigProperty.bool("blast_resistant", "Whether block resists explosions", false),
                 MechanicConfigProperty.bool("immovable", "Whether block resists pistons", false),
                 MechanicConfigProperty.object("drop", "Drop configuration when broken", Map.of(
@@ -309,15 +309,14 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
                         "z_block", MechanicConfigProperty.string("z_block", "Z-axis variant ID")
                 )),
                 MechanicConfigProperty.object("farmblock", "Farm block configuration", Map.of(
-                        "moisture", MechanicConfigProperty.integer("moisture", "Moisture level", 0, 0),
-                        "dry_block", MechanicConfigProperty.string("dry_block", "Block ID when dried")
+                        "farmBlockPath", MechanicConfigProperty.string("farmBlockPath", "Block ID used when the farm block is dry"),
+                        "moistFarmBlockPath", MechanicConfigProperty.string("moistFarmBlockPath", "Block ID used when the farm block is moist"),
+                        "farmBlockDryOutTime", MechanicConfigProperty.integer("farmBlockDryOutTime", "Ticks without water before a moist farm block dries out", 50000, 0)
                 )),
-                MechanicConfigProperty.object("log_strip", "Log stripping configuration", Map.of(
-                        "drop", MechanicConfigProperty.object("drop", "Item dropped on strip", Map.of(
-                                "oraxen_item", MechanicConfigProperty.string("oraxen_item", "Oraxen item ID"),
-                                "minecraft_type", MechanicConfigProperty.string("minecraft_type", "Vanilla item type")
-                        )),
-                        "stripped_log", MechanicConfigProperty.string("stripped_log", "Stripped log block ID")
+                MechanicConfigProperty.object("logStrip", "Log stripping configuration", Map.of(
+                        "stripped_log", MechanicConfigProperty.string("stripped_log", "Stripped log block ID"),
+                        "drop", MechanicConfigProperty.string("drop", "Oraxen item ID dropped when the log is stripped"),
+                        "decrease_axe_durability", MechanicConfigProperty.bool("decrease_axe_durability", "Whether stripping damages the axe", false)
                 ))
         );
     }
