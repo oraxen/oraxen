@@ -538,6 +538,7 @@ public class NoteBlockMechanicListener implements Listener {
                 target.setBlockData(oldData);
                 return;
             }
+            if (targetOraxen.isStorage()) targetOraxen.getStorage().loadStorageContent(target, item);
 
             if (targetOraxen.isFalling() && target.getRelative(BlockFace.DOWN).getType().isAir()) {
                 Location fallingLocation = BlockHelpers.toCenterBlockLocation(target.getLocation());

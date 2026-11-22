@@ -1,10 +1,13 @@
 package io.th0rgal.oraxen.mechanics;
 
 import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mockStatic;
 
 class StorageMechanicTest extends MechanicTestSupport {
 
@@ -27,5 +30,22 @@ class StorageMechanicTest extends MechanicTestSupport {
         assertEquals("close", mechanic.getCloseSound());
         assertEquals(0.8f, mechanic.getVolume());
         assertEquals(1.2f, mechanic.getPitch());
+    }
+
+    @Test
+    void readsTypeIgnoringCase() {
+        StorageMechanic mechanic = new StorageMechanic(standaloneSection("type", "shulker"));
+
+        assertEquals(StorageMechanic.StorageType.SHULKER, mechanic.getStorageType());
+    }
+
+    @Test
+    void invalidTypeWarnsAndFallsBackToStorage() {
+        try (MockedStatic<Logs> logs = mockStatic(Logs.class)) {
+            StorageMechanic mechanic = new StorageMechanic(standaloneSection("type", "chest"));
+
+            assertEquals(StorageMechanic.StorageType.STORAGE, mechanic.getStorageType());
+            logs.verify(() -> Logs.logWarning("Valid types are: STORAGE, PERSONAL, ENDERCHEST, DISPOSAL, SHULKER"));
+        }
     }
 }

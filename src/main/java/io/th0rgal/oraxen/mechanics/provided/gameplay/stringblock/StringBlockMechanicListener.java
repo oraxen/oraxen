@@ -693,6 +693,7 @@ public class StringBlockMechanicListener implements Listener {
                     blockAbove.setBlockData(oldDataAbove);
                 return;
             }
+            if (mechanic.isStorage()) mechanic.getStorage().loadStorageContent(target, item);
 
             // Handle falling blocks
             if (mechanic.isFalling()) {

@@ -615,6 +615,8 @@ public class ChorusBlockMechanicListener implements Listener {
                         });
             }
         }
+        if (mechanic.isStorage() && target.getType() == Material.CHORUS_PLANT)
+            mechanic.getStorage().loadStorageContent(target, item);
 
         if (player.getGameMode() != GameMode.CREATIVE)
             item.setAmount(item.getAmount() - 1);

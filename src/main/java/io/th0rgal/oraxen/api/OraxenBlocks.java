@@ -413,9 +413,10 @@ public class OraxenBlocks {
             BlockDurability.applyConfigured(player, itemInHand, getDurabilityAction(mechanic, itemInHand));
         }
 
-        if (drop != null) drop.spawns(block.getLocation(), itemInHand);
+        // A shulker storage holding items drops its own item with the contents in place of the normal drop
+        boolean droppedShulker = dropStorageIfPresent(mechanic, block, itemID);
+        if (drop != null && !droppedShulker) drop.spawns(block.getLocation(), itemInHand);
         removeLight(block, itemID);
-        dropStorageIfPresent(mechanic, block);
         if (preRemove != null) preRemove.run();
         block.setType(Material.AIR);
         BlockHelpers.removePDC(block);
@@ -452,10 +453,10 @@ public class OraxenBlocks {
             block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, block.getBlockData());
     }
 
-    private static void dropStorageIfPresent(Mechanic mechanic, Block block) {
+    private static boolean dropStorageIfPresent(Mechanic mechanic, Block block, String itemID) {
         StorageMechanic storage = getStorageMechanic(mechanic);
-        if (storage != null && storage.getStorageType() == StorageMechanic.StorageType.STORAGE)
-            storage.dropStorageContent(block);
+        if (storage == null || (!storage.isStorage() && !storage.isShulker())) return false;
+        return storage.dropStorageContent(block, itemID);
     }
 
     @Nullable
