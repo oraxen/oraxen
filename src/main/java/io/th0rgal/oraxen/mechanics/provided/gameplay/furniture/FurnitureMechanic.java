@@ -1285,10 +1285,9 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     public void removeSolid(Entity baseEntity, Location rootLocation, float orientation) {
-        // Placement turns FIXED displays on a roof by 180 degrees but keeps the original yaw for their barriers
-        if (hasLimitedPlacing() && limitedPlacing.isRoof() && baseEntity instanceof ItemDisplay display
-                && display.getItemDisplayTransform() == ItemDisplay.ItemDisplayTransform.FIXED
-                && display.getLocation().getPitch() == 90f)
+        // Placement turns FIXED displays on a roof by 180 degrees and tilts them to pitch 90,
+        // but keeps the original yaw for their barriers. Later updates keep that rotation.
+        if (baseEntity instanceof ItemDisplay && baseEntity.getLocation().getPitch() == 90f)
             orientation = orientation - 180;
         List<BlockLocation> blockLocations = baseEntity.getPersistentDataContainer().getOrDefault(BARRIER_KEY, DataType.asList(BlockLocation.dataType), new ArrayList<>());
         List<BlockLocation> barriersToRemove = blockLocations.isEmpty() ? getBarriers() : blockLocations;
