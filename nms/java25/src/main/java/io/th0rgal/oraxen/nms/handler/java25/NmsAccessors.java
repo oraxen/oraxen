@@ -4,13 +4,19 @@ import io.th0rgal.oraxen.utils.MinecraftVersion;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
+import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.common.ClientboundUpdateTagsPacket;
 import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.tags.TagKey;
 import net.minecraft.tags.TagNetworkSerialization;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.JukeboxSong;
 import net.minecraft.world.item.consume_effects.TeleportRandomlyConsumeEffect;
@@ -109,6 +115,34 @@ final class NmsAccessors {
 
     static Object tagLocation(TagKey<?> tagKey) {
         return tagKey.location();
+    }
+
+    static Optional<DataComponentType<?>> dataComponentType(String id) {
+        return BuiltInRegistries.DATA_COMPONENT_TYPE.getOptional(Identifier.parse(id));
+    }
+
+    static Optional<MobEffect> mobEffect(String id) {
+        return BuiltInRegistries.MOB_EFFECT.getOptional(Identifier.parse(id));
+    }
+
+    static Optional<SoundEvent> soundEvent(String id) {
+        return BuiltInRegistries.SOUND_EVENT.getOptional(Identifier.parse(id));
+    }
+
+    static EntityType<?> entityType(String id) {
+        return BuiltInRegistries.ENTITY_TYPE.getValue(Identifier.parse(id));
+    }
+
+    static SoundEvent createSoundEvent(String id) {
+        return SoundEvent.createVariableRangeEvent(Identifier.parse(id));
+    }
+
+    /**
+     * Gets the path of a vanilla sound, or an empty string for sounds outside the minecraft namespace.
+     */
+    static String vanillaSoundPath(SoundEvent sound) {
+        Identifier location = sound.location();
+        return "minecraft".equals(location.getNamespace()) ? location.getPath() : "";
     }
 
     static NamespacedKey recipeKey(ResourceKey<?> key) {

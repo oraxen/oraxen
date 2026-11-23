@@ -2,13 +2,18 @@ package io.th0rgal.oraxen.nms.handler.java21;
 
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
+import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.common.ClientboundUpdateTagsPacket;
 import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.tags.TagKey;
 import net.minecraft.tags.TagNetworkSerialization;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.JukeboxSong;
 import net.minecraft.world.item.consume_effects.TeleportRandomlyConsumeEffect;
 import net.minecraft.world.item.crafting.display.SlotDisplay;
@@ -30,27 +35,48 @@ import java.util.Set;
  */
 final class NmsAccessors {
 
+    // Paper 1.21.11 renamed ResourceLocation to Identifier, so the runtime type differs within this module's range.
+    private static final Class<?> identifierClass = identifierClass();
+    private static final Method parseIdentifier;
+    private static final Method identifierNamespace;
+    private static final Method identifierPath;
     private static final Method tagKeyLocationMethod;
     private static final Method resourceKeyLocationMethod;
+    private static final Method registryOptional;
+    private static final Method registryValue;
+    private static final Method soundEventLocation;
+    private static final Method createVariableRangeEvent;
     private static final Method tagKeysMethod = findTagKeysMethod();
 
     static {
         try {
-            tagKeyLocationMethod = Class.forName("net.minecraft.tags.TagKey").getMethod("location");
-        } catch (ClassNotFoundException | NoSuchMethodException error) {
-            throw new RuntimeException("Could not find TagKey#location", error);
-        }
-
-        try {
-            Class<?> resourceKey = Class.forName("net.minecraft.resources.ResourceKey");
-            resourceKeyLocationMethod = resolveResourceKeyLocationMethod(resourceKey,
-                    ResourceLocationHelper.getResourceLocationClass());
-        } catch (ReflectiveOperationException error) {
-            throw new RuntimeException("Could not find ResourceKey location accessor", error);
+            parseIdentifier = identifierClass.getMethod("parse", String.class);
+            identifierNamespace = identifierClass.getMethod("getNamespace");
+            identifierPath = identifierClass.getMethod("getPath");
+            tagKeyLocationMethod = TagKey.class.getMethod("location");
+            resourceKeyLocationMethod = resolveResourceKeyLocationMethod(ResourceKey.class, identifierClass);
+            registryOptional = Registry.class.getMethod("getOptional", identifierClass);
+            registryValue = Registry.class.getMethod("getValue", identifierClass);
+            soundEventLocation = SoundEvent.class.getMethod("location");
+            createVariableRangeEvent = SoundEvent.class.getMethod("createVariableRangeEvent", identifierClass);
+        } catch (NoSuchMethodException error) {
+            throw new ExceptionInInitializerError(error);
         }
     }
 
     private NmsAccessors() {
+    }
+
+    private static Class<?> identifierClass() {
+        try {
+            return Class.forName("net.minecraft.resources.Identifier");
+        } catch (ClassNotFoundException ignored) {
+            try {
+                return Class.forName("net.minecraft.resources.ResourceLocation");
+            } catch (ClassNotFoundException error) {
+                throw new ExceptionInInitializerError(error);
+            }
+        }
     }
 
     static Method resolveResourceKeyLocationMethod(Class<?> resourceKeyClass, Class<?> resourceLocationClass)
@@ -110,6 +136,41 @@ final class NmsAccessors {
         } catch (ReflectiveOperationException error) {
             throw new RuntimeException("Failed to get resource key location", error);
         }
+    }
+
+    private static Object identifier(String id) throws ReflectiveOperationException {
+        return parseIdentifier.invoke(null, id);
+    }
+
+    @SuppressWarnings("unchecked")
+    static Optional<DataComponentType<?>> dataComponentType(String id) throws ReflectiveOperationException {
+        return (Optional<DataComponentType<?>>) registryOptional.invoke(BuiltInRegistries.DATA_COMPONENT_TYPE, identifier(id));
+    }
+
+    @SuppressWarnings("unchecked")
+    static Optional<MobEffect> mobEffect(String id) throws ReflectiveOperationException {
+        return (Optional<MobEffect>) registryOptional.invoke(BuiltInRegistries.MOB_EFFECT, identifier(id));
+    }
+
+    @SuppressWarnings("unchecked")
+    static Optional<SoundEvent> soundEvent(String id) throws ReflectiveOperationException {
+        return (Optional<SoundEvent>) registryOptional.invoke(BuiltInRegistries.SOUND_EVENT, identifier(id));
+    }
+
+    static EntityType<?> entityType(String id) throws ReflectiveOperationException {
+        return (EntityType<?>) registryValue.invoke(BuiltInRegistries.ENTITY_TYPE, identifier(id));
+    }
+
+    static SoundEvent createSoundEvent(String id) throws ReflectiveOperationException {
+        return (SoundEvent) createVariableRangeEvent.invoke(null, identifier(id));
+    }
+
+    /**
+     * Gets the path of a vanilla sound, or an empty string for sounds outside the minecraft namespace.
+     */
+    static String vanillaSoundPath(SoundEvent sound) throws ReflectiveOperationException {
+        Object location = soundEventLocation.invoke(sound);
+        return "minecraft".equals(identifierNamespace.invoke(location)) ? (String) identifierPath.invoke(location) : "";
     }
 
     static NamespacedKey recipeKey(ResourceKey<?> key) {

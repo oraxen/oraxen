@@ -2,7 +2,6 @@ package io.th0rgal.oraxen.nms.handler.shared;
 
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.network.protocol.game.ClientboundMoveEntityPacket;
-import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.phys.Vec3;
 
@@ -11,10 +10,6 @@ import java.lang.reflect.Method;
 /** Resolves native members whose declaring class or signature varies between server versions. */
 final class TridentNativeAccess {
     static final EntityType<?> itemDisplay = resolveItemDisplay();
-    private static final Method soundLocation;
-    private static final Method soundNamespace;
-    private static final Method soundPath;
-    private static final Method createSound;
     private static final Method movement;
     private static final Method[] legacyMovement;
     private static final Method yaw;
@@ -22,10 +17,6 @@ final class TridentNativeAccess {
 
     static {
         try {
-            soundLocation = SoundEvent.class.getMethod("location");
-            soundNamespace = ResourceLocationHelper.getResourceLocationClass().getMethod("getNamespace");
-            soundPath = ResourceLocationHelper.getResourceLocationClass().getMethod("getPath");
-            createSound = SoundEvent.class.getMethod("createVariableRangeEvent", ResourceLocationHelper.getResourceLocationClass());
             yaw = rotationAccessor("getYRot", "getyRot");
             pitch = rotationAccessor("getXRot", "getxRot");
             Method accessor = null;
@@ -65,17 +56,6 @@ final class TridentNativeAccess {
         } catch (ReflectiveOperationException exception) {
             throw new ExceptionInInitializerError(exception);
         }
-    }
-
-    static SoundEvent sound(String key) throws ReflectiveOperationException {
-        Object location = ResourceLocationHelper.parse(key);
-        return (SoundEvent) createSound.invoke(null, location);
-    }
-
-    static String soundPath(SoundEvent sound) throws ReflectiveOperationException {
-        Object location = soundLocation.invoke(sound);
-        if (!"minecraft".equals(soundNamespace.invoke(location))) return "";
-        return (String) soundPath.invoke(location);
     }
 
     static Vec3 movement(ClientboundAddEntityPacket packet) throws ReflectiveOperationException {

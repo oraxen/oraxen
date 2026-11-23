@@ -80,7 +80,6 @@ import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -420,11 +419,8 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public boolean setComponent(ItemBuilder item, String componentKey, Object component) {
         try {
-            Object componentLocation = ResourceLocationHelper.parse("minecraft:" + componentKey.toLowerCase(java.util.Locale.ROOT));
-            if (componentLocation == null)
-                return false;
-
-            net.minecraft.core.component.DataComponentType<?> componentType = getDataComponentType(componentLocation);
+            net.minecraft.core.component.DataComponentType<?> componentType = NmsAccessors
+                    .dataComponentType("minecraft:" + componentKey.toLowerCase(java.util.Locale.ROOT)).orElse(null);
             if (componentType == null)
                 return false;
 
@@ -469,10 +465,8 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         net.minecraft.world.item.ItemStack nmsItem = CraftItemStack.asNMSCopy(itemStack);
         for (var entry : components.entrySet()) {
             try {
-                Object location = ResourceLocationHelper.parse("minecraft:" + entry.getKey().toLowerCase(Locale.ROOT));
-                if (location == null) continue;
-
-                DataComponentType componentType = getDataComponentType(location);
+                DataComponentType componentType = NmsAccessors
+                        .dataComponentType("minecraft:" + entry.getKey().toLowerCase(Locale.ROOT)).orElse(null);
                 if (componentType == null) continue;
 
                 nmsItem.set(componentType, entry.getValue());
@@ -820,59 +814,12 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         }
     }
 
-    // ============ Reflection helpers for ResourceLocation/Identifier compatibility
-    // ============
-
-    private static final Method dataComponentTypeLookup = registryLookup(BuiltInRegistries.DATA_COMPONENT_TYPE, "getOptional");
-    private static final Method mobEffectLookup = registryLookup(BuiltInRegistries.MOB_EFFECT, "getOptional");
-    private static final Method soundEventLookup = registryLookup(BuiltInRegistries.SOUND_EVENT, "getOptional");
-    private static final Method entityTypeLookup = registryLookup(BuiltInRegistries.ENTITY_TYPE, "getValue");
-    // SoundEvent constructor takes the location - use reflection since type differs
-    private static final Constructor<?> soundEventConstructor = soundEventConstructor();
-
-    @Nullable
-    private static Method registryLookup(Registry<?> registry, String name) {
-        try {
-            return registry.getClass().getMethod(name, ResourceLocationHelper.getResourceLocationClass());
-        } catch (NoSuchMethodException e) {
-            Logs.debug(e);
-            return null;
-        }
-    }
-
-    @Nullable
-    private static Constructor<?> soundEventConstructor() {
-        try {
-            return SoundEvent.class.getConstructor(ResourceLocationHelper.getResourceLocationClass(), Optional.class);
-        } catch (NoSuchMethodException e) {
-            Logs.debug(e);
-            return null;
-        }
-    }
-
-    /**
-     * Get DataComponentType by looking up the component location via reflection.
-     */
-    @SuppressWarnings("unchecked")
-    private net.minecraft.core.component.DataComponentType<?> getDataComponentType(Object location) {
-        try {
-            Optional<net.minecraft.core.component.DataComponentType<?>> result = (Optional<net.minecraft.core.component.DataComponentType<?>>) dataComponentTypeLookup
-                    .invoke(BuiltInRegistries.DATA_COMPONENT_TYPE, location);
-            return result.orElse(null);
-        } catch (Exception e) {
-            Logs.logWarning("Failed to get data component type: " + e.getMessage());
-            return null;
-        }
-    }
-
     /**
      * Get MobEffect optional by effect ID string.
      */
-    @SuppressWarnings("unchecked")
     private Optional<MobEffect> getMobEffectOptional(String effectId) {
         try {
-            Object location = ResourceLocationHelper.parse(effectId);
-            return (Optional<MobEffect>) mobEffectLookup.invoke(BuiltInRegistries.MOB_EFFECT, location);
+            return NmsAccessors.mobEffect(effectId);
         } catch (Exception e) {
             Logs.logWarning("Failed to get mob effect: " + effectId);
             return Optional.empty();
@@ -882,11 +829,9 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     /**
      * Get SoundEvent optional by sound ID string.
      */
-    @SuppressWarnings("unchecked")
     private Optional<SoundEvent> getSoundEventOptional(String soundId) {
         try {
-            Object location = ResourceLocationHelper.parse(soundId);
-            return (Optional<SoundEvent>) soundEventLookup.invoke(BuiltInRegistries.SOUND_EVENT, location);
+            return NmsAccessors.soundEvent(soundId);
         } catch (Exception e) {
             Logs.logWarning("Failed to get sound event: " + soundId);
             return Optional.empty();
@@ -898,8 +843,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
      */
     private SoundEvent getSoundEventFromId(String soundId) {
         try {
-            Object location = ResourceLocationHelper.parse(soundId);
-            return (SoundEvent) soundEventConstructor.newInstance(location, Optional.empty());
+            return NmsAccessors.createSoundEvent(soundId);
         } catch (Exception e) {
             Logs.logWarning("Failed to create sound event: " + soundId);
             return null;
@@ -997,13 +941,10 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
     private static EntityType<?> getEntityType(String entityId) {
         try {
-            Object location = ResourceLocationHelper.parse(entityId);
-            Object entityType = entityTypeLookup != null ? entityTypeLookup.invoke(BuiltInRegistries.ENTITY_TYPE, location) : null;
-            if (entityType instanceof EntityType<?> type) return type;
-        } catch (ReflectiveOperationException e) {
-            Logs.debug(e);
+            return NmsAccessors.entityType(entityId);
+        } catch (Exception e) {
+            throw new IllegalStateException("Could not resolve entity type: " + entityId, e);
         }
-        throw new IllegalStateException("Could not resolve entity type: " + entityId);
     }
 
     @Override

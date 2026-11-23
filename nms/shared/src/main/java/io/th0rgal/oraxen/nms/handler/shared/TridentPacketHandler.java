@@ -210,7 +210,7 @@ final class TridentPacketHandler implements Listener {
         private Object transformEntitySound(ClientboundSoundEntityPacket sound) throws ReflectiveOperationException {
             RenderData data = tridents.get(sound.getId());
             if (data == null) return sound;
-            String replacement = data.mechanic.soundFor(TridentNativeAccess.soundPath(sound.getSound().value()));
+            String replacement = data.mechanic.soundFor(NmsAccessors.vanillaSoundPath(sound.getSound().value()));
             return replacement != null
                     ? new ClientboundSoundEntityPacket(sound(replacement), sound.getSource(), data.soundEntity,
                     sound.getVolume(), sound.getPitch(), sound.getSeed())
@@ -219,7 +219,7 @@ final class TridentPacketHandler implements Listener {
 
         private Object transformSound(ClientboundSoundPacket sound) throws ReflectiveOperationException {
             if (tracked.isEmpty()) return sound;
-            String key = TridentNativeAccess.soundPath(sound.getSound().value());
+            String key = NmsAccessors.vanillaSoundPath(sound.getSound().value());
             if (!key.startsWith("item.trident.")) return sound;
             for (int id : tracked) {
                 RenderData data = tridents.get(id);
@@ -242,7 +242,7 @@ final class TridentPacketHandler implements Listener {
     }
 
     private static Holder<SoundEvent> sound(String value) throws ReflectiveOperationException {
-        return Holder.direct(TridentNativeAccess.sound(value));
+        return Holder.direct(NmsAccessors.createSoundEvent(value));
     }
 
     private static final class RenderData {
