@@ -212,12 +212,9 @@ public class OraxenMetrics {
      * The placeholders are replaced by marketplaces when the plugin is downloaded.
      */
     private static class DownloadSourceInfo {
-        // These fields mirror LU.java placeholders
         private final String userId = "%%__USER__%%";
-        private final String nonce = "%%__NONCE__%%";
         private final String polymart = "%%__POLYMART__%%";
         private final String license = "%%__LICENSE__%%";
-        private final String resourceId = "%%__RESOURCE__%%";
 
         /**
          * Checks if the user placeholder is still a placeholder (not replaced).
@@ -238,20 +235,6 @@ public class OraxenMetrics {
          */
         boolean isLicensePlaceholder() {
             return license.contains("%%");
-        }
-
-        /**
-         * Checks if the nonce placeholder is still a placeholder (not replaced).
-         */
-        boolean isNoncePlaceholder() {
-            return nonce.contains("%%");
-        }
-
-        /**
-         * Checks if the resource ID placeholder is still a placeholder (not replaced).
-         */
-        boolean isResourcePlaceholder() {
-            return resourceId.contains("%%");
         }
     }
 }

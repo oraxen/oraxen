@@ -19,10 +19,6 @@ import java.util.Base64;
 public class LU {
 
     private final String i = "%%__USER__%%";
-    private final String in = "%%__NONCE__%%";
-    private final String pmdl = "%%__POLYMART__%%";
-    private final String pml = "%%__LICENSE__%%";
-    private final String rid = "%%__RESOURCE__%%";
 
     public final String su = new String(Base64.getDecoder().decode("aHR0cHM6Ly9hcGkuc3BpZ290bWMub3JnL3NpbXBsZS8wLjIvaW5kZXgucGhwP2FjdGlvbj1nZXRBdXRob3ImaWQ9"), StandardCharsets.UTF_8) + i;
     public final String pu = new String(Base64.getDecoder().decode("aHR0cHM6Ly9hcGkucG9seW1hcnQub3JnL3YxL2dldEFjY291bnRJbmZvP3VzZXJfaWQ9"), StandardCharsets.UTF_8) + i;

@@ -1084,13 +1084,6 @@ public class ResourcePack {
         }
     }
 
-    private static boolean needsTinting(Material material) {
-        return material.name().startsWith("LEATHER_")
-                || material == Material.POTION
-                || material == Material.SPLASH_POTION
-                || material == Material.LINGERING_POTION;
-    }
-
     private void generateModelDefinitions(final Map<Material, Map<String, ItemBuilder>> texturedItems) {
         for (final Map.Entry<Material, Map<String, ItemBuilder>> materialEntry : texturedItems.entrySet()) {
             for (final Map.Entry<String, ItemBuilder> entry : materialEntry.getValue().entrySet()) {
