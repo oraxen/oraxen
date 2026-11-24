@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen.mechanics;
 
 import io.th0rgal.oraxen.api.OraxenItems;
-import io.th0rgal.oraxen.mechanics.provided.misc.consumable.ConsumableMechanic;
 import io.th0rgal.oraxen.mechanics.provided.misc.consumable.ConsumableMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.consumable.ConsumableMechanicListener;
 import org.bukkit.block.Block;
@@ -15,7 +14,6 @@ import org.bukkit.inventory.PlayerInventory;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
@@ -29,13 +27,6 @@ class ConsumableMechanicTest extends MechanicTestSupport {
     private final Player player = mock(Player.class);
     private final PlayerInventory inventory = mock(PlayerInventory.class);
     private final ItemStack item = mock(ItemStack.class);
-
-    @Test
-    void storesBaseMechanicData() {
-        ConsumableMechanic mechanic = new ConsumableMechanic(mechanicFactory(), mechanicSection("consumable"));
-
-        assertEquals("test_item", mechanic.getItemID());
-    }
 
     @Test
     void cancelledClickDoesNotConsumeTheItem() {

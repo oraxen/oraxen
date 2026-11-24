@@ -163,6 +163,64 @@ class PackImportCompositionTest {
         logs.verify(() -> Logs.logError("Failed to import resource pack a-bad.zip"));
     }
 
+    @Test void normalizesDeeplyNestedPackRootsAndSkipsNonPackFiles() throws Exception {
+        Path zip = tempDir.resolve("uploads/battlepass.zip");
+        Files.createDirectories(zip.getParent());
+        writeZip(zip, Map.of(
+                "Plugins/BattlePass/config.yml", "some: config",
+                "README.md", "# Instructions",
+                "Textures (use 1)/ItemsAdders/contents/pack/resourcepack/pack.mcmeta", "{\"pack\":{\"pack_format\":34}}",
+                "Textures (use 1)/ItemsAdders/contents/pack/resourcepack/assets/test/models/item/paper.json", "{\"parent\":\"item/generated\"}",
+                "Textures (use 1)/vanilla_pack/pack.mcmeta", "{\"pack\":{\"pack_format\":34}}",
+                "Textures (use 1)/vanilla_pack/assets/test/textures/icon.png", "PNG_DATA"));
+
+        Map<String, String> files = contents(new PackMerger(tempDir.toFile()).mergeUploadedPacks());
+
+        assertEquals("{\"parent\":\"item/generated\"}", files.get("assets/test/models/item/paper.json"));
+        assertEquals("PNG_DATA", files.get("assets/test/textures/icon.png"));
+        assertFalse(files.keySet().stream().anyMatch(path -> path.contains("config.yml") || path.contains("README")
+                || path.contains("Textures") || path.contains("ItemsAdders")));
+    }
+
+    @Test void doesNotTreatFolderEndingWithAssetsAsPackRoot() throws Exception {
+        Path zip = tempDir.resolve("uploads/tricky.zip");
+        Files.createDirectories(zip.getParent());
+        writeZip(zip, Map.of(
+                "testassets/minecraft/textures/bad.png", "BAD",
+                "realpack/pack.mcmeta", "{\"pack\":{\"pack_format\":34}}",
+                "realpack/assets/minecraft/textures/good.png", "GOOD"));
+
+        Map<String, String> files = contents(new PackMerger(tempDir.toFile()).mergeUploadedPacks());
+
+        assertEquals("GOOD", files.get("assets/minecraft/textures/good.png"));
+        assertFalse(files.keySet().stream().anyMatch(path -> path.contains("bad.png") || path.contains("testassets")));
+    }
+
+    @Test void ignoresMetadataJunkEntriesInUploadedZips() throws Exception {
+        Path zip = tempDir.resolve("uploads/junk.zip");
+        Files.createDirectories(zip.getParent());
+        writeZip(zip, Map.of(
+                "pack.mcmeta", "{\"pack\":{\"pack_format\":34}}",
+                "assets/test/good.txt", "GOOD",
+                "assets/.DS_Store", "junk",
+                "__MACOSX/pack.mcmeta", "junk",
+                "__MACOSX/assets/test/junk.txt", "junk"));
+
+        Map<String, String> files = contents(new PackMerger(tempDir.toFile()).mergeUploadedPacks());
+
+        assertEquals("GOOD", files.get("assets/test/good.txt"));
+        assertFalse(files.keySet().stream().anyMatch(path -> path.contains("DS_Store") || path.contains("MACOSX") || path.contains("junk")));
+    }
+
+    @Test void alphabeticallyLaterUploadWinsWhenPacksProvideTheSamePath() throws Exception {
+        write("a-low", Map.of("assets/test/notes.txt", "low"));
+        write("b-high", Map.of("assets/test/notes.txt", "high"));
+
+        Map<String, String> files = contents(new PackMerger(tempDir.toFile()).mergeUploadedPacks());
+
+        assertEquals("high", files.get("assets/test/notes.txt"));
+    }
+
     @Test void composesNativeResourcesAndRetainsValidLowerFiles() throws Exception {
         write("a", Map.of(
                 "assets/test/lang/en_us.json", "{\"low\":\"low\",\"shared\":\"low\"}",

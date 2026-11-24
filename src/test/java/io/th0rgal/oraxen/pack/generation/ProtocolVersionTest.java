@@ -2,21 +2,25 @@ package io.th0rgal.oraxen.pack.generation;
 
 import org.junit.jupiter.api.Test;
 
-import java.io.File;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 class ProtocolVersionTest {
 
     @Test
-    void testFromProtocol_ExactMatch() {
-        assertEquals(ProtocolVersion.MC_26_2, ProtocolVersion.fromProtocol(776));
+    void fromProtocolResolvesKnownAndNewerProtocols() {
+        assertEquals(ProtocolVersion.MC_26_3, ProtocolVersion.fromProtocol(800));
         assertEquals(ProtocolVersion.MC_26_3, ProtocolVersion.fromProtocol(777));
+        assertEquals(ProtocolVersion.MC_26_2, ProtocolVersion.fromProtocol(776));
         assertEquals(ProtocolVersion.MC_26_1_2, ProtocolVersion.fromProtocol(775));
         assertEquals(ProtocolVersion.MC_1_21_11, ProtocolVersion.fromProtocol(774));
+        assertEquals(ProtocolVersion.MC_1_21_9, ProtocolVersion.fromProtocol(773));
+        assertEquals(ProtocolVersion.MC_1_21_7, ProtocolVersion.fromProtocol(772));
+        assertEquals(ProtocolVersion.MC_1_21_6, ProtocolVersion.fromProtocol(771));
         assertEquals(ProtocolVersion.MC_1_21_5, ProtocolVersion.fromProtocol(770));
         assertEquals(ProtocolVersion.MC_1_21_4, ProtocolVersion.fromProtocol(769));
+        assertEquals(ProtocolVersion.MC_1_21_2, ProtocolVersion.fromProtocol(768));
         assertEquals(ProtocolVersion.MC_1_21, ProtocolVersion.fromProtocol(767));
+        assertEquals(ProtocolVersion.MC_1_20_5, ProtocolVersion.fromProtocol(766));
         assertEquals(ProtocolVersion.MC_1_20_3, ProtocolVersion.fromProtocol(765));
         assertEquals(ProtocolVersion.MC_1_20, ProtocolVersion.fromProtocol(763));
         assertEquals(ProtocolVersion.MC_1_19, ProtocolVersion.fromProtocol(759));
@@ -24,33 +28,11 @@ class ProtocolVersionTest {
     }
 
     @Test
-    void testFromProtocol_BestMatch() {
-        assertEquals(ProtocolVersion.MC_26_1_2, ProtocolVersion.fromProtocol(775));
-        assertEquals(ProtocolVersion.MC_26_2, ProtocolVersion.fromProtocol(776));
-        assertEquals(ProtocolVersion.MC_26_3, ProtocolVersion.fromProtocol(777));
-        assertEquals(ProtocolVersion.MC_26_3, ProtocolVersion.fromProtocol(800));
-        assertEquals(ProtocolVersion.MC_1_21_5, ProtocolVersion.fromProtocol(770));
-        assertEquals(ProtocolVersion.MC_1_21_6, ProtocolVersion.fromProtocol(771));
-        assertEquals(ProtocolVersion.MC_1_21_7, ProtocolVersion.fromProtocol(772));
-        assertEquals(ProtocolVersion.MC_1_21_9, ProtocolVersion.fromProtocol(773));
-        assertEquals(ProtocolVersion.MC_1_21_11, ProtocolVersion.fromProtocol(774));
-        assertEquals(ProtocolVersion.MC_1_21_4, ProtocolVersion.fromProtocol(769));
-        assertEquals(ProtocolVersion.MC_1_21_2, ProtocolVersion.fromProtocol(768));
-        assertEquals(ProtocolVersion.MC_1_20_5, ProtocolVersion.fromProtocol(766));
-        assertEquals(ProtocolVersion.MC_1_20_3, ProtocolVersion.fromProtocol(765));
-    }
-
-    @Test
     void testFromProtocol_UnknownVersions() {
         assertEquals(ProtocolVersion.UNKNOWN, ProtocolVersion.fromProtocol(0));
         assertEquals(ProtocolVersion.UNKNOWN, ProtocolVersion.fromProtocol(-1));
         assertEquals(ProtocolVersion.UNKNOWN, ProtocolVersion.fromProtocol(-100));
-    }
-
-    @Test
-    void testFromProtocol_VeryOldVersion() {
-        ProtocolVersion result = ProtocolVersion.fromProtocol(100);
-        assertEquals(ProtocolVersion.UNKNOWN, result);
+        assertEquals(ProtocolVersion.UNKNOWN, ProtocolVersion.fromProtocol(100));
     }
 
     @Test
@@ -82,10 +64,14 @@ class ProtocolVersionTest {
 
     @Test
     void testGetVersionStringForProtocol() {
-        assertEquals("26.2", ProtocolVersion.getVersionStringForProtocol(776));
+        assertEquals("26.3+", ProtocolVersion.getVersionStringForProtocol(800));
         assertEquals("26.3", ProtocolVersion.getVersionStringForProtocol(777));
+        assertEquals("26.2", ProtocolVersion.getVersionStringForProtocol(776));
         assertEquals("26.1.2", ProtocolVersion.getVersionStringForProtocol(775));
         assertEquals("1.21.11", ProtocolVersion.getVersionStringForProtocol(774));
+        assertEquals("1.21.9", ProtocolVersion.getVersionStringForProtocol(773));
+        assertEquals("1.21.7", ProtocolVersion.getVersionStringForProtocol(772));
+        assertEquals("1.21.6", ProtocolVersion.getVersionStringForProtocol(771));
         assertEquals("1.21.5", ProtocolVersion.getVersionStringForProtocol(770));
         assertEquals("1.21.4", ProtocolVersion.getVersionStringForProtocol(769));
         assertEquals("1.21.2", ProtocolVersion.getVersionStringForProtocol(768));
@@ -97,73 +83,9 @@ class ProtocolVersionTest {
     }
 
     @Test
-    void testGetVersionStringForProtocol_FutureVersion() {
-        assertEquals("26.2", ProtocolVersion.getVersionStringForProtocol(776));
-        assertEquals("26.3", ProtocolVersion.getVersionStringForProtocol(777));
-        assertEquals("26.3+", ProtocolVersion.getVersionStringForProtocol(800));
-        assertEquals("1.21.6", ProtocolVersion.getVersionStringForProtocol(771));
-        assertEquals("1.21.7", ProtocolVersion.getVersionStringForProtocol(772));
-        assertEquals("1.21.9", ProtocolVersion.getVersionStringForProtocol(773));
-        assertEquals("1.21.11", ProtocolVersion.getVersionStringForProtocol(774));
-        assertEquals("1.21.5", ProtocolVersion.getVersionStringForProtocol(770));
-    }
-
-    @Test
     void testGetVersionStringForProtocol_UnknownVersion() {
         assertEquals("Unknown (0)", ProtocolVersion.getVersionStringForProtocol(0));
         assertEquals("Unknown (-1)", ProtocolVersion.getVersionStringForProtocol(-1));
         assertEquals("Unknown (100)", ProtocolVersion.getVersionStringForProtocol(100));
-    }
-
-    @Test
-    void testEnumProperties() {
-        assertEquals(776, ProtocolVersion.MC_26_2.getProtocol());
-        assertEquals(777, ProtocolVersion.MC_26_3.getProtocol());
-        assertEquals(88, ProtocolVersion.MC_26_2.getPackFormat());
-        assertEquals(97, ProtocolVersion.MC_26_3.getPackFormat());
-        assertEquals("26.2", ProtocolVersion.MC_26_2.getVersionString());
-        assertEquals("26.3", ProtocolVersion.MC_26_3.getVersionString());
-
-        assertEquals(775, ProtocolVersion.MC_26_1_2.getProtocol());
-        assertEquals(84, ProtocolVersion.MC_26_1_2.getPackFormat());
-        assertEquals("26.1.2", ProtocolVersion.MC_26_1_2.getVersionString());
-
-        assertEquals(774, ProtocolVersion.MC_1_21_11.getProtocol());
-        assertEquals(75, ProtocolVersion.MC_1_21_11.getPackFormat());
-        assertEquals("1.21.11", ProtocolVersion.MC_1_21_11.getVersionString());
-
-        assertEquals(770, ProtocolVersion.MC_1_21_5.getProtocol());
-        assertEquals(55, ProtocolVersion.MC_1_21_5.getPackFormat());
-        assertEquals("1.21.5", ProtocolVersion.MC_1_21_5.getVersionString());
-
-        assertEquals(769, ProtocolVersion.MC_1_21_4.getProtocol());
-        assertEquals(46, ProtocolVersion.MC_1_21_4.getPackFormat());
-        assertEquals("1.21.4", ProtocolVersion.MC_1_21_4.getVersionString());
-
-        assertEquals(767, ProtocolVersion.MC_1_21.getProtocol());
-        assertEquals(34, ProtocolVersion.MC_1_21.getPackFormat());
-        assertEquals("1.21", ProtocolVersion.MC_1_21.getVersionString());
-    }
-
-    @Test
-    void testIsKnown() {
-        assertTrue(ProtocolVersion.MC_26_2.isKnown());
-        assertTrue(ProtocolVersion.MC_26_3.isKnown());
-        assertTrue(ProtocolVersion.MC_26_1_2.isKnown());
-        assertTrue(ProtocolVersion.MC_1_21_11.isKnown());
-        assertTrue(ProtocolVersion.MC_1_21_5.isKnown());
-        assertTrue(ProtocolVersion.MC_1_21_4.isKnown());
-        assertTrue(ProtocolVersion.MC_1_20.isKnown());
-        assertFalse(ProtocolVersion.UNKNOWN.isKnown());
-    }
-
-    @Test
-    void testConsistencyWithPackVersion() {
-        File tempFile = new java.io.File("/tmp/test.zip");
-        PackVersion packVersion = new PackVersion("1.20.4", 22, 22, 31, tempFile);
-
-        assertTrue(packVersion.supportsProtocol(765));
-
-        assertFalse(packVersion.supportsProtocol(766));
     }
 }

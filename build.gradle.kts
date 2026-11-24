@@ -196,12 +196,6 @@ tasks {
         options.encoding = Charsets.UTF_8.name()
     }
 
-    compileTestJava {
-        if (!project.hasProperty("runVersionLoadingTest")) {
-            exclude("io/th0rgal/oraxen/loading/versionLoadingTest.java")
-        }
-    }
-
     test {
         useJUnitPlatform {
             if (!project.hasProperty("runVersionLoadingTest")) {
@@ -318,20 +312,6 @@ tasks {
 
     build.get().dependsOn(shadowJar)
 }
-
-// Task to run PackMerger debug tool
-tasks.register<JavaExec>("runPackMergerDebug") {
-    group = "debug"
-    description = "Runs the PackMerger debug tool to analyze resource pack zip files"
-    classpath = sourceSets["test"].runtimeClasspath
-    mainClass.set("io.th0rgal.oraxen.pack.generation.PackMergerDebugRunner")
-
-    // Pass command line args: ./gradlew runPackMergerDebug --args="path/to/pack.zip"
-    if (project.hasProperty("packFile")) {
-        args(project.property("packFile").toString())
-    }
-}
-
 
 paper {
     load = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.PluginLoadOrder.POSTWORLD

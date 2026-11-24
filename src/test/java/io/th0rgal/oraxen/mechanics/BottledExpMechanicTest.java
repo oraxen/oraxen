@@ -5,18 +5,10 @@ import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class BottledExpMechanicTest extends MechanicTestSupport {
-
-    @Test
-    void convertsPlayerExperienceToBottleCount() {
-        BottledExpMechanic mechanic = new BottledExpMechanic(mechanicFactory(), mechanicSection("bottledexp", "ratio", 1.0));
-
-        assertTrue(mechanic.getBottleEquivalent(10, 0.5f) > 0);
-    }
 
     @Test
     void countsPartialLevelProgressAsExperiencePoints() {

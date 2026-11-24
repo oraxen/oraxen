@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen.mechanics;
 
 import io.th0rgal.oraxen.api.OraxenItems;
-import io.th0rgal.oraxen.mechanics.provided.farming.smelting.SmeltingMechanic;
 import io.th0rgal.oraxen.mechanics.provided.farming.smelting.SmeltingMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.farming.smelting.SmeltingMechanicListener;
 import org.bukkit.Bukkit;
@@ -40,13 +39,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class SmeltingMechanicTest extends MechanicTestSupport {
-
-    @Test
-    void readsPlaySoundFlag() {
-        SmeltingMechanic mechanic = new SmeltingMechanic(mechanicFactory(), mechanicSection("smelting", "play_sound", true));
-
-        assertTrue(mechanic.playSound());
-    }
 
     @Test
     void readsCookingBlacklistFromTheFactoryConfig() {

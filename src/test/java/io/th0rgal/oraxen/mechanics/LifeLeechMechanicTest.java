@@ -38,13 +38,6 @@ class LifeLeechMechanicTest extends MechanicTestSupport {
     private static final String ITEM_ID = "leech_sword";
 
     @Test
-    void readsAmount() {
-        LifeLeechMechanic mechanic = new LifeLeechMechanic(mechanicFactory(), mechanicSection("lifeleech", "amount", 6));
-
-        assertEquals(6, mechanic.getAmount());
-    }
-
-    @Test
     void addsLeechToTheHitAndHealsByTheHealthItTakes() {
         Player damager = damager(10, maxHealth(20));
         LivingEntity victim = victim(20);

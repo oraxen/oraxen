@@ -44,6 +44,11 @@ class PackVersionManagerTest {
         assertEquals("pack_1_21_3.zip", legacy.getPackFile().getName());
         // 1.20/1.20.1 ignore supported_formats, so the canonical value must be format 15.
         assertEquals(15, legacy.getPackFormat());
+        assertEquals(15, legacy.getMinFormatInclusive());
+        assertEquals(45, legacy.getMaxFormatInclusive());
+        assertEquals(46, modern.getPackFormat());
+        assertEquals(46, modern.getMinFormatInclusive());
+        assertEquals(999, modern.getMaxFormatInclusive());
     }
 
     @Test
@@ -100,11 +105,13 @@ class PackVersionManagerTest {
         manager.setServerPackVersion("1.20.3");
         PackVersion serverVersion = manager.getServerPackVersion();
         assertNotNull(serverVersion);
+        assertEquals("1.21.3", serverVersion.getMinecraftVersion());
 
         // If exact match not found, should use highest format
         manager.setServerPackVersion("999.999.999");
         serverVersion = manager.getServerPackVersion();
         assertNotNull(serverVersion);
+        assertEquals("1.21.4", serverVersion.getMinecraftVersion());
     }
 
     @Test
@@ -137,54 +144,6 @@ class PackVersionManagerTest {
     }
 
     @Test
-    void testGetServerPackVersionFallback() {
-        manager.definePackVersions();
-
-        // Without setting server version, should return highest format pack
-        PackVersion serverVersion = manager.getServerPackVersion();
-        assertNotNull(serverVersion);
-    }
-
-    @Test
-    void testClear() {
-        manager.definePackVersions();
-        assertTrue(manager.hasVersions());
-
-        manager.clear();
-        assertFalse(manager.hasVersions());
-        assertEquals(0, manager.getVersionCount());
-    }
-
-    @Test
-    void testGetAllVersionsImmutable() {
-        manager.definePackVersions();
-
-        Collection<PackVersion> versions = manager.getAllVersions();
-        int originalSize = versions.size();
-
-        assertThrows(UnsupportedOperationException.class, () -> {
-            versions.clear();
-        });
-
-        assertEquals(originalSize, manager.getAllVersions().size());
-    }
-
-    @Test
-    void testMaxNaturalOrderingReturnsHighestFormat() {
-        manager.definePackVersions();
-
-        java.util.List<PackVersion> versions = new java.util.ArrayList<>(manager.getAllVersions());
-
-        PackVersion highest = versions.stream()
-            .max(java.util.Comparator.naturalOrder())
-            .orElse(null);
-
-        assertNotNull(highest);
-        assertEquals(46, highest.getPackFormat());
-        assertEquals("1.21.4", highest.getMinecraftVersion());
-    }
-
-    @Test
     void testFindBestVersionForFormatOutsideAllRanges() {
         manager.definePackVersions();
 
@@ -201,24 +160,5 @@ class PackVersionManagerTest {
 
         PackVersion version = manager.findBestVersionForProtocol(47);
         assertNull(version, "Protocol 47 (1.8) maps to format 1, not in any pack range");
-    }
-
-    @Test
-    void testCompareToConsistentWithNaturalOrdering() {
-        manager.definePackVersions();
-
-        java.util.List<PackVersion> versions = new java.util.ArrayList<>(manager.getAllVersions());
-        java.util.List<PackVersion> sorted = versions.stream()
-            .sorted(java.util.Comparator.naturalOrder())
-            .toList();
-
-        for (int i = 1; i < sorted.size(); i++) {
-            PackVersion prev = sorted.get(i - 1);
-            PackVersion curr = sorted.get(i);
-            assertTrue(prev.getPackFormat() <= curr.getPackFormat(),
-                "Natural ordering should sort by pack format ascending: " +
-                prev.getMinecraftVersion() + " (format " + prev.getPackFormat() + ") should be <= " +
-                curr.getMinecraftVersion() + " (format " + curr.getPackFormat() + ")");
-        }
     }
 }

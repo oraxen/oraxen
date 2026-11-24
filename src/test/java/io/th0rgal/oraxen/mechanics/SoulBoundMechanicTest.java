@@ -22,13 +22,6 @@ import static org.mockito.Mockito.when;
 class SoulBoundMechanicTest extends MechanicTestSupport {
 
     @Test
-    void readsLoseChance() {
-        SoulBoundMechanic mechanic = new SoulBoundMechanic(mechanicFactory(), mechanicSection("soulbound", "lose_chance", 25));
-
-        assertEquals(25, mechanic.getLoseChance());
-    }
-
-    @Test
     void loseChanceIsAPercentage() {
         SoulBoundMechanicFactory factory = mock(SoulBoundMechanicFactory.class);
         SoulBoundMechanic mechanic = new SoulBoundMechanic(factory, mechanicSection("soulbound", "lose_chance", 30));
