@@ -98,6 +98,7 @@ public class FurnitureMechanic extends Mechanic {
     private final List<FurnitureHitbox> hitboxes;
     private final List<FurnitureGhastHitbox> ghasts;
     private final List<FurnitureShulkerHitbox> shulkers;
+    private final List<FurnitureBed> beds;
     private final boolean isRotatable;
     private final boolean small;
     private final ArmorStandProperties armorStandProperties;
@@ -231,6 +232,7 @@ public class FurnitureMechanic extends Mechanic {
         hitbox = hitboxes.isEmpty() ? null : hitboxes.get(0);
         ghasts = parseGhasts(section);
         shulkers = parseShulkers(section);
+        beds = parseBeds(section);
 
         seats = parseSeats(section);
         hasSeat = !seats.isEmpty();
@@ -376,6 +378,30 @@ public class FurnitureMechanic extends Mechanic {
             else Logs.logError("Invalid shulker hitbox '" + entry + "' for furniture '" + getItemID()
                     + "'. Expected '<x>,<y>,<z> <scale> [peek] [direction]' with a scale between 0.0625 and 3,"
                     + " a peek between 0 and 100 and a direction of UP, DOWN, NORTH, EAST, SOUTH or WEST.");
+        }
+        return List.copyOf(parsed);
+    }
+
+    private List<FurnitureBed> parseBeds(ConfigurationSection section) {
+        if (!section.contains("beds")) return List.of();
+        if (!VersionUtil.atOrAbove("1.21.2")) {
+            Logs.logWarning("Beds for furniture '" + getItemID() + "' require Minecraft 1.21.2 or newer.");
+            return List.of();
+        }
+
+        List<?> entries = section.getList("beds");
+        if (entries == null) {
+            Logs.logError("Expected a list of beds for furniture '" + getItemID() + "'.");
+            return List.of();
+        }
+
+        List<FurnitureBed> parsed = new ArrayList<>();
+        for (Object entry : entries) {
+            FurnitureBed bed = FurnitureBed.parse(entry);
+            if (bed != null) parsed.add(bed);
+            else Logs.logError("Invalid bed '" + entry + "' for furniture '" + getItemID()
+                    + "'. Expected '<x>,<y>,<z> [skip_night] [reset_phantoms] [night_only] [set_respawn]'"
+                    + " where each option is true or false.");
         }
         return List.copyOf(parsed);
     }
@@ -705,6 +731,14 @@ public class FurnitureMechanic extends Mechanic {
      */
     public static boolean isSolidHitbox(Entity entity) {
         return isGhastHitbox(entity) || isShulkerHitbox(entity);
+    }
+
+    public boolean hasBeds() {
+        return !beds.isEmpty();
+    }
+
+    List<FurnitureBed> getBeds() {
+        return beds;
     }
 
     public boolean hasSeat() {
@@ -1417,6 +1451,7 @@ public class FurnitureMechanic extends Mechanic {
         removeInitialLight(baseEntity);
         if (VersionUtil.atOrAbove("1.21.6")) FurnitureGhastEntities.remove(baseEntity);
         if (VersionUtil.atOrAbove("1.21.2")) FurnitureShulkerEntities.remove(baseEntity);
+        if (hasBeds()) FurnitureBeds.leave(baseEntity);
         if (hasSeat) {
             removeFurnitureSeats(baseEntity.getPersistentDataContainer());
             removeFurnitureSeat(baseEntity.getLocation());
@@ -1734,6 +1769,7 @@ public class FurnitureMechanic extends Mechanic {
         updateFurnitureHitboxes(baseEntity, newYaw);
         if (VersionUtil.atOrAbove("1.21.6")) FurnitureGhastEntities.rotate(baseEntity, newYaw);
         if (VersionUtil.atOrAbove("1.21.2")) FurnitureShulkerEntities.rotate(baseEntity, newYaw);
+        if (hasBeds()) FurnitureBeds.leave(baseEntity);
         updateFurnitureSeats(baseEntity, newYaw);
         if (hasFurnitureLights())
             createFurnitureLights(BlockHelpers.toCenterBlockLocation(baseEntity.getLocation()), newYaw);

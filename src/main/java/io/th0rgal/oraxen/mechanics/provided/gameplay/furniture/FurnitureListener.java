@@ -618,7 +618,10 @@ public class FurnitureListener implements Listener {
             }
         }
 
-        if (mechanic.hasSeat() && pdc != null && mechanic.isRotatable()) {
+        if (mechanic.hasBeds() && !(player.isSneaking() && mechanic.isRotatable()))
+            FurnitureBeds.lieDown(player, baseEntity, mechanic,
+                    block != null ? block.getLocation().toCenterLocation() : player.getLocation());
+        else if (mechanic.hasSeat() && pdc != null && mechanic.isRotatable()) {
             if (!player.isSneaking())
                 FurnitureMechanic.sitOnSeat(pdc, player);
             else

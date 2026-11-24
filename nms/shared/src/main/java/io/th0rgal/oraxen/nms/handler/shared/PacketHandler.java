@@ -10,6 +10,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.configs.Settings;
 import io.th0rgal.oraxen.utils.PacketHelpers;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.numbers.BlankFormat;
 import net.minecraft.network.protocol.Packet;
@@ -32,6 +33,7 @@ import net.minecraft.world.scores.criteria.ObjectiveCriteria;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
@@ -49,6 +51,7 @@ final class PacketHandler {
 
     private final NamespacedKey key;
     private final TridentPacketHandler tridents = new TridentPacketHandler();
+    private final FurnitureBedPackets furnitureBeds = new FurnitureBedPackets();
     private final Map<Integer, net.minecraft.world.entity.Entity> furnitureHitboxes = new ConcurrentHashMap<>();
     // Objectives only need a scoreboard to be constructed; the rewritten packet never reads it.
     private final Scoreboard objectiveScoreboard = new Scoreboard();
@@ -82,13 +85,32 @@ final class PacketHandler {
                 } catch (ReflectiveOperationException | LinkageError exception) {
                     Logs.logWarning("Failed to render custom trident.\n" + exception.getMessage());
                 }
-                ctx.write(transform(msg, recipeBook), promise);
+                ctx.write(transform(msg, recipeBook, furnitureBeds.isEmpty() ? null : receiver(ctx)), promise);
+            }
+
+            @Override
+            public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+                if (!furnitureBeds.isEmpty()) furnitureBeds.onIncoming(msg, receiver(ctx));
+                super.channelRead(ctx, msg);
             }
         });
     }
 
+    private static ServerPlayer receiver(ChannelHandlerContext ctx) {
+        return ctx.pipeline().get("packet_handler") instanceof Connection connection ? connection.getPlayer() : null;
+    }
+
+    boolean showFurnitureBed(org.bukkit.entity.Player player, org.bukkit.Location head, float feetYaw) {
+        return furnitureBeds.show(player, head, feetYaw);
+    }
+
+    void hideFurnitureBed(org.bukkit.entity.Player player) {
+        furnitureBeds.hide(player);
+    }
+
     void shutdown() {
         tridents.shutdown();
+        furnitureBeds.clear();
         furnitureHitboxes.clear();
         ChannelInitializeListenerHolder.removeListener(key);
         for (var player : Bukkit.getOnlinePlayers()) {
@@ -123,9 +145,13 @@ final class PacketHandler {
                 (id, tracked) -> tracked.getUUID().equals(entity.getUniqueId()) ? null : tracked);
     }
 
-    private Object transform(Object packet, RecipeBookDisplays recipeBook) {
+    private Object transform(Object packet, RecipeBookDisplays recipeBook, ServerPlayer receiver) {
         try {
-            if (packet instanceof ClientboundBundlePacket bundle) return transformBundle(bundle, recipeBook);
+            if (packet instanceof ClientboundBundlePacket bundle) return transformBundle(bundle, recipeBook, receiver);
+            if (receiver != null) {
+                Object bed = furnitureBeds.transform(packet, receiver);
+                if (bed != packet) return bed;
+            }
             if (packet instanceof ClientboundAddEntityPacket spawn) return transformFurnitureHitboxSpawn(spawn);
             if (packet instanceof ClientboundSetPassengersPacket passengers) return transformFurnitureHitboxPassengers(passengers);
             if (packet instanceof ClientboundRecipeBookAddPacket recipes) return recipeBook.add(recipes);
@@ -144,11 +170,11 @@ final class PacketHandler {
     }
 
     @SuppressWarnings("unchecked")
-    private ClientboundBundlePacket transformBundle(ClientboundBundlePacket bundle, RecipeBookDisplays recipeBook) {
+    private ClientboundBundlePacket transformBundle(ClientboundBundlePacket bundle, RecipeBookDisplays recipeBook, ServerPlayer receiver) {
         List<Packet<? super ClientGamePacketListener>> packets = new ArrayList<>();
         boolean changed = false;
         for (Packet<? super ClientGamePacketListener> subPacket : bundle.subPackets()) {
-            Object transformed = transform(subPacket, recipeBook);
+            Object transformed = transform(subPacket, recipeBook, receiver);
             if (transformed != subPacket) changed = true;
             if (transformed instanceof ClientboundBundlePacket expanded) {
                 expanded.subPackets().forEach(packets::add);

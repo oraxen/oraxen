@@ -32,6 +32,13 @@ public interface NMSHandler {
     default void untrackFurnitureHitbox(org.bukkit.entity.Entity entity) {
     }
 
+    default boolean showFurnitureBed(Player player, Location head, float feetYaw) {
+        return false;
+    }
+
+    default void hideFurnitureBed(Player player) {
+    }
+
     default void formatInventoryTitles(boolean enabled) {
     }
 

@@ -102,6 +102,16 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         packetHandler.untrackFurnitureHitbox(entity);
     }
 
+    @Override
+    public boolean showFurnitureBed(org.bukkit.entity.Player player, org.bukkit.Location head, float feetYaw) {
+        return packetHandler.showFurnitureBed(player, head, feetYaw);
+    }
+
+    @Override
+    public void hideFurnitureBed(org.bukkit.entity.Player player) {
+        packetHandler.hideFurnitureBed(player);
+    }
+
     private final PacketHandler packetHandler;
     private final NamespacedKey mineableTagKey;
     private final NamespacedKey blockPredictionKey;
