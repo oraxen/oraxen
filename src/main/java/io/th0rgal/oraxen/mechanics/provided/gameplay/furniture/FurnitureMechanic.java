@@ -1450,8 +1450,10 @@ public class FurnitureMechanic extends Mechanic {
     private void removeSubEntitiesOfFurniture(Entity baseEntity) {
         removeInitialLight(baseEntity);
         if (VersionUtil.atOrAbove("1.21.6")) FurnitureGhastEntities.remove(baseEntity);
-        if (VersionUtil.atOrAbove("1.21.2")) FurnitureShulkerEntities.remove(baseEntity);
-        if (hasBeds()) FurnitureBeds.leave(baseEntity);
+        if (VersionUtil.atOrAbove("1.21.2")) {
+            FurnitureShulkerEntities.remove(baseEntity);
+            FurnitureBeds.leave(baseEntity);
+        }
         if (hasSeat) {
             removeFurnitureSeats(baseEntity.getPersistentDataContainer());
             removeFurnitureSeat(baseEntity.getLocation());
@@ -1768,8 +1770,10 @@ public class FurnitureMechanic extends Mechanic {
         else baseEntity.setRotation(newYaw, baseEntity.getLocation().getPitch());
         updateFurnitureHitboxes(baseEntity, newYaw);
         if (VersionUtil.atOrAbove("1.21.6")) FurnitureGhastEntities.rotate(baseEntity, newYaw);
-        if (VersionUtil.atOrAbove("1.21.2")) FurnitureShulkerEntities.rotate(baseEntity, newYaw);
-        if (hasBeds()) FurnitureBeds.leave(baseEntity);
+        if (VersionUtil.atOrAbove("1.21.2")) {
+            FurnitureShulkerEntities.rotate(baseEntity, newYaw);
+            FurnitureBeds.leave(baseEntity);
+        }
         updateFurnitureSeats(baseEntity, newYaw);
         if (hasFurnitureLights())
             createFurnitureLights(BlockHelpers.toCenterBlockLocation(baseEntity.getLocation()), newYaw);

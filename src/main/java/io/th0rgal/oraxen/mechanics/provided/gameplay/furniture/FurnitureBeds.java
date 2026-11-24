@@ -42,6 +42,7 @@ final class FurnitureBeds implements Listener {
 
     static final int DEEP_SLEEP_TICKS = 100;
     private static final long DAY_LENGTH = 24000L;
+    private static final double MAX_STAND_UP_DISTANCE_SQUARED = 4.0;
     private static final NamespacedKey CARRIER_KEY = new NamespacedKey(OraxenPlugin.get(), "bed_carrier");
     private static final Map<UUID, Sleeper> sleepers = new ConcurrentHashMap<>();
     private static final AtomicBoolean checkingNightSkip = new AtomicBoolean();
@@ -55,18 +56,18 @@ final class FurnitureBeds implements Listener {
         private final FurnitureBed bed;
         private final Entity carrier;
         private final World world;
-        private final Location standUp;
+        private final Location head;
         private final boolean wasSleepingIgnored;
         private volatile int ticks;
         private volatile SchedulerUtil.ScheduledTask task;
 
-        private Sleeper(UUID baseId, int index, FurnitureBed bed, Entity carrier, Location standUp, boolean wasSleepingIgnored) {
+        private Sleeper(UUID baseId, int index, FurnitureBed bed, Entity carrier, Location head, boolean wasSleepingIgnored) {
             this.baseId = baseId;
             this.index = index;
             this.bed = bed;
             this.carrier = carrier;
-            this.world = standUp.getWorld();
-            this.standUp = standUp;
+            this.world = head.getWorld();
+            this.head = head;
             this.wasSleepingIgnored = wasSleepingIgnored;
         }
     }
@@ -109,7 +110,7 @@ final class FurnitureBeds implements Listener {
             return;
         }
 
-        Sleeper sleeper = new Sleeper(baseEntity.getUniqueId(), index, bed, carrier, standUpLocation(head),
+        Sleeper sleeper = new Sleeper(baseEntity.getUniqueId(), index, bed, carrier, head.clone(),
                 player.isSleepingIgnored());
         sleepers.put(player.getUniqueId(), sleeper);
         if (bed.skipNight()) player.setSleepingIgnored(true);
@@ -119,7 +120,7 @@ final class FurnitureBeds implements Listener {
             return;
         }
         if (bed.setRespawn()) {
-            player.setRespawnLocation(sleeper.standUp, true);
+            player.setRespawnLocation(standUpLocation(head), true);
             player.sendMessage(Component.translatable("block.minecraft.set_spawn"));
         }
         sleeper.task = SchedulerUtil.runForEntityTimer(player, 20L, 20L, () -> tick(player),
@@ -146,10 +147,10 @@ final class FurnitureBeds implements Listener {
     }
 
     static void leave(Player player) {
-        leave(player, false);
+        leave(player, false, false);
     }
 
-    private static void leave(Player player, boolean dismounting) {
+    private static void leave(Player player, boolean dismounting, boolean immediate) {
         Sleeper sleeper = sleepers.remove(player.getUniqueId());
         if (sleeper == null) return;
         if (sleeper.task != null) sleeper.task.cancel();
@@ -159,15 +160,23 @@ final class FurnitureBeds implements Listener {
 
         Entity carrier = sleeper.carrier;
         if (!dismounting && carrier.getPassengers().contains(player)) player.leaveVehicle();
-        SchedulerUtil.runOnOwningThread(carrier, carrier::remove);
-        SchedulerUtil.runForEntityLater(player, 1L, () -> {
-            if (!player.isOnline() || player.isDead() || player.isInsideVehicle()
-                    || !player.getWorld().equals(sleeper.world)) return;
-            Location target = sleeper.standUp.clone();
-            target.setYaw(player.getLocation().getYaw());
-            target.setPitch(player.getLocation().getPitch());
-            player.teleportAsync(target);
-        });
+        if (immediate) {
+            if (Bukkit.isOwnedByCurrentRegion(carrier)) carrier.remove();
+            standUp(player, sleeper);
+        } else {
+            SchedulerUtil.runOnOwningThread(carrier, carrier::remove);
+            SchedulerUtil.runForEntityLater(player, 1L, () -> standUp(player, sleeper));
+        }
+    }
+
+    private static void standUp(Player player, Sleeper sleeper) {
+        if (!player.isOnline() || player.isDead() || player.isInsideVehicle()
+                || !player.getWorld().equals(sleeper.world)
+                || player.getLocation().distanceSquared(sleeper.head) > MAX_STAND_UP_DISTANCE_SQUARED) return;
+        Location target = standUpLocation(sleeper.head);
+        target.setYaw(player.getLocation().getYaw());
+        target.setPitch(player.getLocation().getPitch());
+        player.teleportAsync(target);
     }
 
     static void leave(Entity baseEntity) {
@@ -182,6 +191,17 @@ final class FurnitureBeds implements Listener {
             Player player = Bukkit.getPlayer(playerId);
             if (player != null && Bukkit.isOwnedByCurrentRegion(player)) leave(player);
             else leaveLater(playerId, sleeper);
+        });
+    }
+
+    static void shutdown() {
+        sleepers.forEach((playerId, sleeper) -> {
+            Player player = Bukkit.getPlayer(playerId);
+            if (player != null && Bukkit.isOwnedByCurrentRegion(player)) leave(player, false, true);
+            else {
+                sleepers.remove(playerId, sleeper);
+                if (Bukkit.isOwnedByCurrentRegion(sleeper.carrier)) sleeper.carrier.remove();
+            }
         });
     }
 
@@ -295,7 +315,7 @@ final class FurnitureBeds implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onDismount(EntityDismountEvent event) {
         if (event.getEntity() instanceof Player player
-                && event.getDismounted().getPersistentDataContainer().has(CARRIER_KEY)) leave(player, true);
+                && event.getDismounted().getPersistentDataContainer().has(CARRIER_KEY)) leave(player, true, false);
     }
 
     @EventHandler

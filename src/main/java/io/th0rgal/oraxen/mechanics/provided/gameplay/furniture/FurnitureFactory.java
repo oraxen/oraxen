@@ -190,7 +190,7 @@ public class FurnitureFactory extends MechanicFactory {
     public static void unregisterEvolution() {
         if (evolutionTask != null)
             evolutionTask.cancel();
-        FurnitureBeds.leaveAll();
+        FurnitureBeds.shutdown();
         FurniturePacketDispatcher.shutdown();
         FurnitureTextPacketBridge.unregister();
     }
