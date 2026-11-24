@@ -6,6 +6,7 @@ import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.common.ClientboundUpdateTagsPacket;
+import net.minecraft.network.protocol.game.ClientboundEntityPositionSyncPacket;
 import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
@@ -14,6 +15,7 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.tags.TagNetworkSerialization;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.PositionMoveRotation;
 import net.minecraft.world.item.JukeboxSong;
 import net.minecraft.world.item.consume_effects.TeleportRandomlyConsumeEffect;
 import net.minecraft.world.item.crafting.display.SlotDisplay;
@@ -117,6 +119,10 @@ final class NmsAccessors {
 
     static int useItemOnSequence(ServerboundUseItemOnPacket packet) {
         return packet.getSequence();
+    }
+
+    static ClientboundEntityPositionSyncPacket positionSync(int id, PositionMoveRotation position, boolean onGround) {
+        return new ClientboundEntityPositionSyncPacket(id, position, onGround);
     }
 
     /**

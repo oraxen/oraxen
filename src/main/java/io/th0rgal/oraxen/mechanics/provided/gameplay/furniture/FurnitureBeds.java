@@ -262,7 +262,7 @@ final class FurnitureBeds implements Listener {
         if (isEnabled(world, advanceTime)) {
             long time = world.getFullTime();
             long morning = time + DAY_LENGTH - Math.floorMod(time + DAY_LENGTH, DAY_LENGTH);
-            TimeSkipEvent event = new TimeSkipEvent(world, TimeSkipEvent.SkipReason.NIGHT_SKIP, morning - time);
+            TimeSkipEvent event = FurnitureTimeSkip.nightSkip(world, morning - time);
             if (event.callEvent()) world.setFullTime(world.getFullTime() + event.getSkipAmount());
         } else wake(world);
 
@@ -305,6 +305,6 @@ final class FurnitureBeds implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onNightSkip(TimeSkipEvent event) {
-        if (event.getSkipReason() == TimeSkipEvent.SkipReason.NIGHT_SKIP) wake(event.getWorld());
+        if (FurnitureTimeSkip.isNightSkip(event)) wake(event.getWorld());
     }
 }

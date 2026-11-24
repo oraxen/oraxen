@@ -28,13 +28,14 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.PositionMoveRotation;
 import net.minecraft.world.entity.Relative;
-import net.minecraft.world.level.block.BedBlock;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.BedPart;
 import net.minecraft.world.phys.Vec3;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.BlockFace;
+import org.bukkit.craftbukkit.block.data.CraftBlockData;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
@@ -80,9 +81,10 @@ final class FurnitureBedPackets {
         int top = world.getMaxHeight() - 1;
         int bedY = head.getBlockY() - world.getMinHeight() > top - head.getBlockY() ? world.getMinHeight() : top;
         BlockPos bedPos = new BlockPos(head.getBlockX(), bedY, head.getBlockZ());
-        BlockState bedState = Blocks.RED_BED.defaultBlockState()
-                .setValue(BedBlock.FACING, Direction.fromYRot(feetYaw).getOpposite())
-                .setValue(BedBlock.PART, BedPart.HEAD);
+        org.bukkit.block.data.type.Bed bedData = (org.bukkit.block.data.type.Bed) Material.RED_BED.createBlockData();
+        bedData.setFacing(BlockFace.valueOf(Direction.fromYRot(feetYaw).getOpposite().name()));
+        bedData.setPart(org.bukkit.block.data.type.Bed.Part.HEAD);
+        BlockState bedState = ((CraftBlockData) bedData).getState();
         Vec3 headPosition = new Vec3(head.getX(), head.getY(), head.getZ());
         BlockPos headPos = BlockPos.containing(headPosition);
         Bed bed = new Bed(sleeper, headPosition, Mth.wrapDegrees(-90f - feetYaw), bedPos, bedState, headPos);
@@ -151,7 +153,7 @@ final class FurnitureBedPackets {
         }
         if (packet instanceof ClientboundEntityPositionSyncPacket sync) {
             Bed bed = viewedBed(sync.id(), receiver);
-            if (bed != null) return new ClientboundEntityPositionSyncPacket(sync.id(), position(bed), sync.onGround());
+            if (bed != null) return NmsAccessors.positionSync(sync.id(), position(bed), sync.onGround());
         }
         if (packet instanceof ClientboundTeleportEntityPacket teleport) {
             Bed bed = viewedBed(teleport.id(), receiver);

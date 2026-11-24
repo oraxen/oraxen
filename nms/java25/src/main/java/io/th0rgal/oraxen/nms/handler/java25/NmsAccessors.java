@@ -8,6 +8,7 @@ import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.common.ClientboundUpdateTagsPacket;
+import net.minecraft.network.protocol.game.ClientboundEntityPositionSyncPacket;
 import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
@@ -17,11 +18,13 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.tags.TagNetworkSerialization;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.PositionMoveRotation;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.JukeboxSong;
 import net.minecraft.world.item.consume_effects.TeleportRandomlyConsumeEffect;
 import net.minecraft.world.item.crafting.display.SlotDisplay;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import org.bukkit.NamespacedKey;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.util.CraftNamespacedKey;
@@ -81,6 +84,44 @@ final class NmsAccessors {
             return (int) PacketAccessors263.invoke(PacketAccessors263.USE_ITEM_ON_SEQUENCE, packet,
                     "use-item-on sequence");
         return packet.getSequence();
+    }
+
+    static ClientboundEntityPositionSyncPacket positionSync(int id, PositionMoveRotation position, boolean onGround) {
+        if (is263OrAbove) return PositionSync263.create(id, position, onGround);
+        return new ClientboundEntityPositionSyncPacket(id, position, onGround);
+    }
+
+    // 26.3 sends a position path and separate angles instead of PositionMoveRotation.
+    private static final class PositionSync263 {
+        private static final MethodHandle pathOf;
+        private static final MethodHandle constructor;
+
+        static {
+            try {
+                Class<?> path = Class.forName("net.minecraft.world.entity.PositionPath");
+                MethodHandles.Lookup lookup = MethodHandles.publicLookup();
+                pathOf = lookup.findStatic(path, "of", MethodType.methodType(path, Vec3.class))
+                        .asType(MethodType.methodType(Object.class, Vec3.class));
+                constructor = lookup.findConstructor(ClientboundEntityPositionSyncPacket.class,
+                                MethodType.methodType(void.class, int.class, path, float.class, float.class, boolean.class))
+                        .asType(MethodType.methodType(ClientboundEntityPositionSyncPacket.class,
+                                int.class, Object.class, float.class, float.class, boolean.class));
+            } catch (ReflectiveOperationException e) {
+                throw new ExceptionInInitializerError(e);
+            }
+        }
+
+        private static ClientboundEntityPositionSyncPacket create(int id, PositionMoveRotation position, boolean onGround) {
+            try {
+                Object path = pathOf.invokeExact(position.position());
+                return (ClientboundEntityPositionSyncPacket) constructor.invokeExact(
+                        id, path, position.yRot(), position.xRot(), onGround);
+            } catch (RuntimeException | Error e) {
+                throw e;
+            } catch (Throwable e) {
+                throw new IllegalStateException("Failed to create 26.3 entity position sync packet", e);
+            }
+        }
     }
 
     /**
