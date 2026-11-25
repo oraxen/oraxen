@@ -25,7 +25,8 @@ public class Timer {
     }
 
     public boolean isFinished() {
-        return System.currentTimeMillis() >= lastUsage + delay;
+        long last = lastUsage;
+        return last == 0 || System.currentTimeMillis() - last >= delay;
     }
 
     public long getRemainingTime() {

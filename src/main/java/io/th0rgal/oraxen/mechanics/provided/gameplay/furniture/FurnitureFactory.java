@@ -243,7 +243,7 @@ public class FurnitureFactory extends MechanicFactory {
                 MechanicConfigProperty.list("beds", "List of spots where players lie down, formatted '<x>,<y>,<z> [skip_night] [reset_phantoms] [night_only] [set_respawn]'. The offset is where the head rests. The options default to true, true, true and false. Requires Minecraft 1.21.2 or newer"),
                 MechanicConfigProperty.list("seats", "List of seat offsets relative to the furniture center formatted '<x>,<y>,<z>' or '<x>,<y>,<z> <yaw>'"),
                 MechanicConfigProperty.list("barriers", "List of barrier block offsets relative to furniture formatted '<x>,<y>,<z>' with integer coordinates"),
-                MechanicConfigProperty.list("events", "Actions for furniture clicks or successful player breaks or placements. Use trigger: click with type: LEFT, RIGHT, or BOTH, trigger: break, or trigger: place. The trigger defaults to click; the legacy click filter remains supported."),
+                MechanicConfigProperty.list("events", "Actions for furniture clicks or successful player breaks or placements. Use trigger: click with type: LEFT, RIGHT, or BOTH, trigger: break, or trigger: place. The trigger defaults to click; the legacy click filter remains supported. Actions accept an optional cooldown such as 80ms, 2s, 3m, 1h, or 2d."),
                 MechanicConfigProperty.object("properties", "Furniture entity properties; unsupported properties are ignored", Map.of(
                         "display_transform", MechanicConfigProperty.enumType("display_transform", "Display transform mode",
                                 List.of("NONE", "THIRDPERSON_LEFTHAND", "THIRDPERSON_RIGHTHAND", "FIRSTPERSON_LEFTHAND",

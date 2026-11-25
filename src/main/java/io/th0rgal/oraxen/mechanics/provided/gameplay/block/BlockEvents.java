@@ -4,9 +4,11 @@ import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.compatibilities.provided.placeholderapi.PapiAliases;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.DurationUtils;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.actions.ActionConditions;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import io.th0rgal.oraxen.utils.timers.TimersFactory;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -16,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.OptionalLong;
 
 public class BlockEvents {
 
@@ -115,18 +118,29 @@ public class BlockEvents {
             Object message = actionMap.get("message");
             Object legacy = actionMap.get("legacy");
             List<String> conditions = parseConditions(actionMap, sourceID);
+            TimersFactory cooldown = null;
+            if (actionMap.containsKey("cooldown")) {
+                Object cooldownValue = actionMap.get("cooldown");
+                OptionalLong duration = DurationUtils.parseMillis(cooldownValue == null ? null : cooldownValue.toString());
+                if (duration.isEmpty()) {
+                    Logs.logWarning("Invalid " + eventPath + " cooldown '" + cooldownValue + "' in " + sourceID + "; blocking action.");
+                    conditions = List.of("false");
+                } else if (duration.getAsLong() > 0) {
+                    cooldown = new TimersFactory(duration.getAsLong());
+                }
+            }
             if (command != null) {
                 String commandText = command.toString().trim();
                 if (commandText.isEmpty()) {
                     Logs.logWarning("Empty command action in " + eventPath + " of " + sourceID + ".");
                     continue;
                 }
-                parsedActions.add(new ConditionalAction(new CommandAction(commandText, CommandExecutor.from(actionMap.get("executor"), sourceID, eventPath)), conditions));
+                parsedActions.add(new ConditionalAction(new CommandAction(commandText, CommandExecutor.from(actionMap.get("executor"), sourceID, eventPath)), conditions, cooldown));
                 continue;
             }
 
             if (message != null) {
-                parsedActions.add(new ConditionalAction(new MessageAction(message.toString()), conditions));
+                parsedActions.add(new ConditionalAction(new MessageAction(message.toString()), conditions, cooldown));
                 continue;
             }
 
@@ -134,7 +148,7 @@ public class BlockEvents {
                 // Migrated clickActions run as one ordered sequence so [DELAY] and command order behave as before.
                 var actions = OraxenPlugin.get().getClickActionManager().parse(Player.class, legacyActions(legacy));
                 if (!actions.isEmpty())
-                    parsedActions.add(new ConditionalAction(player -> OraxenPlugin.get().getClickActionManager().runOrdered(player, actions), conditions));
+                    parsedActions.add(new ConditionalAction(player -> OraxenPlugin.get().getClickActionManager().runOrdered(player, actions), conditions, cooldown));
                 continue;
             }
 
@@ -187,9 +201,15 @@ public class BlockEvents {
         }
     }
 
-    private record ConditionalAction(BlockEventAction action, List<String> conditions) {
+    private record ConditionalAction(BlockEventAction action, List<String> conditions, TimersFactory cooldown) {
         private void run(Player player) {
-            if (ActionConditions.matches(player, conditions)) action.run(player);
+            if (!ActionConditions.matches(player, conditions)) return;
+            if (cooldown != null) {
+                var timer = cooldown.getTimer(player);
+                if (!timer.isFinished()) return;
+                timer.reset();
+            }
+            action.run(player);
         }
     }
 

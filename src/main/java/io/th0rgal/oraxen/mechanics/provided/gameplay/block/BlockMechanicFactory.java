@@ -168,7 +168,7 @@ public class BlockMechanicFactory extends MechanicFactory {
                 )),
                 MechanicConfigProperty.integer("custom-variation", "Backing-state variation ID", 1),
                 MechanicConfigProperty.list("breaking", "Ordered block breaking rules"),
-                MechanicConfigProperty.list("events", "Actions for placed block clicks or successful player breaks or placements. Use trigger: click with type: LEFT, RIGHT, or BOTH, trigger: break, or trigger: place. The trigger defaults to click; the legacy click filter remains supported."),
+                MechanicConfigProperty.list("events", "Actions for placed block clicks or successful player breaks or placements. Use trigger: click with type: LEFT, RIGHT, or BOTH, trigger: break, or trigger: place. The trigger defaults to click; the legacy click filter remains supported. Actions accept an optional cooldown such as 80ms, 2s, 3m, 1h, or 2d."),
                 MechanicConfigProperty.integer("light", "Light level emitted by the placed block (0-15, 0 disables)", 0, 0, 15),
                 MechanicConfigProperty.object("placeable", "Placement face and block restrictions", Map.of(
                         "roof", MechanicConfigProperty.bool("roof", "Allow placement on ceilings", true),

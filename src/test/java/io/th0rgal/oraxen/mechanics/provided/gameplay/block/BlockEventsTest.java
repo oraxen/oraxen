@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.block;
 
 import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Server;
@@ -12,6 +13,7 @@ import org.mockito.MockedStatic;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -20,6 +22,65 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 class BlockEventsTest {
+
+    @Test
+    void cooldownAppliesOnlyToItsAction() {
+        Player player = mock(Player.class);
+        when(player.getName()).thenReturn("testPlayer");
+        when(player.getUniqueId()).thenReturn(UUID.randomUUID());
+        YamlConfiguration config = new YamlConfiguration();
+        config.set("events", List.of(Map.of("actions", List.of(
+                Map.of("command", "say limited", "cooldown", "1h"),
+                Map.of("command", "say unlimited")
+        ))));
+        BlockEvents events = new BlockEvents(config, "test");
+
+        try (MockedStatic<CompatibilitiesManager> compatibilities = mockStatic(CompatibilitiesManager.class)) {
+            events.run(player, Action.RIGHT_CLICK_BLOCK);
+            events.run(player, Action.RIGHT_CLICK_BLOCK);
+
+            verify(player).performCommand("say limited");
+            verify(player, times(2)).performCommand("say unlimited");
+        }
+    }
+
+    @Test
+    void failingConditionDoesNotConsumeCooldown() {
+        Player player = mock(Player.class);
+        when(player.getName()).thenReturn("testPlayer");
+        when(player.getUniqueId()).thenReturn(UUID.randomUUID());
+        when(player.hasPermission("x")).thenReturn(false, true);
+        YamlConfiguration config = new YamlConfiguration();
+        config.set("events", List.of(Map.of("actions", List.of(
+                Map.of("command", "say allowed", "condition", "player.hasPermission('x')", "cooldown", "1h")
+        ))));
+        BlockEvents events = new BlockEvents(config, "test");
+
+        try (MockedStatic<CompatibilitiesManager> compatibilities = mockStatic(CompatibilitiesManager.class)) {
+            events.run(player, Action.RIGHT_CLICK_BLOCK);
+            verify(player, never()).performCommand("say allowed");
+            events.run(player, Action.RIGHT_CLICK_BLOCK);
+            verify(player).performCommand("say allowed");
+        }
+    }
+
+    @Test
+    void invalidCooldownBlocksAction() {
+        Player player = mock(Player.class);
+        YamlConfiguration config = new YamlConfiguration();
+        config.set("events", List.of(Map.of("actions", List.of(
+                Map.of("command", "say blocked", "cooldown", "soon")
+        ))));
+
+        try (MockedStatic<CompatibilitiesManager> compatibilities = mockStatic(CompatibilitiesManager.class);
+             MockedStatic<Logs> logs = mockStatic(Logs.class)) {
+            BlockEvents events = new BlockEvents(config, "test", "furniture.events");
+            events.run(player, Action.RIGHT_CLICK_BLOCK);
+
+            verify(player, never()).performCommand("say blocked");
+            logs.verify(() -> Logs.logWarning("Invalid furniture.events cooldown 'soon' in test; blocking action."));
+        }
+    }
 
     @Test
     void conditionsFilterActionsIndividuallyAndAllowNegation() {
