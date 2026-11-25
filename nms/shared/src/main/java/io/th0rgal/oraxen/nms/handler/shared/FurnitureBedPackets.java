@@ -8,7 +8,6 @@ import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket;
 import net.minecraft.network.protocol.game.ClientboundBundlePacket;
-import net.minecraft.network.protocol.game.ClientboundEntityPositionSyncPacket;
 import net.minecraft.network.protocol.game.ClientboundMoveEntityPacket;
 import net.minecraft.network.protocol.game.ClientboundPlayerPositionPacket;
 import net.minecraft.network.protocol.game.ClientboundRotateHeadPacket;
@@ -145,10 +144,6 @@ final class FurnitureBedPackets {
         if (packet instanceof ClientboundRotateHeadPacket rotateHead && rotateHeadEntityId != null) {
             Bed bed = viewedBed(rotateHeadEntityId.getInt(rotateHead), receiver);
             if (bed != null) return new ClientboundRotateHeadPacket(bed.sleeper(), Mth.packDegrees(bed.bodyYaw()));
-        }
-        if (packet instanceof ClientboundEntityPositionSyncPacket sync) {
-            Bed bed = viewedBed(sync.id(), receiver);
-            if (bed != null) return NmsAccessors.positionSync(sync.id(), position(bed), sync.onGround());
         }
         if (packet instanceof ClientboundTeleportEntityPacket teleport) {
             Bed bed = viewedBed(teleport.id(), receiver);
