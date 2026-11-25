@@ -81,6 +81,7 @@ public class FurnitureFactory extends MechanicFactory {
     @Override
     public void onUnregister() {
         BreakerSystem.unregisterModifier(FurnitureListener.class);
+        if (OraxenPlugin.get().isEnabled() && VersionUtil.atOrAbove("1.21.2")) FurnitureBeds.leaveAll();
     }
 
     public static boolean setDefaultType(ConfigurationSection mechanicSection) {

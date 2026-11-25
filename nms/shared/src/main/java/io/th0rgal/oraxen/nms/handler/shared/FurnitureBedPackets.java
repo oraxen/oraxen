@@ -75,6 +75,10 @@ final class FurnitureBedPackets {
         beds.clear();
     }
 
+    void forget(int playerEntityId) {
+        beds.remove(playerEntityId);
+    }
+
     boolean show(Player player, Location head, float feetYaw) {
         ServerPlayer sleeper = ((CraftPlayer) player).getHandle();
         World world = player.getWorld();

@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.EntityUtils;
@@ -47,9 +48,12 @@ final class FurnitureBeds implements Listener {
     private static final NamespacedKey CARRIER_KEY = new NamespacedKey(OraxenPlugin.get(), "bed_carrier");
     private static final Map<UUID, Sleeper> sleepers = new ConcurrentHashMap<>();
     private static final AtomicBoolean checkingNightSkip = new AtomicBoolean();
-    private static final GameRule<Integer> sleepingPercentage = gameRule("players_sleeping_percentage", "playersSleepingPercentage");
-    private static final GameRule<Boolean> advanceTime = gameRule("advance_time", "doDaylightCycle");
-    private static final GameRule<Boolean> advanceWeather = gameRule("advance_weather", "doWeatherCycle");
+
+    private static final class NightSkipRules {
+        private static final GameRule<Integer> sleepingPercentage = gameRule("players_sleeping_percentage", "playersSleepingPercentage");
+        private static final GameRule<Boolean> advanceTime = gameRule("advance_time", "doDaylightCycle");
+        private static final GameRule<Boolean> advanceWeather = gameRule("advance_weather", "doWeatherCycle");
+    }
 
     record SleepState(boolean spectator, boolean sleeping, boolean deepSleeping, boolean sleepingIgnored) {
         static boolean enoughSleeping(List<SleepState> states, int percentage) {
@@ -73,17 +77,20 @@ final class FurnitureBeds implements Listener {
         private final int index;
         private final FurnitureBed bed;
         private final Entity carrier;
+        private final int playerEntityId;
         private final World world;
         private final Location head;
         private final boolean wasSleepingIgnored;
         private volatile int ticks;
         private volatile SchedulerUtil.ScheduledTask task;
 
-        private Sleeper(UUID baseId, int index, FurnitureBed bed, Entity carrier, Location head, boolean wasSleepingIgnored) {
+        private Sleeper(UUID baseId, int index, FurnitureBed bed, Entity carrier, int playerEntityId, Location head,
+                        boolean wasSleepingIgnored) {
             this.baseId = baseId;
             this.index = index;
             this.bed = bed;
             this.carrier = carrier;
+            this.playerEntityId = playerEntityId;
             this.world = head.getWorld();
             this.head = head;
             this.wasSleepingIgnored = wasSleepingIgnored;
@@ -128,9 +135,10 @@ final class FurnitureBeds implements Listener {
             return;
         }
 
-        Sleeper sleeper = new Sleeper(baseEntity.getUniqueId(), index, bed, carrier, head.clone(),
+        UUID playerId = player.getUniqueId();
+        Sleeper sleeper = new Sleeper(baseEntity.getUniqueId(), index, bed, carrier, player.getEntityId(), head.clone(),
                 player.isSleepingIgnored());
-        sleepers.put(player.getUniqueId(), sleeper);
+        sleepers.put(playerId, sleeper);
         if (bed.skipNight()) player.setSleepingIgnored(true);
         if (bed.resetPhantoms()) player.setStatistic(Statistic.TIME_SINCE_REST, 0);
         if (!NMSHandlers.getHandler().showFurnitureBed(player, head, yaw)) {
@@ -142,7 +150,9 @@ final class FurnitureBeds implements Listener {
             player.sendMessage(Component.translatable("block.minecraft.set_spawn"));
         }
         sleeper.task = SchedulerUtil.runForEntityTimer(player, 20L, 20L, () -> tick(player),
-                () -> sleepers.remove(player.getUniqueId(), sleeper));
+                () -> discard(playerId, sleeper));
+        // A Folia region may finish mounting after the old factory has been unregistered.
+        if (MechanicsManager.getMechanicFactory("furniture") != mechanic.getFactory()) leave(player);
     }
 
     private static boolean isOccupied(UUID baseId, int index) {
@@ -169,15 +179,18 @@ final class FurnitureBeds implements Listener {
     }
 
     private static void leave(Player player, boolean dismounting, boolean immediate) {
-        Sleeper sleeper = sleepers.remove(player.getUniqueId());
-        if (sleeper == null) return;
+        leave(player, sleepers.get(player.getUniqueId()), dismounting, immediate);
+    }
+
+    private static void leave(Player player, Sleeper sleeper, boolean dismounting, boolean immediate) {
+        if (sleeper == null || !sleepers.remove(player.getUniqueId(), sleeper)) return;
         if (sleeper.task != null) sleeper.task.cancel();
         NMSHandlers.getHandler().hideFurnitureBed(player);
         if (sleeper.bed.skipNight()) player.setSleepingIgnored(sleeper.wasSleepingIgnored);
         if (sleeper.bed.resetPhantoms()) player.setStatistic(Statistic.TIME_SINCE_REST, 0);
 
         Entity carrier = sleeper.carrier;
-        if (!dismounting && carrier.getPassengers().contains(player)) player.leaveVehicle();
+        if (!dismounting && carrier.equals(player.getVehicle())) player.leaveVehicle();
         if (immediate) {
             if (Bukkit.isOwnedByCurrentRegion(carrier)) carrier.remove();
             standUp(player, sleeper);
@@ -200,6 +213,10 @@ final class FurnitureBeds implements Listener {
     static void leave(Entity baseEntity) {
         UUID baseId = baseEntity.getUniqueId();
         leaveIf(sleeper -> sleeper.baseId.equals(baseId));
+    }
+
+    static void leaveAll() {
+        leaveIf(sleeper -> true);
     }
 
     static void shutdown() {
@@ -225,10 +242,16 @@ final class FurnitureBeds implements Listener {
 
     private static void leaveLater(UUID playerId, Sleeper sleeper) {
         Player player = Bukkit.getPlayer(playerId);
-        if (player == null || SchedulerUtil.runForEntity(player, () -> leave(player), null) == null) {
-            sleepers.remove(playerId, sleeper);
-            SchedulerUtil.runOnOwningThread(sleeper.carrier, sleeper.carrier::remove);
-        }
+        if (player == null || SchedulerUtil.runForEntity(player, () -> leave(player, sleeper, false, false),
+                () -> discard(playerId, sleeper)) == null) discard(playerId, sleeper);
+    }
+
+    private static void discard(UUID playerId, Sleeper sleeper) {
+        if (!sleepers.remove(playerId, sleeper)) return;
+        if (sleeper.task != null) sleeper.task.cancel();
+        NMSHandlers.getHandler().forgetFurnitureBed(sleeper.playerEntityId);
+        // A retired callback cannot remove entities directly.
+        SchedulerUtil.runForEntity(sleeper.carrier, sleeper.carrier::remove);
     }
 
     private static Location standUpLocation(Location head) {
@@ -288,17 +311,18 @@ final class FurnitureBeds implements Listener {
     private static void skipNight(World world, List<SleepState> states) {
         if (world.isDayTime() || sleepers.values().stream().noneMatch(sleeper -> sleeper.world.equals(world)
                 && sleeper.bed.skipNight() && sleeper.ticks >= DEEP_SLEEP_TICKS)) return;
+        GameRule<Integer> sleepingPercentage = NightSkipRules.sleepingPercentage;
         Integer percentage = sleepingPercentage == null ? null : world.getGameRuleValue(sleepingPercentage);
         if (!SleepState.enoughSleeping(states, percentage == null ? 100 : percentage)) return;
 
-        if (isEnabled(world, advanceTime)) {
+        if (isEnabled(world, NightSkipRules.advanceTime)) {
             long time = world.getFullTime();
             long morning = time + DAY_LENGTH - Math.floorMod(time + DAY_LENGTH, DAY_LENGTH);
             TimeSkipEvent event = FurnitureTimeSkip.nightSkip(world, morning - time);
             if (event.callEvent()) world.setFullTime(world.getFullTime() + event.getSkipAmount());
         } else wake(world);
 
-        if (isEnabled(world, advanceWeather) && world.hasStorm()) {
+        if (isEnabled(world, NightSkipRules.advanceWeather) && world.hasStorm()) {
             world.setWeatherDuration(0);
             world.setStorm(false);
             world.setThunderDuration(0);

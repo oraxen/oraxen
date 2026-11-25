@@ -112,6 +112,11 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         packetHandler.hideFurnitureBed(player);
     }
 
+    @Override
+    public void forgetFurnitureBed(int playerEntityId) {
+        packetHandler.forgetFurnitureBed(playerEntityId);
+    }
+
     private final PacketHandler packetHandler;
     private final NamespacedKey mineableTagKey;
     private final NamespacedKey blockPredictionKey;

@@ -108,6 +108,10 @@ final class PacketHandler {
         furnitureBeds.hide(player);
     }
 
+    void forgetFurnitureBed(int playerEntityId) {
+        furnitureBeds.forget(playerEntityId);
+    }
+
     void shutdown() {
         tridents.shutdown();
         furnitureBeds.clear();

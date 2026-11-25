@@ -39,6 +39,9 @@ public interface NMSHandler {
     default void hideFurnitureBed(Player player) {
     }
 
+    default void forgetFurnitureBed(int playerEntityId) {
+    }
+
     default void formatInventoryTitles(boolean enabled) {
     }
 
