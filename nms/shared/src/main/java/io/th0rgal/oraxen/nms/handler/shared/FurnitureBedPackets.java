@@ -183,8 +183,12 @@ final class FurnitureBedPackets {
         Bed bed = viewedBed(spawn.getId(), receiver);
         if (bed == null) return spawn;
         Vec3 head = bed.head();
-        return new ClientboundAddEntityPacket(spawn.getId(), spawn.getUUID(), head.x, head.y, head.z, 0f,
-                bed.bodyYaw(), spawn.getType(), spawn.getData(), Vec3.ZERO, bed.bodyYaw());
+        byte yaw = Mth.packDegrees(bed.bodyYaw());
+        return new ClientboundBundlePacket(List.of(
+                new ClientboundAddEntityPacket(spawn.getId(), spawn.getUUID(), head.x, head.y, head.z, 0f,
+                        bed.bodyYaw(), spawn.getType(), spawn.getData(), Vec3.ZERO, bed.bodyYaw()),
+                new ClientboundMoveEntityPacket.Rot(spawn.getId(), yaw, (byte) 0, bed.sleeper().onGround()),
+                new ClientboundRotateHeadPacket(bed.sleeper(), yaw)));
     }
 
     @SafeVarargs
