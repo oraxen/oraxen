@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
 import org.bukkit.World;
+import org.bukkit.event.Event;
 import org.bukkit.event.world.TimeSkipEvent;
 
 import java.lang.reflect.Constructor;
@@ -11,6 +12,7 @@ final class FurnitureTimeSkip {
     private static final Method skipReason;
     private static final Object nightSkip;
     private static final Method defaultClock = findDefaultClock();
+    private static final Method eventClock = findEventClock();
     private static final Constructor<TimeSkipEvent> constructor;
 
     static {
@@ -38,6 +40,14 @@ final class FurnitureTimeSkip {
         }
     }
 
+    private static Method findEventClock() {
+        try {
+            return Class.forName("org.bukkit.event.world.ClockTimeSkipEvent").getMethod("getClock");
+        } catch (ReflectiveOperationException | LinkageError ignored) {
+            return null;
+        }
+    }
+
     static TimeSkipEvent nightSkip(World world, long amount) {
         try {
             return defaultClock == null
@@ -48,11 +58,21 @@ final class FurnitureTimeSkip {
         }
     }
 
-    static boolean isNightSkip(TimeSkipEvent event) {
+    static boolean isNightSkip(Event event) {
         try {
             return skipReason.invoke(event) == nightSkip;
         } catch (ReflectiveOperationException e) {
             throw new IllegalStateException("Failed to read furniture time skip reason", e);
+        }
+    }
+
+    static boolean affectsWorld(Event event, World world) {
+        if (eventClock == null || defaultClock == null) return true;
+        try {
+            Object clock = eventClock.invoke(event);
+            return clock != null && clock.equals(defaultClock.invoke(world));
+        } catch (ReflectiveOperationException e) {
+            return false;
         }
     }
 }

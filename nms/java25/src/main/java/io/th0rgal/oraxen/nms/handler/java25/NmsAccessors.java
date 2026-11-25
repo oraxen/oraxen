@@ -229,4 +229,12 @@ final class NmsAccessors {
     static Optional<Holder<JukeboxSong>> jukeboxSong(ServerLevel level, net.minecraft.world.item.ItemStack nmsItem) {
         return JukeboxSong.fromStack(nmsItem);
     }
+
+    static boolean advanceTimeWithoutEvent(org.bukkit.World world, long amount) {
+        ServerLevel level = ((org.bukkit.craftbukkit.CraftWorld) world).getHandle();
+        return level.dimensionType().defaultClock().map(clock -> {
+            level.clockManager().setTotalTicks(clock, Math.max(world.getFullTime() + amount, 0L));
+            return true;
+        }).orElse(false);
+    }
 }

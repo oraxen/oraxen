@@ -787,7 +787,7 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     public boolean isInteractable() {
-        return isRotatable || hasSeat || isStorage();
+        return isRotatable || hasSeat || isStorage() || hasBeds();
     }
 
     public Entity place(Location location) {

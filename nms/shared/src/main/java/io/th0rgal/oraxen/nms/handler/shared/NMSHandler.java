@@ -117,6 +117,11 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         packetHandler.forgetFurnitureBed(playerEntityId);
     }
 
+    @Override
+    public boolean advanceTimeWithoutEvent(World world, long amount) {
+        return NmsAccessors.advanceTimeWithoutEvent(world, amount);
+    }
+
     private final PacketHandler packetHandler;
     private final NamespacedKey mineableTagKey;
     private final NamespacedKey blockPredictionKey;

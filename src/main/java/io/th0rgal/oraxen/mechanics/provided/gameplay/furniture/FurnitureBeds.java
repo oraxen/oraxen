@@ -14,12 +14,15 @@ import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
 import org.bukkit.Statistic;
+import org.bukkit.Tag;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.Lightable;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -48,6 +51,7 @@ final class FurnitureBeds implements Listener {
     private static final NamespacedKey CARRIER_KEY = new NamespacedKey(OraxenPlugin.get(), "bed_carrier");
     private static final Map<UUID, Sleeper> sleepers = new ConcurrentHashMap<>();
     private static final AtomicBoolean checkingNightSkip = new AtomicBoolean();
+    private static final ThreadLocal<TimeSkipEvent> pendingNightSkip = new ThreadLocal<>();
 
     private static final class NightSkipRules {
         private static final GameRule<Integer> sleepingPercentage = gameRule("players_sleeping_percentage", "playersSleepingPercentage");
@@ -55,7 +59,8 @@ final class FurnitureBeds implements Listener {
         private static final GameRule<Boolean> advanceWeather = gameRule("advance_weather", "doWeatherCycle");
     }
 
-    record SleepState(boolean spectator, boolean sleeping, boolean deepSleeping, boolean sleepingIgnored) {
+    record SleepState(boolean spectator, boolean sleeping, boolean deepSleeping, boolean sleepingIgnored,
+                      boolean deepSleepingIgnored) {
         static boolean enoughSleeping(List<SleepState> states, int percentage) {
             int active = 0;
             int sleeping = 0;
@@ -65,11 +70,38 @@ final class FurnitureBeds implements Listener {
                 if (state.deepSleeping()) return false;
                 active++;
                 if (state.sleeping() || state.sleepingIgnored()) sleeping++;
-                if (state.sleepingIgnored()) deepSleeping++;
+                if (state.sleepingIgnored() && state.deepSleepingIgnored()) deepSleeping++;
             }
             int needed = Math.max(1, (int) Math.ceil(active * percentage / 100.0));
             return sleeping >= needed && deepSleeping >= needed;
         }
+    }
+
+    FurnitureBeds() {
+        registerClockTimeSkipListener();
+    }
+
+    @SuppressWarnings("unchecked")
+    private void registerClockTimeSkipListener() {
+        Class<? extends Event> clockTimeSkipEvent;
+        try {
+            Class<?> type = Class.forName("org.bukkit.event.world.ClockTimeSkipEvent");
+            if (!Event.class.isAssignableFrom(type)) return;
+            clockTimeSkipEvent = (Class<? extends Event>) type;
+        } catch (ClassNotFoundException | LinkageError ignored) {
+            return;
+        }
+        Bukkit.getPluginManager().registerEvent(clockTimeSkipEvent, this, EventPriority.MONITOR,
+                (listener, event) -> onClockNightSkip(event), OraxenPlugin.get(), true);
+    }
+
+    private void onClockNightSkip(Event event) {
+        if (event instanceof TimeSkipEvent || !FurnitureTimeSkip.isNightSkip(event)) return;
+        leaveIf(sleeper -> sleeper.bed.skipNight() && FurnitureTimeSkip.affectsWorld(event, sleeper.world));
+    }
+
+    private static boolean isSleepingTime(World world) {
+        return !world.isFixedTime() && !world.isDayTime();
     }
 
     private static final class Sleeper {
@@ -118,7 +150,7 @@ final class FurnitureBeds implements Listener {
         if (head == null || !Bukkit.isOwnedByCurrentRegion(head)) return;
 
         FurnitureBed bed = beds.get(index);
-        if (bed.nightOnly() && head.getWorld().isDayTime()) {
+        if (bed.nightOnly() && !isSleepingTime(head.getWorld())) {
             player.sendActionBar(Component.translatable("block.minecraft.bed.no_sleep"));
             return;
         }
@@ -146,8 +178,11 @@ final class FurnitureBeds implements Listener {
             return;
         }
         if (bed.setRespawn()) {
-            player.setRespawnLocation(standUpLocation(head), true);
-            player.sendMessage(Component.translatable("block.minecraft.set_spawn"));
+            Location respawn = standUpLocation(head);
+            if (respawn != null) {
+                player.setRespawnLocation(respawn, true);
+                player.sendMessage(Component.translatable("block.minecraft.set_spawn"));
+            }
         }
         sleeper.task = SchedulerUtil.runForEntityTimer(player, 20L, 20L, () -> tick(player),
                 () -> discard(playerId, sleeper));
@@ -166,7 +201,7 @@ final class FurnitureBeds implements Listener {
         if (sleeper == null) return;
         Entity vehicle = player.getVehicle();
         if (vehicle == null || !vehicle.getUniqueId().equals(sleeper.carrier.getUniqueId())
-                || sleeper.bed.nightOnly() && player.getWorld().isDayTime()) {
+                || sleeper.bed.nightOnly() && !isSleepingTime(player.getWorld())) {
             leave(player);
             return;
         }
@@ -205,6 +240,7 @@ final class FurnitureBeds implements Listener {
                 || !player.getWorld().equals(sleeper.world)
                 || player.getLocation().distanceSquared(sleeper.head) > MAX_STAND_UP_DISTANCE_SQUARED) return;
         Location target = standUpLocation(sleeper.head);
+        if (target == null) return;
         target.setYaw(player.getLocation().getYaw());
         target.setPitch(player.getLocation().getPitch());
         player.teleportAsync(target);
@@ -264,9 +300,26 @@ final class FurnitureBeds implements Listener {
         candidates.sort(Comparator.comparingDouble(block -> block.getLocation().add(0.5, 0, 0.5).distanceSquared(head)));
         candidates.add(origin.getRelative(BlockFace.UP));
         for (Block feet : candidates)
-            if (feet.isPassable() && feet.getRelative(BlockFace.UP).isPassable() && !feet.getRelative(BlockFace.DOWN).isPassable())
-                return feet.getLocation().add(0.5, 0, 0.5);
-        return head.clone();
+            if (isSafeStandUpBlock(feet)) return feet.getLocation().add(0.5, 0, 0.5);
+        return null;
+    }
+
+    private static boolean isSafeStandUpBlock(Block feet) {
+        Block head = feet.getRelative(BlockFace.UP);
+        Block below = feet.getRelative(BlockFace.DOWN);
+        return feet.isPassable() && head.isPassable() && !below.isPassable()
+                && !isDangerous(feet) && !isDangerous(head) && !isDangerous(below)
+                && !Tag.INVALID_SPAWN_INSIDE.isTagged(feet.getType())
+                && !Tag.INVALID_SPAWN_INSIDE.isTagged(head.getType());
+    }
+
+    private static boolean isDangerous(Block block) {
+        return Tag.FIRE.isTagged(block.getType())
+                || switch (block.getType()) {
+                    case LAVA, MAGMA_BLOCK, LAVA_CAULDRON, WITHER_ROSE, SWEET_BERRY_BUSH, CACTUS, POWDER_SNOW -> true;
+                    default -> Tag.CAMPFIRES.isTagged(block.getType())
+                            && block.getBlockData() instanceof Lightable lightable && lightable.isLit();
+                };
     }
 
     static SchedulerUtil.ScheduledTask startNightSkipTask() {
@@ -277,7 +330,7 @@ final class FurnitureBeds implements Listener {
         Set<World> worlds = new HashSet<>();
         for (Sleeper sleeper : sleepers.values())
             if (sleeper.bed.skipNight() && sleeper.ticks >= DEEP_SLEEP_TICKS) worlds.add(sleeper.world);
-        worlds.removeIf(world -> world.isFixedTime() || world.isDayTime());
+        worlds.removeIf(world -> !isSleepingTime(world));
         if (worlds.isEmpty() || !checkingNightSkip.compareAndSet(false, true)) return;
 
         Map<World, List<CompletableFuture<SleepState>>> states = new ConcurrentHashMap<>();
@@ -301,15 +354,18 @@ final class FurnitureBeds implements Listener {
 
     private static CompletableFuture<SleepState> sleepState(Player player) {
         CompletableFuture<SleepState> state = new CompletableFuture<>();
-        if (SchedulerUtil.runForEntity(player, () -> state.complete(new SleepState(
-                player.getGameMode() == GameMode.SPECTATOR, player.isSleeping(),
-                player.isSleeping() && player.getSleepTicks() >= DEEP_SLEEP_TICKS, player.isSleepingIgnored())
-        ), () -> state.complete(null)) == null) state.complete(null);
+        if (SchedulerUtil.runForEntity(player, () -> {
+            Sleeper sleeper = sleepers.get(player.getUniqueId());
+            state.complete(new SleepState(
+                    player.getGameMode() == GameMode.SPECTATOR, player.isSleeping(),
+                    player.isSleeping() && player.getSleepTicks() >= DEEP_SLEEP_TICKS, player.isSleepingIgnored(),
+                    sleeper == null || sleeper.ticks >= DEEP_SLEEP_TICKS));
+        }, () -> state.complete(null)) == null) state.complete(null);
         return state;
     }
 
     private static void skipNight(World world, List<SleepState> states) {
-        if (world.isDayTime() || sleepers.values().stream().noneMatch(sleeper -> sleeper.world.equals(world)
+        if (!isSleepingTime(world) || sleepers.values().stream().noneMatch(sleeper -> sleeper.world.equals(world)
                 && sleeper.bed.skipNight() && sleeper.ticks >= DEEP_SLEEP_TICKS)) return;
         GameRule<Integer> sleepingPercentage = NightSkipRules.sleepingPercentage;
         Integer percentage = sleepingPercentage == null ? null : world.getGameRuleValue(sleepingPercentage);
@@ -319,9 +375,17 @@ final class FurnitureBeds implements Listener {
             long time = world.getFullTime();
             long morning = time + DAY_LENGTH - Math.floorMod(time + DAY_LENGTH, DAY_LENGTH);
             TimeSkipEvent event = FurnitureTimeSkip.nightSkip(world, morning - time);
-            if (event.callEvent()) world.setFullTime(world.getFullTime() + event.getSkipAmount());
-        } else wake(world);
+            pendingNightSkip.set(event);
+            boolean accepted;
+            try {
+                accepted = event.callEvent();
+            } finally {
+                pendingNightSkip.remove();
+            }
+            if (!accepted || !NMSHandlers.getHandler().advanceTimeWithoutEvent(world, event.getSkipAmount())) return;
+        }
 
+        wake(world);
         if (isEnabled(world, NightSkipRules.advanceWeather) && world.hasStorm()) {
             world.setWeatherDuration(0);
             world.setStorm(false);
@@ -361,6 +425,6 @@ final class FurnitureBeds implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onNightSkip(TimeSkipEvent event) {
-        if (FurnitureTimeSkip.isNightSkip(event)) wake(event.getWorld());
+        if (event != pendingNightSkip.get() && FurnitureTimeSkip.isNightSkip(event)) wake(event.getWorld());
     }
 }
