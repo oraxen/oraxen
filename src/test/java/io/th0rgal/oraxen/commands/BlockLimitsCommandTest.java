@@ -55,8 +55,8 @@ class BlockLimitsCommandTest {
                 new BlockLimitsCommand.Usage("note", "Note blocks", 776, 0),
                 new BlockLimitsCommand.Usage("grate", "Copper grate blocks", 4, 4))));
 
-        assertEquals("Note blocks\n" + "|".repeat(30) + "\n0 / 776 used (0.0%) • 776 free\n\n"
-                + "Copper grate blocks\n" + "|".repeat(30) + "\n4 / 4 used (100.0%) • 0 free", report);
+        assertEquals("Note blocks\n[" + "|".repeat(30) + "]\n0 / 776 used (0.0%) • 776 free\n\n"
+                + "Copper grate blocks\n[" + "|".repeat(30) + "]\n4 / 4 used (100.0%) • 0 free", report);
     }
 
     @Test
@@ -64,6 +64,6 @@ class BlockLimitsCommandTest {
         String report = PlainTextComponentSerializer.plainText().serialize(BlockLimitsCommand.report(List.of(
                 new BlockLimitsCommand.Usage("grate", "Copper grate blocks", 4, 1))));
 
-        assertEquals("Copper grate blocks\n" + "|".repeat(30) + "\n1 / 4 used (25.0%) • 3 free", report);
+        assertEquals("Copper grate blocks\n[" + "|".repeat(30) + "]\n1 / 4 used (25.0%) • 3 free", report);
     }
 }

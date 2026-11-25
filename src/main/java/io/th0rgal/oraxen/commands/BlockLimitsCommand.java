@@ -97,8 +97,10 @@ public class BlockLimitsCommand {
             String percent = String.format(Locale.ROOT, "%.1f", 100.0 * usage.used() / usage.max());
             report = report.append(Component.text(usage.title(), NamedTextColor.AQUA))
                     .append(Component.newline())
+                    .append(Component.text("[", NamedTextColor.WHITE))
                     .append(Component.text("|".repeat(filled), NamedTextColor.GREEN))
                     .append(Component.text("|".repeat(BAR_WIDTH - filled), NamedTextColor.DARK_GRAY))
+                    .append(Component.text("]", NamedTextColor.WHITE))
                     .append(Component.newline())
                     .append(Component.text(usage.used() + " / " + usage.max() + " used (" + percent + "%) • "
                             + (usage.max() - usage.used()) + " free", NamedTextColor.WHITE));
