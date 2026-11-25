@@ -14,6 +14,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Pose;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
@@ -44,6 +45,7 @@ class FurnitureBedReloadTest {
         UUID playerId = UUID.randomUUID();
         when(player.getUniqueId()).thenReturn(playerId);
         when(player.getEntityId()).thenReturn(42);
+        when(player.getPose()).thenReturn(Pose.STANDING);
         EntityScheduler playerScheduler = mock(EntityScheduler.class);
         ScheduledTask timer = mock(ScheduledTask.class);
         when(player.getScheduler()).thenReturn(playerScheduler);
@@ -78,6 +80,7 @@ class FurnitureBedReloadTest {
             try {
                 FurnitureBeds.lieDown(player, base, mechanic, location);
                 verify(player).setSleepingIgnored(true);
+                verify(player).setPose(Pose.SLEEPING, true);
             } finally {
                 MechanicsManager.unregisterMechanicFactory("furniture");
             }
@@ -91,6 +94,7 @@ class FurnitureBedReloadTest {
                 } else {
                     wake.getValue().accept(null);
                     verify(packets).hideFurnitureBed(player);
+                    verify(player).setPose(Pose.STANDING, false);
                     verify(player).setSleepingIgnored(false);
                     verify(player).leaveVehicle();
                 }
