@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
+import io.th0rgal.oraxen.utils.VectorUtils;
 import org.bukkit.util.Vector;
 
 record FurnitureBed(double x, double y, double z, boolean skipNight, boolean resetPhantoms,
@@ -9,8 +10,8 @@ record FurnitureBed(double x, double y, double z, boolean skipNight, boolean res
         if (!(value instanceof String entry)) return null;
         String[] parts = entry.trim().split("\\s+");
         if (parts.length > 5) return null;
-        String[] coordinates = parts[0].split(",", -1);
-        if (coordinates.length != 3) return null;
+        double[] coordinates = VectorUtils.parseCoordinates(parts[0]);
+        if (coordinates == null) return null;
 
         boolean[] flags = {true, true, true, false};
         for (int i = 1; i < parts.length; i++) {
@@ -19,15 +20,7 @@ record FurnitureBed(double x, double y, double z, boolean skipNight, boolean res
             else return null;
         }
 
-        try {
-            double x = Double.parseDouble(coordinates[0]);
-            double y = Double.parseDouble(coordinates[1]);
-            double z = Double.parseDouble(coordinates[2]);
-            if (!Double.isFinite(x) || !Double.isFinite(y) || !Double.isFinite(z)) return null;
-            return new FurnitureBed(x, y, z, flags[0], flags[1], flags[2], flags[3]);
-        } catch (NumberFormatException ignored) {
-            return null;
-        }
+        return new FurnitureBed(coordinates[0], coordinates[1], coordinates[2], flags[0], flags[1], flags[2], flags[3]);
     }
 
     Vector offset() {

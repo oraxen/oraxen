@@ -51,6 +51,7 @@ import org.joml.Vector3f;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 public class FurnitureMechanic extends Mechanic {
 
@@ -230,9 +231,14 @@ public class FurnitureMechanic extends Mechanic {
 
         hitboxes = parseHitboxes(section);
         hitbox = hitboxes.isEmpty() ? null : hitboxes.get(0);
-        ghasts = parseGhasts(section);
-        shulkers = parseShulkers(section);
-        beds = parseBeds(section);
+        ghasts = parseOffsets(section, "ghasts", "1.21.6", "ghast hitbox", "ghast hitboxes",
+                FurnitureGhastHitbox::parse, "'<x>,<y>,<z> <scale>' with a scale between 0.0625 and 1.");
+        shulkers = parseOffsets(section, "shulkers", "1.21.2", "shulker hitbox", "shulker hitboxes",
+                FurnitureShulkerHitbox::parse, "'<x>,<y>,<z> <scale> [peek] [direction]' with a scale between 0.0625 and 3,"
+                        + " a peek between 0 and 100 and a direction of UP, DOWN, NORTH, EAST, SOUTH or WEST.");
+        beds = parseOffsets(section, "beds", "1.21.2", "bed", "beds", FurnitureBed::parse,
+                "'<x>,<y>,<z> [skip_night] [reset_phantoms] [night_only] [set_respawn]'"
+                        + " where each option is true or false.");
 
         seats = parseSeats(section);
         hasSeat = !seats.isEmpty();
@@ -335,73 +341,27 @@ public class FurnitureMechanic extends Mechanic {
         return !hasBarriers() ? List.of(new FurnitureHitbox(1.0f, 1.0f)) : List.of();
     }
 
-    private List<FurnitureGhastHitbox> parseGhasts(ConfigurationSection section) {
-        if (!section.contains("ghasts")) return List.of();
-        if (!VersionUtil.atOrAbove("1.21.6")) {
-            Logs.logWarning("Ghast hitboxes for furniture '" + getItemID() + "' require Minecraft 1.21.6 or newer.");
+    private <T> List<T> parseOffsets(ConfigurationSection section, String key, String minVersion,
+                                     String singular, String plural, Function<Object, T> parser, String expected) {
+        if (!section.contains(key)) return List.of();
+        if (!VersionUtil.atOrAbove(minVersion)) {
+            Logs.logWarning(Character.toUpperCase(plural.charAt(0)) + plural.substring(1) + " for furniture '"
+                    + getItemID() + "' require Minecraft " + minVersion + " or newer.");
             return List.of();
         }
 
-        List<?> entries = section.getList("ghasts");
+        List<?> entries = section.getList(key);
         if (entries == null) {
-            Logs.logError("Expected a list of ghast hitboxes for furniture '" + getItemID() + "'.");
+            Logs.logError("Expected a list of " + plural + " for furniture '" + getItemID() + "'.");
             return List.of();
         }
 
-        List<FurnitureGhastHitbox> parsed = new ArrayList<>();
+        List<T> parsed = new ArrayList<>();
         for (Object entry : entries) {
-            FurnitureGhastHitbox ghast = FurnitureGhastHitbox.parse(entry);
-            if (ghast != null) parsed.add(ghast);
-            else Logs.logError("Invalid ghast hitbox '" + entry + "' for furniture '" + getItemID()
-                    + "'. Expected '<x>,<y>,<z> <scale>' with a scale between 0.0625 and 1.");
-        }
-        return List.copyOf(parsed);
-    }
-
-    private List<FurnitureShulkerHitbox> parseShulkers(ConfigurationSection section) {
-        if (!section.contains("shulkers")) return List.of();
-        if (!VersionUtil.atOrAbove("1.21.2")) {
-            Logs.logWarning("Shulker hitboxes for furniture '" + getItemID() + "' require Minecraft 1.21.2 or newer.");
-            return List.of();
-        }
-
-        List<?> entries = section.getList("shulkers");
-        if (entries == null) {
-            Logs.logError("Expected a list of shulker hitboxes for furniture '" + getItemID() + "'.");
-            return List.of();
-        }
-
-        List<FurnitureShulkerHitbox> parsed = new ArrayList<>();
-        for (Object entry : entries) {
-            FurnitureShulkerHitbox shulker = FurnitureShulkerHitbox.parse(entry);
-            if (shulker != null) parsed.add(shulker);
-            else Logs.logError("Invalid shulker hitbox '" + entry + "' for furniture '" + getItemID()
-                    + "'. Expected '<x>,<y>,<z> <scale> [peek] [direction]' with a scale between 0.0625 and 3,"
-                    + " a peek between 0 and 100 and a direction of UP, DOWN, NORTH, EAST, SOUTH or WEST.");
-        }
-        return List.copyOf(parsed);
-    }
-
-    private List<FurnitureBed> parseBeds(ConfigurationSection section) {
-        if (!section.contains("beds")) return List.of();
-        if (!VersionUtil.atOrAbove("1.21.2")) {
-            Logs.logWarning("Beds for furniture '" + getItemID() + "' require Minecraft 1.21.2 or newer.");
-            return List.of();
-        }
-
-        List<?> entries = section.getList("beds");
-        if (entries == null) {
-            Logs.logError("Expected a list of beds for furniture '" + getItemID() + "'.");
-            return List.of();
-        }
-
-        List<FurnitureBed> parsed = new ArrayList<>();
-        for (Object entry : entries) {
-            FurnitureBed bed = FurnitureBed.parse(entry);
-            if (bed != null) parsed.add(bed);
-            else Logs.logError("Invalid bed '" + entry + "' for furniture '" + getItemID()
-                    + "'. Expected '<x>,<y>,<z> [skip_night] [reset_phantoms] [night_only] [set_respawn]'"
-                    + " where each option is true or false.");
+            T value = parser.apply(entry);
+            if (value != null) parsed.add(value);
+            else Logs.logError("Invalid " + singular + " '" + entry + "' for furniture '" + getItemID()
+                    + "'. Expected " + expected);
         }
         return List.copyOf(parsed);
     }

@@ -81,7 +81,6 @@ public class FurnitureFactory extends MechanicFactory {
     @Override
     public void onUnregister() {
         BreakerSystem.unregisterModifier(FurnitureListener.class);
-        FurnitureBeds.leaveAll();
     }
 
     public static boolean setDefaultType(ConfigurationSection mechanicSection) {

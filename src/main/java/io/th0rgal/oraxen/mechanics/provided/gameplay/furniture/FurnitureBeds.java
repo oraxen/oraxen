@@ -37,6 +37,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Predicate;
 
 final class FurnitureBeds implements Listener {
 
@@ -49,6 +50,23 @@ final class FurnitureBeds implements Listener {
     private static final GameRule<Integer> sleepingPercentage = gameRule("players_sleeping_percentage", "playersSleepingPercentage");
     private static final GameRule<Boolean> advanceTime = gameRule("advance_time", "doDaylightCycle");
     private static final GameRule<Boolean> advanceWeather = gameRule("advance_weather", "doWeatherCycle");
+
+    record SleepState(boolean spectator, boolean sleeping, boolean deepSleeping, boolean sleepingIgnored) {
+        static boolean enoughSleeping(List<SleepState> states, int percentage) {
+            int active = 0;
+            int sleeping = 0;
+            int deepSleeping = 0;
+            for (SleepState state : states) {
+                if (state == null || state.spectator()) continue;
+                if (state.deepSleeping()) return false;
+                active++;
+                if (state.sleeping() || state.sleepingIgnored()) sleeping++;
+                if (state.sleepingIgnored()) deepSleeping++;
+            }
+            int needed = Math.max(1, (int) Math.ceil(active * percentage / 100.0));
+            return sleeping >= needed && deepSleeping >= needed;
+        }
+    }
 
     private static final class Sleeper {
         private final UUID baseId;
@@ -181,17 +199,7 @@ final class FurnitureBeds implements Listener {
 
     static void leave(Entity baseEntity) {
         UUID baseId = baseEntity.getUniqueId();
-        sleepers.forEach((playerId, sleeper) -> {
-            if (sleeper.baseId.equals(baseId)) leaveLater(playerId, sleeper);
-        });
-    }
-
-    static void leaveAll() {
-        sleepers.forEach((playerId, sleeper) -> {
-            Player player = Bukkit.getPlayer(playerId);
-            if (player != null && Bukkit.isOwnedByCurrentRegion(player)) leave(player);
-            else leaveLater(playerId, sleeper);
-        });
+        leaveIf(sleeper -> sleeper.baseId.equals(baseId));
     }
 
     static void shutdown() {
@@ -206,8 +214,12 @@ final class FurnitureBeds implements Listener {
     }
 
     private static void wake(World world) {
+        leaveIf(sleeper -> sleeper.world.equals(world) && sleeper.bed.skipNight());
+    }
+
+    private static void leaveIf(Predicate<Sleeper> filter) {
         sleepers.forEach((playerId, sleeper) -> {
-            if (sleeper.world.equals(world) && sleeper.bed.skipNight()) leaveLater(playerId, sleeper);
+            if (filter.test(sleeper)) leaveLater(playerId, sleeper);
         });
     }
 
@@ -245,10 +257,10 @@ final class FurnitureBeds implements Listener {
         worlds.removeIf(world -> world.isFixedTime() || world.isDayTime());
         if (worlds.isEmpty() || !checkingNightSkip.compareAndSet(false, true)) return;
 
-        Map<World, List<CompletableFuture<FurnitureSleepStatus.State>>> states = new ConcurrentHashMap<>();
-        List<CompletableFuture<FurnitureSleepStatus.State>> pending = new ArrayList<>();
+        Map<World, List<CompletableFuture<SleepState>>> states = new ConcurrentHashMap<>();
+        List<CompletableFuture<SleepState>> pending = new ArrayList<>();
         for (World world : worlds) {
-            List<CompletableFuture<FurnitureSleepStatus.State>> worldStates = world.getPlayers().stream().map(FurnitureBeds::sleepState).toList();
+            List<CompletableFuture<SleepState>> worldStates = world.getPlayers().stream().map(FurnitureBeds::sleepState).toList();
             states.put(world, worldStates);
             pending.addAll(worldStates);
         }
@@ -264,20 +276,20 @@ final class FurnitureBeds implements Listener {
         });
     }
 
-    private static CompletableFuture<FurnitureSleepStatus.State> sleepState(Player player) {
-        CompletableFuture<FurnitureSleepStatus.State> state = new CompletableFuture<>();
-        if (SchedulerUtil.runForEntity(player, () -> state.complete(new FurnitureSleepStatus.State(
+    private static CompletableFuture<SleepState> sleepState(Player player) {
+        CompletableFuture<SleepState> state = new CompletableFuture<>();
+        if (SchedulerUtil.runForEntity(player, () -> state.complete(new SleepState(
                 player.getGameMode() == GameMode.SPECTATOR, player.isSleeping(),
                 player.isSleeping() && player.getSleepTicks() >= DEEP_SLEEP_TICKS, player.isSleepingIgnored())
         ), () -> state.complete(null)) == null) state.complete(null);
         return state;
     }
 
-    private static void skipNight(World world, List<FurnitureSleepStatus.State> states) {
+    private static void skipNight(World world, List<SleepState> states) {
         if (world.isDayTime() || sleepers.values().stream().noneMatch(sleeper -> sleeper.world.equals(world)
                 && sleeper.bed.skipNight() && sleeper.ticks >= DEEP_SLEEP_TICKS)) return;
         Integer percentage = sleepingPercentage == null ? null : world.getGameRuleValue(sleepingPercentage);
-        if (!FurnitureSleepStatus.enoughSleeping(states, percentage == null ? 100 : percentage)) return;
+        if (!SleepState.enoughSleeping(states, percentage == null ? 100 : percentage)) return;
 
         if (isEnabled(world, advanceTime)) {
             long time = world.getFullTime();
