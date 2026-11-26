@@ -24,6 +24,7 @@ public class PackMerger {
     private final JsonArray mergedOverlayEntries = new JsonArray();
     private final JsonObject languageMetadata = new JsonObject();
     private final JsonObject filterMetadata = new JsonObject();
+    private final JsonObject sodiumMetadata = new JsonObject();
     private final Map<String, Map<String, byte[]>> overlaySnapshots = new LinkedHashMap<>();
     private boolean convertLegacyItemModels;
     private boolean shaderWarningShown;
@@ -46,6 +47,7 @@ public class PackMerger {
         layers.clear();
         languageMetadata.entrySet().clear();
         filterMetadata.entrySet().clear();
+        sodiumMetadata.entrySet().clear();
         if (!uploadsDirectory.exists()) uploadsDirectory.mkdirs();
         File[] packs = uploadsDirectory.listFiles(file -> file.isDirectory() || file.getName().toLowerCase(Locale.ROOT).endsWith(".zip"));
         if (packs != null) {
@@ -64,6 +66,7 @@ public class PackMerger {
     public JsonArray getMergedOverlayEntries() { return PackMcmetaUtils.normalizeOverlayEntries(mergedOverlayEntries); }
     public JsonObject getMergedLanguageMetadata() { return languageMetadata.deepCopy(); }
     public JsonObject getMergedFilterMetadata() { return filterMetadata.deepCopy(); }
+    public JsonObject getMergedSodiumMetadata() { return sodiumMetadata.deepCopy(); }
 
     private void importPack(File pack, boolean includeIcon) {
         try {
@@ -109,7 +112,31 @@ public class PackMerger {
                         blocks.getAsJsonArray().forEach(block -> filterMetadata.getAsJsonArray("block").add(block.deepCopy()));
                     }
                 }
+                mergeSodiumMetadata(metadata.get("sodium"));
             }
+    }
+
+    private void mergeSodiumMetadata(JsonElement section) {
+        if (section == null || !section.isJsonObject()) return;
+        for (var entry : section.getAsJsonObject().entrySet()) {
+            String key = entry.getKey();
+            JsonElement value = entry.getValue();
+            boolean ignoredShaders = key.equals("ignored_shaders");
+            if (!value.isJsonArray()) {
+                if (!ignoredShaders) sodiumMetadata.add(key, value.deepCopy());
+                continue;
+            }
+
+            JsonElement previous = sodiumMetadata.get(key);
+            JsonArray merged = previous != null && previous.isJsonArray() ? previous.getAsJsonArray() : new JsonArray();
+            Set<JsonElement> seen = new HashSet<>();
+            merged.forEach(seen::add);
+            for (JsonElement element : value.getAsJsonArray()) {
+                if (ignoredShaders && (!element.isJsonPrimitive() || !element.getAsJsonPrimitive().isString())) continue;
+                if (seen.add(element)) merged.add(element.deepCopy());
+            }
+            sodiumMetadata.add(key, merged);
+        }
     }
 
     private Map<String, byte[]> readEntries(File pack) throws IOException {

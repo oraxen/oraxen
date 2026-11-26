@@ -1541,6 +1541,8 @@ public class ResourcePack {
             if (!languages.isEmpty()) metadata.add("language", languages);
             JsonObject filters = packMerger.getMergedFilterMetadata();
             if (!filters.isEmpty()) metadata.add("filter", filters);
+            JsonObject sodium = packMerger.getMergedSodiumMetadata();
+            if (!sodium.isEmpty()) metadata.add("sodium", sodium);
             if (preserveNativeOverlays) {
                 PackMcmetaUtils.appendOverlayEntries(metadata, mergedImportOverlayEntries);
             } else {

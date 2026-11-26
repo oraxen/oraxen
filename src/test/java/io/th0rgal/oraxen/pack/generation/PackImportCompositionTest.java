@@ -623,6 +623,26 @@ class PackImportCompositionTest {
         assertEquals("Local", merger.getMergedLanguageMetadata().getAsJsonObject("test").get("name").getAsString());
     }
 
+    @Test void ignoresMalformedSodiumShaderListsAndResetsMergedMetadataOnReload() throws Exception {
+        write("a", Map.of("pack.mcmeta", """
+                {"sodium":{"ignored_shaders":["fog.glsl",false,"light.glsl",null,{}]}}
+                """));
+        write("b", Map.of("pack.mcmeta", """
+                {"sodium":{"ignored_shaders":"not a list"}}
+                """));
+        PackMerger merger = new PackMerger(tempDir.toFile());
+        merger.mergeUploadedPacks();
+        merger.mergeWithHigherPriorityFiles(List.of(vfile("pack.mcmeta", "{\"sodium\":false}")));
+
+        assertEquals(JsonParser.parseString("""
+                {"ignored_shaders":["fog.glsl","light.glsl"]}
+                """), merger.getMergedSodiumMetadata());
+
+        write("a", Map.of("pack.mcmeta", "{}"));
+        merger.mergeUploadedPacks();
+        assertEquals(new JsonObject(), merger.getMergedSodiumMetadata());
+    }
+
     private static String modernItem(String model) {
         return "{\"model\":{\"type\":\"minecraft:range_dispatch\",\"property\":\"minecraft:custom_model_data\",\"index\":0,"
                 + "\"entries\":[{\"threshold\":5,\"model\":{\"type\":\"minecraft:model\",\"model\":\"" + model + "\"}}],"
