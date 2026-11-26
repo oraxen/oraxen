@@ -10,9 +10,12 @@ import io.th0rgal.oraxen.utils.actions.ActionConditions;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.oraxen.utils.timers.TimersFactory;
 import org.bukkit.Bukkit;
+import org.bukkit.Server;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
+import org.codehaus.commons.compiler.CompileException;
+import org.codehaus.janino.ScriptEvaluator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,35 +50,38 @@ public class BlockEvents {
     }
 
     public boolean run(Player player, Action clickAction) {
-        boolean ran = false;
-        for (BlockEvent event : events) {
-            if (event.trigger() != Trigger.CLICK || !event.click().matches(clickAction)) continue;
-            event.run(player);
-            ran = true;
-        }
-        return ran;
+        return runTrigger(player, Trigger.CLICK, clickAction);
     }
 
     public boolean runBreak(Player player) {
-        return runTrigger(player, Trigger.BREAK);
+        return runTrigger(player, Trigger.BREAK, null);
     }
 
     public boolean runPlace(Player player) {
-        return runTrigger(player, Trigger.PLACE);
+        return runTrigger(player, Trigger.PLACE, null);
     }
 
     public boolean runSit(Player player) {
-        return runTrigger(player, Trigger.SIT);
+        return runTrigger(player, Trigger.SIT, null);
     }
 
-    private boolean runTrigger(Player player, Trigger trigger) {
-        boolean ran = false;
-        for (BlockEvent event : events) {
-            if (event.trigger() != trigger) continue;
-            event.run(player);
-            ran = true;
+    private boolean runTrigger(Player player, Trigger trigger, Action clickAction) {
+        if (events.isEmpty()) return false;
+        List<BlockEvent> matching = events.stream()
+                .filter(event -> event.trigger() == trigger && (trigger != Trigger.CLICK || event.click().matches(clickAction)))
+                .toList();
+        if (matching.isEmpty()) return false;
+
+        if (matching.stream().anyMatch(BlockEvent::hasJavaActions)) {
+            SchedulerUtil.runOnOwningThread(player, () -> runEvents(player, matching));
+        } else {
+            runEvents(player, matching);
         }
-        return ran;
+        return true;
+    }
+
+    private static void runEvents(Player player, List<BlockEvent> matching) {
+        for (BlockEvent event : matching) event.run(player);
     }
 
     private List<BlockEvent> parseEvents(Object value, String sourceID) {
@@ -129,6 +135,28 @@ public class BlockEvents {
                     cooldown = new TimersFactory(duration.getAsLong());
                 }
             }
+            if (actionMap.containsKey("java")) {
+                if (actionMap.containsKey("command") || actionMap.containsKey("message") || actionMap.containsKey("legacy")) {
+                    Logs.logWarning("Java action in " + eventPath + " of " + sourceID + " cannot be combined with another action type; skipping action.");
+                    continue;
+                }
+                if (!(actionMap.get("java") instanceof String source) || source.isBlank()) {
+                    Logs.logWarning("Invalid Java action in " + eventPath + " of " + sourceID + "; expected a non-blank string.");
+                    continue;
+                }
+                try {
+                    var evaluator = new ScriptEvaluator();
+                    evaluator.setParentClassLoader(BlockEvents.class.getClassLoader());
+                    evaluator.setTargetVersion(8); // Static interface methods, such as Component.text, require Java 8 bytecode.
+                    evaluator.setDebuggingInformation(true, true, false);
+                    var script = evaluator.createFastEvaluator(source, JavaEventScript.class, new String[]{"player", "server"});
+                    parsedActions.add(new ConditionalAction(new JavaAction(script, sourceID, eventPath), conditions, cooldown));
+                } catch (CompileException | RuntimeException | LinkageError exception) {
+                    Logs.logWarning("Failed to compile Java action in " + eventPath + " of " + sourceID + "; skipping action.");
+                    Bukkit.getLogger().warning(exception.toString());
+                }
+                continue;
+            }
             if (command != null) {
                 String commandText = command.toString().trim();
                 if (commandText.isEmpty()) {
@@ -152,7 +180,7 @@ public class BlockEvents {
                 continue;
             }
 
-            Logs.logWarning("Unknown " + eventPath + " action in " + sourceID + "; expected 'command', 'message', or migrated 'legacy'.");
+            Logs.logWarning("Unknown " + eventPath + " action in " + sourceID + "; expected 'command', 'message', 'java', or migrated 'legacy'.");
         }
 
         return List.copyOf(parsedActions);
@@ -194,6 +222,10 @@ public class BlockEvents {
     }
 
     private record BlockEvent(Trigger trigger, ClickFilter click, List<ConditionalAction> actions) {
+        private boolean hasJavaActions() {
+            return actions.stream().anyMatch(action -> action.action() instanceof JavaAction);
+        }
+
         private void run(Player player) {
             for (ConditionalAction action : actions) {
                 action.run(player);
@@ -216,6 +248,23 @@ public class BlockEvents {
     @FunctionalInterface
     private interface BlockEventAction {
         void run(Player player);
+    }
+
+    @FunctionalInterface
+    public interface JavaEventScript {
+        void run(Player player, Server server) throws Exception;
+    }
+
+    private record JavaAction(JavaEventScript script, String sourceID, String eventPath) implements BlockEventAction {
+        @Override
+        public void run(Player player) {
+            try {
+                script.run(player, Bukkit.getServer());
+            } catch (Exception | LinkageError exception) {
+                Logs.logWarning("Failed to run Java action in " + eventPath + " of " + sourceID + ".");
+                Logs.debug(exception);
+            }
+        }
     }
 
     private record CommandAction(String command, CommandExecutor executor) implements BlockEventAction {

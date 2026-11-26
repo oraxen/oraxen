@@ -81,6 +81,9 @@ actions-spigot = { module = "me.gabytm.util:actions-spigot", version.ref = "acti
 # Spring Expressions (SpEL) - used by ClickAction to parse action conditions
 spring-expression = { module = "org.springframework:spring-expression", version = "6.2.19" }
 
+# Janino - compiles Java event actions
+janino = { module = "org.codehaus.janino:janino", version = "3.1.12" }
+
 # MCLogs https://github.com/aternosorg/mclogs
 mc-logs = { module = "gs.mclo:java", version = "2.2.1" }
 
@@ -124,6 +127,7 @@ libraries-bukkit = [
     "aws-s3",
     "aws-url-connection",
     "spring-expression",
+    "janino",
     "commons-lang3",
     "mc-logs",
     "creative",

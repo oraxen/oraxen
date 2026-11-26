@@ -167,6 +167,7 @@ dependencies {
     testImplementation(oraxenLibs.commons.io)
     testImplementation(oraxenLibs.commons.lang3)
     testImplementation(oraxenLibs.spring.expression)
+    testImplementation(oraxenLibs.janino)
     testImplementation("net.kyori:adventure-api:4.18.0")
     testImplementation("net.kyori:adventure-text-minimessage:4.18.0")
     testImplementation("net.kyori:adventure-text-serializer-legacy:4.18.0")

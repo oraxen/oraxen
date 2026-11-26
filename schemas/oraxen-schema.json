@@ -8604,7 +8604,7 @@
         },
         "events": {
           "type": "array",
-          "description": "Actions for furniture clicks, successful player breaks or placements, or sitting on a seat. Use trigger: click with type: LEFT, RIGHT, or BOTH, trigger: break, trigger: place, or trigger: sit. The trigger defaults to click; the legacy click filter remains supported. Actions accept an optional cooldown such as 80ms, 2s, 3m, 1h, or 2d."
+          "description": "Actions for furniture clicks, successful player breaks or placements, or sitting on a seat. Use trigger: click with type: LEFT, RIGHT, or BOTH, trigger: break, trigger: place, or trigger: sit. The trigger defaults to click; the legacy click filter remains supported. Actions accept an optional cooldown such as 80ms, 2s, 3m, 1h, or 2d. Use java for a Java action with player and server variables."
         },
         "properties": {
           "type": "object",
@@ -8807,7 +8807,7 @@
         },
         "events": {
           "type": "array",
-          "description": "Actions for placed block clicks or successful player breaks or placements. Use trigger: click with type: LEFT, RIGHT, or BOTH, trigger: break, or trigger: place. The trigger defaults to click; the legacy click filter remains supported. Actions accept an optional cooldown such as 80ms, 2s, 3m, 1h, or 2d."
+          "description": "Actions for placed block clicks or successful player breaks or placements. Use trigger: click with type: LEFT, RIGHT, or BOTH, trigger: break, or trigger: place. The trigger defaults to click; the legacy click filter remains supported. Actions accept an optional cooldown such as 80ms, 2s, 3m, 1h, or 2d. Use java for a Java action with player and server variables."
         },
         "light": {
           "type": "integer",
