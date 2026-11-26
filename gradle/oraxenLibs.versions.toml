@@ -95,10 +95,6 @@ mc-logs = { module = "gs.mclo:java", version = "2.2.1" }
 # Repo: Maven Central
 bstats = { module = "org.bstats:bstats-bukkit", version = "3.1.0" }
 
-# Creative API https://github.com/unnamed/creative
-# Repo: Maven Central
-creative = { module = "team.unnamed:creative-api", version = "1.7.3" }
-
 # AntiGriefLib
 # Repo: https://repo.momirealms.net/releases/
 antigrieflib = { module = "net.momirealms:antigrieflib", version = "1.0.11" }
@@ -130,7 +126,6 @@ libraries-bukkit = [
     "janino",
     "commons-lang3",
     "mc-logs",
-    "creative",
 ]
 libraries-shade = [
     "bstats",
