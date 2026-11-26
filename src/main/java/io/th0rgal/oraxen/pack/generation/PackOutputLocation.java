@@ -15,7 +15,8 @@ final class PackOutputLocation {
     }
 
     static File resolve(File sourceFolder, Object configured) throws IOException {
-        if (configured == null || (configured instanceof String value && value.isBlank())) {
+        if (configured == null || (configured instanceof String value
+                && (value.isBlank() || value.equals("plugins/Oraxen/pack/pack.zip")))) {
             return defaultFile(sourceFolder);
         }
         if (!(configured instanceof String location)) throw new IOException("Expected a ZIP file path");

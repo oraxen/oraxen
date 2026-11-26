@@ -77,7 +77,7 @@ pack:
   generation:
     generate: true # Enable all pack generation, independently of configuration.defaults.assets.
     unprotected-location: "" # Optional readable ZIP before obfuscation. Keep outside plugins/Oraxen/pack.
-    location: "" # Client ZIP path relative to the server folder or absolute. Empty uses plugins/Oraxen/pack/pack.zip.
+    location: "plugins/Oraxen/pack/pack.zip" # The path where the resource pack gets generated to.
 
     mcmeta: true # Generate pack.mcmeta and overlays. Disable to use your own file.
 

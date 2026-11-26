@@ -23,6 +23,7 @@ class PackOutputLocationTest {
         assertEquals(expected, PackOutputLocation.resolve(source, null));
         assertEquals(expected, PackOutputLocation.resolve(source, ""));
         assertEquals(expected, PackOutputLocation.resolve(source, " \t"));
+        assertEquals(expected, PackOutputLocation.resolve(source, "plugins/Oraxen/pack/pack.zip"));
     }
 
     @Test
