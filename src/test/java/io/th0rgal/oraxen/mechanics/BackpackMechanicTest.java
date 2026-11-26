@@ -14,6 +14,8 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.MockedStatic;
 
 import java.util.List;
@@ -47,6 +49,14 @@ class BackpackMechanicTest extends MechanicTestSupport {
         assertEquals("close", mechanic.getCloseSound());
         assertEquals(0.7f, mechanic.getVolume());
         assertEquals(1.3f, mechanic.getPitch());
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {0, 7})
+    void fallsBackToOneRowForInvalidBackpackSize(int rows) {
+        BackpackMechanic mechanic = new BackpackMechanic(mechanicFactory(), mechanicSection("backpack", "rows", rows));
+
+        assertEquals(1, mechanic.getRows());
     }
 
     @Test

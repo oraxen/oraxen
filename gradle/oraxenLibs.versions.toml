@@ -107,7 +107,7 @@ persistent-data-serializer = { module = "com.jeff-media:persistent-data-serializ
 
 # Triumph GUI https://github.com/TriumphTeam/triumph-gui
 # Repo: Maven Central
-triumph-gui = { module = "dev.triumphteam:triumph-gui", version = "3.1.10" }
+triumph-gui = { module = "dev.triumphteam:triumph-gui", version = "3.1.13" }
 
 # Hopper - Runtime Dependency Loader https://github.com/oraxen/hopper
 # Repo: https://repo.oraxen.com/releases/

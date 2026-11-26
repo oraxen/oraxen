@@ -184,7 +184,8 @@ public class StorageMechanic {
     }
 
     public StorageMechanic(ConfigurationSection section) {
-        rows = section.getInt("rows", 6);
+        int configuredRows = section.getInt("rows", 6);
+        rows = configuredRows >= 1 && configuredRows <= 6 ? configuredRows : 1;
         title = section.getString("title", "Storage");
         type = parseType(section);
         openSound = section.getString("open_sound", "minecraft:block.chest.open");
