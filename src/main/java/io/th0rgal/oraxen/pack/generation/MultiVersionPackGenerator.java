@@ -138,16 +138,21 @@ public class MultiVersionPackGenerator {
         // This prevents stream consumption issues when reusing files across multiple pack versions
         List<MaterializedFile> materializedFiles = new java.util.ArrayList<>();
         JsonObject originalMcmeta = null;
+        boolean hasRootMcmeta = false;
         for (VirtualFile file : output) {
             try (InputStream inputStream = file.getInputStream()) {
                 byte[] content = org.apache.commons.io.IOUtils.toByteArray(inputStream);
-                materializedFiles.add(new MaterializedFile(file.getPath(), content));
-                if (isPackMcmeta(file.getPath())) {
+                String path = file.getPath();
+                materializedFiles.add(new MaterializedFile(path, content));
+                boolean rootMcmeta = "pack.mcmeta".equals(path);
+                if (rootMcmeta || (!hasRootMcmeta && isPackMcmeta(path))) {
                     try {
                         String mcmetaContent = new String(content, StandardCharsets.UTF_8);
                         originalMcmeta = JsonParser.parseString(mcmetaContent).getAsJsonObject();
+                        hasRootMcmeta = rootMcmeta;
                     } catch (Exception e) {
-                        Logs.logWarning("Failed to read pack.mcmeta: " + e.getMessage());
+                        Logs.logWarning("Failed to read pack.mcmeta: " + path);
+                        Logs.debug(e);
                     }
                 }
             } catch (Exception e) {
