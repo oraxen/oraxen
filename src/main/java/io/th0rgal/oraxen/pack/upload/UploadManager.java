@@ -18,7 +18,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.Plugin;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -73,13 +72,12 @@ public class UploadManager {
         registerReceiverIfNeeded();
 
         final long time = System.currentTimeMillis();
-        final File packFile = resourcePack.getFile();
         SchedulerUtil.runTaskAsync(() -> {
             if (cancelled) return;
 
             if (!new OraxenPackPreUploadEvent().callEvent() || cancelled) return;
 
-            if (!uploadPack(packFile, time)) return;
+            if (!uploadPack(resourcePack, time)) return;
 
             boolean contentChanged = updateTrackingState();
             if (cancelled) return;
@@ -101,9 +99,9 @@ public class UploadManager {
         }
     }
 
-    private boolean uploadPack(File packFile, long startTime) {
+    private boolean uploadPack(ResourcePack resourcePack, long startTime) {
         Message.PACK_UPLOADING.log();
-        if (!hostingProvider.uploadPack(packFile)) {
+        if (!hostingProvider.uploadPack(resourcePack.getFile())) {
             Message.PACK_NOT_UPLOADED.log();
             return false;
         }

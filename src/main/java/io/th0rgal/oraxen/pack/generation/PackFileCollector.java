@@ -78,7 +78,7 @@ class PackFileCollector {
         // Exclude .zip files only at the pack folder root — these are generated outputs
         // (main pack.zip and multi-version zips like pack_1_20.zip). User .zip assets in
         // subdirectories (e.g., assets/) are preserved.
-        if (!file.isDirectory() && name.toLowerCase(Locale.ROOT).endsWith(".zip")
+        if (!file.isDirectory() && name.toLowerCase().endsWith(".zip")
                 && packFolder != null && packFolder.equals(file.getParentFile()))
             return true;
 

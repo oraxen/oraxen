@@ -26,11 +26,14 @@ class StudioBundleUtilsTest {
         assertTrue(StudioBundleUtils.isTrackableRelativePath("glyphs/emoji.yml"));
         assertTrue(StudioBundleUtils.isTrackableRelativePath("recipes/shaped.yml"));
         assertTrue(StudioBundleUtils.isTrackableRelativePath("pack/textures/default/emerald_sword.png"));
+        assertTrue(StudioBundleUtils.isTrackableRelativePath("pack/imports/custom.zip"));
         assertTrue(StudioBundleUtils.isTrackableRelativePath("hud.yml"));
         assertTrue(StudioBundleUtils.isTrackableRelativePath("sounds.yml"));
 
         assertFalse(StudioBundleUtils.isTrackableRelativePath("settings.yml"));
         assertFalse(StudioBundleUtils.isTrackableRelativePath("pack/pack.zip"));
+        assertFalse(StudioBundleUtils.isTrackableRelativePath("pack/custom.zip"));
+        assertFalse(StudioBundleUtils.isTrackableRelativePath("pack/pack_1_21_4.zip"));
         assertFalse(StudioBundleUtils.isTrackableRelativePath("../secrets.yml"));
         assertFalse(StudioBundleUtils.isTrackableRelativePath(".studio-backup/items/weapons.yml"));
     }

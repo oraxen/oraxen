@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -205,8 +204,7 @@ public class StudioSyncService {
 
     static boolean completePushSyncState(StudioSyncState state, Path dataFolder, String workspaceId, int committedRev,
                                          Map<String, FileEntry> local, boolean force,
-                                         Set<String> generatedPackPaths, ManifestLoader manifestLoader)
-            throws IOException, InterruptedException {
+                                         ManifestLoader manifestLoader) throws IOException, InterruptedException {
         // Record the uploaded base immediately so a retry does not treat our own
         // uploads as conflicts, but keep the previous revision until any Studio-only
         // files preserved by a non-forced push have been reconciled via pullFromStudio.
@@ -215,8 +213,7 @@ public class StudioSyncService {
         state.save(dataFolder);
 
         boolean pullAfter = !force && manifestLoader.load().files().keySet().stream()
-                .anyMatch(path -> !generatedPackPaths.contains(path)
-                        && StudioBundleUtils.isTrackableRelativePath(path) && !local.containsKey(path));
+                .anyMatch(path -> StudioBundleUtils.isTrackableRelativePath(path) && !local.containsKey(path));
         if (!pullAfter) {
             state.recordSync(workspaceId, committedRev, pushedHashes);
             state.save(dataFolder);
@@ -226,12 +223,6 @@ public class StudioSyncService {
 
     private Path dataFolder() {
         return plugin.getDataFolder().toPath();
-    }
-
-    private Set<String> generatedClientPackPaths(Path root) throws IOException {
-        boolean multiVersion = Settings.MULTI_VERSION_PACKS.toBool() && Settings.UPLOAD.toBool()
-                && !"self-host".equalsIgnoreCase(Settings.UPLOAD_TYPE.toString());
-        return StudioFileSync.generatedClientPackPaths(root, Settings.PACK_LOCATION.getValue(), multiVersion);
     }
 
     /** Fails with a clear message if this Studio deployment does not speak API v1. */
@@ -497,9 +488,7 @@ public class StudioSyncService {
                 StudioApiClient.Connection connection = api.connection(secret);
                 StudioSyncState state = StudioSyncState.load(dataFolder(), connection.workspaceId());
                 List<String> unsupported = new ArrayList<>();
-                Path root = dataFolder();
-                Set<String> generatedPackPaths = generatedClientPackPaths(root);
-                Map<String, FileEntry> local = StudioFileSync.localManifest(root, unsupported, generatedPackPaths);
+                Map<String, FileEntry> local = StudioFileSync.localManifest(dataFolder(), unsupported);
                 if (!unsupported.isEmpty()) {
                     Logs.logWarning("Oraxen Studio skips " + unsupported.size() + " file(s) whose names contain %, ? or #: "
                             + String.join(", ", unsupported.subList(0, Math.min(5, unsupported.size()))));
@@ -517,8 +506,8 @@ public class StudioSyncService {
                 StudioApiClient.PushResult result = api.commitPush(secret, plan.pushId());
                 pushId = null;
 
-                pullAfter = completePushSyncState(state, root, connection.workspaceId(), result.rev(),
-                        local, force, generatedPackPaths, () -> api.manifest(secret));
+                pullAfter = completePushSyncState(state, dataFolder(), connection.workspaceId(), result.rev(),
+                        local, force, () -> api.manifest(secret));
                 sendMessage(sender, "<prefix><#55ffa4>Pushed <#43fa8c>" + result.uploaded()
                         + "<#55ffa4> file(s) to Oraxen Studio (revision #" + result.rev() + ", "
                         + plan.unchanged() + " unchanged, " + result.deleted() + " deleted).");
@@ -581,25 +570,22 @@ public class StudioSyncService {
                 StudioApiClient.Connection connection = api.connection(secret);
                 StudioSyncState state = StudioSyncState.load(dataFolder(), connection.workspaceId());
                 StudioApiClient.Manifest remote = api.manifest(secret);
-                Path root = dataFolder();
-                Set<String> generatedPackPaths = generatedClientPackPaths(root);
-                Map<String, FileEntry> remoteFiles = StudioFileSync.withoutGeneratedPacks(remote.files(), generatedPackPaths);
-                Map<String, FileEntry> local = StudioFileSync.localManifest(root, new ArrayList<>(), generatedPackPaths);
-                StudioFileSync.PullPlan plan = StudioFileSync.planPull(remoteFiles, local, state.base());
+                Map<String, FileEntry> local = StudioFileSync.localManifest(dataFolder());
+                StudioFileSync.PullPlan plan = StudioFileSync.planPull(remote.files(), local, state.base());
 
                 Map<String, String> urls = new HashMap<>();
                 List<String> downloads = plan.download();
                 for (int i = 0; i < downloads.size(); i += DOWNLOAD_BATCH) {
                     urls.putAll(api.downloadUrls(secret, downloads.subList(i, Math.min(downloads.size(), i + DOWNLOAD_BATCH))));
                 }
-                List<String> changed = StudioFileSync.applyPull(root, plan, remoteFiles, (path, target) -> {
+                List<String> changed = StudioFileSync.applyPull(dataFolder(), plan, remote.files(), (path, target) -> {
                     String url = urls.get(path);
                     if (url == null) throw new IOException("Studio did not provide a download for " + path);
                     api.download(url, target);
                 });
 
-                state.recordSync(connection.workspaceId(), remote.rev(), StudioFileSync.hashes(remoteFiles));
-                state.save(root);
+                state.recordSync(connection.workspaceId(), remote.rev(), StudioFileSync.hashes(remote.files()));
+                state.save(dataFolder());
                 if (!plan.localChanges().isEmpty()) {
                     Logs.logWarning("Oraxen Studio replaced " + plan.localChanges().size()
                             + " file(s) that were also edited on this server; the server versions are in plugins/Oraxen/.studio-backup/");
@@ -608,7 +594,7 @@ public class StudioSyncService {
                     sendMessage(sender, "<prefix><#55ffa4>Already up to date with Oraxen Studio (revision #" + remote.rev() + ").");
                 } else {
                     reloadScheduled = true;
-                    scheduleReloadAfterPull(sender, changed.size(), remote.rev(), remoteFiles);
+                    scheduleReloadAfterPull(sender, changed.size(), remote.rev(), remote.files());
                 }
             } catch (StudioApiException e) {
                 sendMessage(sender, "<prefix><#fa4943>Studio pull failed: " + e.getMessage());
@@ -705,8 +691,7 @@ public class StudioSyncService {
      */
     private void writeBackLoaderChanges(Map<String, FileEntry> pulled) {
         try {
-            Path root = dataFolder();
-            Map<String, FileEntry> local = StudioFileSync.localManifest(root, new ArrayList<>(), generatedClientPackPaths(root));
+            Map<String, FileEntry> local = StudioFileSync.localManifest(dataFolder());
             List<String> rewritten = new ArrayList<>();
             pulled.forEach((path, entry) -> {
                 FileEntry now = local.get(path);

@@ -23,7 +23,6 @@ import java.nio.file.Path;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -212,21 +211,6 @@ class PackFileCollectorTest {
         Map<String, Set<String>> malformed = PackFileCollector.verifyPackFormatting(List.of(model));
 
         assertTrue(malformed.isEmpty());
-    }
-
-    @Test
-    void ignoresRootZipWithTurkishDefaultLocale() throws IOException {
-        Locale previous = Locale.getDefault();
-        try {
-            Locale.setDefault(Locale.forLanguageTag("tr-TR"));
-            Path source = tempDir.resolve("pack");
-            Path output = source.resolve("CLIENT.ZIP");
-            assertEquals(output.toFile().getCanonicalFile(), PackOutputLocation.resolve(source.toFile(), output.toString()));
-            assertTrue(PackFileCollector.shouldIgnorePackFile(output.toFile(), source.toFile()));
-            assertFalse(PackFileCollector.shouldIgnorePackFile(source.resolve("assets/CLIENT.ZIP").toFile(), source.toFile()));
-        } finally {
-            Locale.setDefault(previous);
-        }
     }
 
     @Test

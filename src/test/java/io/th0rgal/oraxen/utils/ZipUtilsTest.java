@@ -12,14 +12,11 @@ import org.junit.jupiter.api.io.TempDir;
 import org.mockito.MockedStatic;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.attribute.PosixFilePermissions;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -115,51 +112,12 @@ class ZipUtilsTest {
         }
     }
 
-    @Test
-    void replacementKeepsPreviousZipReadableUntilProtectedZipIsReady() throws Exception {
-        Path output = writePack("live.zip");
-        byte[] previous = Files.readAllBytes(output);
-        var permissions = Files.getFileStore(output).supportsFileAttributeView("posix")
-                ? PosixFilePermissions.fromString("rw-r-----") : null;
-        if (permissions != null) Files.setPosixFilePermissions(output, permissions);
-        settings.set(Settings.PACK_SIZE_SPOOFING.getPath(), true);
-        Settings.invalidateCache();
-        try (InputStream download = permissions != null ? Files.newInputStream(output) : InputStream.nullInputStream()) {
-            ZipUtils.writePackZip(output.toFile(), List.of(new VirtualFile("", "new.txt", () -> {
-                assertArrayEquals(previous, assertDoesNotThrow(() -> Files.readAllBytes(output)));
-                return new ByteArrayInputStream(new byte[]{42});
-            })));
-            if (permissions != null) assertArrayEquals(previous, download.readAllBytes());
-        }
-        try (ZipFile zip = new ZipFile(output.toFile())) {
-            var entry = zip.getEntry("new.txt");
-            assertNotNull(entry);
-            assertEquals(0, entry.getSize());
-            try (var stream = zip.getInputStream(entry)) {
-                assertArrayEquals(new byte[]{42}, stream.readAllBytes());
-            }
-        }
-        if (permissions != null) assertEquals(permissions, Files.getPosixFilePermissions(output));
-    }
-
-    @Test
-    void failedReplacementLeavesPreviousZipAndCleansUpStagingFile() throws Exception {
-        Path output = writePack("live.zip");
-        byte[] previous = Files.readAllBytes(output);
-        assertThrows(IllegalStateException.class, () -> ZipUtils.writePackZip(output.toFile(),
-                List.of(new VirtualFile("", "broken.txt", () -> { throw new IllegalStateException("broken input"); }))));
-        assertArrayEquals(previous, Files.readAllBytes(output));
-        try (var files = Files.list(temporaryDirectory)) {
-            assertEquals(List.of(output), files.toList());
-        }
-    }
-
-    private Path writePack(String filename) throws IOException {
+    private Path writePack(String filename) {
         List<VirtualFile> files = contents.entrySet().stream()
                 .map(entry -> new VirtualFile("", entry.getKey(), () -> new ByteArrayInputStream(entry.getValue())))
                 .toList();
         Path output = temporaryDirectory.resolve(filename);
-        ZipUtils.writePackZip(output.toFile(), files);
+        ZipUtils.writeZipFile(output.toFile(), files);
         return output;
     }
 

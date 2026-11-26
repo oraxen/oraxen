@@ -52,6 +52,17 @@ class PackVersionManagerTest {
     }
 
     @Test
+    void customOutputLocationNamesVersionedPacks() {
+        Path output = tempDir.resolve("web/packs");
+        PackVersionManager customManager = new PackVersionManager(output.toFile(), "custom");
+        customManager.setSilentMode(true);
+        customManager.definePackVersions();
+
+        assertEquals(output.resolve("custom_1_21_3.zip").toFile(), customManager.getVersion("1.21.3").getPackFile());
+        assertEquals(output.resolve("custom_1_21_4.zip").toFile(), customManager.getVersion("1.21.4").getPackFile());
+    }
+
+    @Test
     void testFindBestVersionForFormat() {
         manager.definePackVersions();
 

@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen.studio;
 
 import io.th0rgal.oraxen.studio.StudioApiClient.FileEntry;
-import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -12,7 +11,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -46,71 +44,6 @@ class StudioFileSyncTest {
         assertEquals(List.of("items/a.yml", "pack/textures/a.png"), new ArrayList<>(manifest.keySet()));
         assertEquals(entry("a"), manifest.get("items/a.yml"));
         assertEquals(List.of("items/50%_off.yml"), unsupported);
-    }
-
-    @Test
-    void studioSyncExcludesConfiguredClientPacksButKeepsImportZips(@TempDir Path root) throws IOException {
-        String main = "pack/custom.zip";
-        String legacy = "pack/custom_1_21_3.zip";
-        String modern = "pack/custom_1_21_4.zip";
-        String imported = "pack/imports/custom.zip";
-        for (String path : List.of(main, legacy, modern, imported)) write(root, path, path);
-
-        Set<String> generated = StudioFileSync.generatedClientPackPaths(root, root.resolve(main).toString(), true);
-        Map<String, FileEntry> local = StudioFileSync.localManifest(root, new ArrayList<>(), generated);
-        assertEquals(Map.of(imported, entry(imported)), local);
-        Map<String, FileEntry> remote = StudioFileSync.withoutGeneratedPacks(
-                Map.of(main, entry("outdated pack"), legacy, entry("outdated variant"), imported, entry("updated import")),
-                generated);
-        var pull = StudioFileSync.planPull(remote, local, null);
-        assertEquals(List.of(imported), pull.download());
-        assertTrue(pull.delete().isEmpty());
-    }
-
-    @Test
-    void generatedPackPathsUseFallbackAndOnlyReserveEnabledVariants(@TempDir Path root) throws IOException {
-        String invalid = root.resolve("pack/imports/custom.zip").toString();
-        assertEquals(Set.of("pack/pack.zip"), StudioFileSync.generatedClientPackPaths(root, invalid, false));
-        assertEquals(Set.of("pack/pack.zip", "pack/pack_1_21_3.zip", "pack/pack_1_21_4.zip"),
-                StudioFileSync.generatedClientPackPaths(root, invalid, true));
-        assertTrue(StudioFileSync.generatedClientPackPaths(root, root.getParent().resolve("outside.zip").toString(), true)
-                .isEmpty());
-    }
-
-    @Test
-    void generatedPackPathsExcludeAcceptedSymlinkButNotRejectedInputAlias(@TempDir Path root) throws IOException {
-        write(root, "pack/pack.zip", "old pack");
-        Path accepted = root.resolve("pack/custom.zip");
-        Path rejected = root.resolve("pack/imports/alias.zip");
-        Files.createDirectories(rejected.getParent());
-        try {
-            Files.createSymbolicLink(accepted, root.resolve("pack/pack.zip"));
-            Files.createSymbolicLink(rejected, root.resolve("pack/pack.zip"));
-        } catch (IOException | UnsupportedOperationException e) {
-            Assumptions.assumeTrue(false, "Symbolic links unavailable: " + e);
-        }
-        assertEquals(Set.of("pack/pack.zip", "pack/custom.zip"),
-                StudioFileSync.generatedClientPackPaths(root, accepted.toString(), false));
-        Set<String> generated = StudioFileSync.generatedClientPackPaths(root, rejected.toString(), false);
-        assertEquals(Set.of("pack/pack.zip"), generated);
-        assertTrue(StudioFileSync.localManifest(root, new ArrayList<>(), generated).containsKey("pack/imports/alias.zip"));
-    }
-
-    @Test
-    void generatedPackPathsDoNotExcludeUnrelatedAliasAfterSymlinkParentTraversal(@TempDir Path root) throws IOException {
-        write(root, "external/custom.zip", "generated pack");
-        write(root, "pack/other.zip", "unrelated");
-        Files.createDirectories(root.resolve("external/sub"));
-        try {
-            Files.createSymbolicLink(root.resolve("pack/link"), root.resolve("external/sub"));
-            Files.createSymbolicLink(root.resolve("pack/custom.zip"), root.resolve("pack/other.zip"));
-        } catch (IOException | UnsupportedOperationException e) {
-            Assumptions.assumeTrue(false, "Symbolic links unavailable: " + e);
-        }
-        String location = root.resolve("pack/link/../custom.zip").toString();
-        Set<String> generated = StudioFileSync.generatedClientPackPaths(root, location, false);
-        assertEquals(Set.of("external/custom.zip"), generated);
-        assertTrue(StudioFileSync.localManifest(root, new ArrayList<>(), generated).containsKey("pack/custom.zip"));
     }
 
     @Test
@@ -250,7 +183,7 @@ class StudioFileSyncTest {
                 "items/studio_only.yml", entry("from studio")));
 
         boolean pullAfter = StudioSyncService.completePushSyncState(
-                state, root, "ws-1", 4, local, false, Set.of(), () -> remoteWithExtra);
+                state, root, "ws-1", 4, local, false, () -> remoteWithExtra);
 
         assertTrue(pullAfter);
         StudioSyncState saved = StudioSyncState.load(root, "ws-1");
@@ -259,15 +192,13 @@ class StudioFileSyncTest {
     }
 
     @Test
-    void completePushSyncState_ignoresPreviouslyUploadedGeneratedPack(@TempDir Path root) throws Exception {
+    void completePushSyncState_persistsRevisionWhenNoFollowUpPullNeeded(@TempDir Path root) throws Exception {
         StudioSyncState state = StudioSyncState.load(root, "ws-1");
         Map<String, FileEntry> local = Map.of("items/a.yml", entry("new"));
-        StudioApiClient.Manifest remoteMatching = new StudioApiClient.Manifest(4, Map.of(
-                "items/a.yml", entry("new"),
-                "pack/custom.zip", entry("previous pack")));
+        StudioApiClient.Manifest remoteMatching = new StudioApiClient.Manifest(4, local);
 
         boolean pullAfter = StudioSyncService.completePushSyncState(
-                state, root, "ws-1", 4, local, false, Set.of("pack/custom.zip"), () -> remoteMatching);
+                state, root, "ws-1", 4, local, false, () -> remoteMatching);
 
         assertFalse(pullAfter);
         StudioSyncState saved = StudioSyncState.load(root, "ws-1");

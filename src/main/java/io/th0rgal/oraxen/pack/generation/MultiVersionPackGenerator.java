@@ -20,9 +20,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -93,18 +92,14 @@ public class MultiVersionPackGenerator {
     }
 
     public MultiVersionPackGenerator(File packFolder, Map<String, String> generatedCoreShaderHashes) {
-        this(packFolder, PackOutputLocation.defaultFile(packFolder), generatedCoreShaderHashes, "pack");
+        this(packFolder, PackOutputLocation.defaultFile(packFolder), generatedCoreShaderHashes);
     }
 
     MultiVersionPackGenerator(File packFolder, File legacyPack, Map<String, String> generatedCoreShaderHashes) {
-        this(packFolder, legacyPack, generatedCoreShaderHashes,
-                PackOutputLocation.packName(legacyPack));
-    }
-
-    private MultiVersionPackGenerator(File packFolder, File legacyPack, Map<String, String> generatedCoreShaderHashes,
-                                      String packName) {
         this.packFolder = packFolder;
         this.legacyPack = legacyPack;
+        String packName = legacyPack.equals(PackOutputLocation.defaultFile(packFolder))
+                ? "pack" : PackOutputLocation.packName(legacyPack);
         this.versionManager = new PackVersionManager(legacyPack.getParentFile(), packName);
         this.generatedCoreShaderHashes = Map.copyOf(generatedCoreShaderHashes);
     }
@@ -121,24 +116,18 @@ public class MultiVersionPackGenerator {
     }
 
     public void generateMultipleVersions(List<VirtualFile> output, boolean switchingFromSinglePack, JsonArray generatedOverlayEntries) {
-        generatePacks(output, switchingFromSinglePack, generatedOverlayEntries);
-    }
-
-    boolean generatePacks(List<VirtualFile> output, boolean switchingFromSinglePack, JsonArray generatedOverlayEntries) {
         Logs.logInfo("Generating multi-version resource packs...");
 
         // Fire event to allow modifications before generation
         OraxenPackGeneratedEvent event = new OraxenPackGeneratedEvent(output);
         event.callEvent();
         output = event.getOutput();
-        versionManager.definePackVersions();
-        Collection<PackVersion> versions = versionManager.getAllVersions();
-        List<File> clientPacks = new ArrayList<>();
-        clientPacks.add(legacyPack);
-        for (PackVersion version : versions) clientPacks.add(version.getPackFile());
-        UnprotectedPackWriter.writeConfigured(output, packFolder, clientPacks);
+        UnprotectedPackWriter.writeConfigured(output, packFolder);
         PackObfuscator.obfuscate(output);
         PackPipeline.sparsifyGeneratedOverlays(output, generatedOverlayEntries);
+
+        // Define which pack versions to generate
+        versionManager.definePackVersions();
 
         // Set server pack version based on current server version
         // MinecraftVersion.getVersion() returns "1.21.0" format directly
@@ -166,30 +155,33 @@ public class MultiVersionPackGenerator {
             }
         }
 
-        // Keep the main ZIP up to date for API callers using the same post-event
+        // Keep legacy pack.zip up to date for API callers using the same post-event
         // output content as the generated multi-version packs.
-        boolean legacyWritten = writeLegacyPack(materializedFiles);
+        writeLegacyPack(materializedFiles);
 
         // Generate each pack version
+        Collection<PackVersion> versions = versionManager.getAllVersions();
         int successCount = 0;
         for (PackVersion packVersion : versions) {
             try {
                 generatePackVersion(packVersion, materializedFiles, originalMcmeta);
                 successCount++;
             } catch (Exception e) {
-                Logs.logError("Failed to generate pack for " + packVersion.getMinecraftVersion() + " at " + packVersion.getPackFile());
-                Logs.debug(e);
+                Logs.logError("Failed to generate pack for " + packVersion.getMinecraftVersion() + ": " + e.getMessage());
+                if (Settings.DEBUG.toBool()) {
+                    Logs.debug(e);
+                }
             }
         }
 
         if (successCount == versions.size()) {
             Logs.logSuccess("Generated " + successCount + " pack versions successfully");
-            uploadAndSendPacks(switchingFromSinglePack);
         } else {
             Logs.logWarning("Generated " + successCount + "/" + versions.size() + " pack versions (" + (versions.size() - successCount) + " failed)");
         }
 
-        return legacyWritten;
+        // Upload and send packs to players
+        uploadAndSendPacks(switchingFromSinglePack);
     }
 
     private void generatePackVersion(PackVersion packVersion, List<MaterializedFile> materializedFiles, JsonObject originalMcmeta) throws IOException {
@@ -240,7 +232,7 @@ public class MultiVersionPackGenerator {
 
         // Generate the zip file
         File packFile = packVersion.getPackFile();
-        ZipUtils.writePackZip(packFile, versionOutput);
+        ZipUtils.writeZipFile(packFile, versionOutput);
 
         Logs.logSuccess("  Created: " + packFile.getName() + " (" + formatFileSize(packFile.length()) + ")");
     }
@@ -273,7 +265,7 @@ public class MultiVersionPackGenerator {
         return tempFile;
     }
 
-    private boolean writeLegacyPack(List<MaterializedFile> materializedFiles) {
+    private void writeLegacyPack(List<MaterializedFile> materializedFiles) {
         try {
             boolean supportsSplitAtlas = PlatformCapabilities.supportsSplitItemAtlas(PlatformCapabilities.currentVersion());
             byte[] itemsAtlasBytes = supportsSplitAtlas ? null : findMaterializedContent(materializedFiles, ITEMS_ATLAS_PATH);
@@ -291,12 +283,12 @@ public class MultiVersionPackGenerator {
                 String name = path.contains("/") ? path.substring(path.lastIndexOf("/") + 1) : path;
                 legacyOutput.add(new VirtualFile(parentFolder, name, stream));
             }
-            ZipUtils.writePackZip(legacyPack, legacyOutput);
-            return true;
+            ZipUtils.writeZipFile(legacyPack, legacyOutput);
         } catch (Exception e) {
-            Logs.logWarning("Failed to refresh the main resource pack ZIP at " + legacyPack);
-            Logs.debug(e);
-            return false;
+            Logs.logWarning("Failed to refresh legacy pack.zip in multi-version mode: " + e.getMessage());
+            if (Settings.DEBUG.toBool()) {
+                Logs.debug(e);
+            }
         }
     }
 

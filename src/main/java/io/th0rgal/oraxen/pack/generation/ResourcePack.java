@@ -279,11 +279,11 @@ public class ResourcePack {
                     if (shutdownRequested) return;
                     filterGeneratedCoreShadersBelow1214(output, MinecraftVersion.getCurrentVersion());
                     File packFile = resolvePackFile();
-                    UnprotectedPackWriter.writeConfigured(output, packFolder, List.of(packFile));
+                    UnprotectedPackWriter.writeConfigured(output, packFolder);
                     PackObfuscator.obfuscate(output);
                     PackPipeline.sparsifyGeneratedOverlays(output, mergedImportOverlayEntries);
                     if (shutdownRequested) return;
-                    ZipUtils.writePackZip(packFile, output);
+                    ZipUtils.writeZipFile(packFile, output);
                     if (shutdownRequested) return;
                     pack = packFile;
                     SchedulerUtil.runTask(this::uploadGeneratedPackAndFinish);
@@ -387,6 +387,13 @@ public class ResourcePack {
             Logs.logError("HappyHUD detected with hide_scoreboard_numbers enabled!");
             Logs.logWarning(
                     "Recommend following this guide for compatibility: https://docs.oraxen.com/compatibility/happyhud");
+        }
+
+        try {
+            Files.deleteIfExists(pack.toPath());
+        } catch (IOException e) {
+            Logs.logWarning("Failed to delete an obsolete resource pack archive.");
+            Logs.debug(e);
         }
 
         if (!isMcmetaGenerationDisabled()) {
@@ -673,9 +680,10 @@ public class ResourcePack {
 
         // Use MultiVersionPackGenerator for multi-version zip and upload
         File packFile = resolvePackFile();
+        pack = packFile;
         MultiVersionPackGenerator multiVersionGenerator = new MultiVersionPackGenerator(packFolder, packFile,
                 textShaderGenerator.getGeneratedCoreShaderHashes());
-        if (multiVersionGenerator.generatePacks(output, switchingFromSinglePack, mergedImportOverlayEntries)) pack = packFile;
+        multiVersionGenerator.generateMultipleVersions(output, switchingFromSinglePack, mergedImportOverlayEntries);
     }
 
     private File resolvePackFile() {

@@ -5,15 +5,12 @@ import io.th0rgal.oraxen.pack.generation.DuplicationHandler;
 import io.th0rgal.oraxen.utils.logs.Logs;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.FileTime;
-import java.nio.file.attribute.PosixFileAttributeView;
-import java.nio.file.attribute.PosixFilePermissions;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -48,38 +45,21 @@ public class ZipUtils {
     public static void writeZipFile(final File outputFile,
             final List<VirtualFile> fileList) {
 
-        try {
-            writePackZip(outputFile, fileList);
-        } catch (final IOException ex) {
-            Logs.logError("Failed to write resource pack zip");
-            Logs.debug(ex);
-        }
-    }
-
-    public static void writePackZip(final File outputFile, final List<VirtualFile> fileList) throws IOException {
         final int compressionLevel = compressionLevel();
-        Path target = outputFile.getCanonicalFile().toPath();
-        Path parent = Files.createDirectories(target.getParent());
-        boolean posix = Files.getFileStore(parent).supportsFileAttributeView(PosixFileAttributeView.class);
-        Path temporary = posix
-                ? Files.createTempFile(parent, ".oraxen-pack-", ".zip",
-                        PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-rw-rw-")))
-                : Files.createTempFile(parent, ".oraxen-pack-", ".zip");
         try {
-            try (ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(temporary), StandardCharsets.UTF_8)) {
+            Files.createDirectories(outputFile.toPath().toAbsolutePath().getParent());
+            try (final FileOutputStream fos = new FileOutputStream(outputFile);
+                final ZipOutputStream zos = new ZipOutputStream(fos, StandardCharsets.UTF_8)) {
                 zos.setLevel(compressionLevel);
                 zos.setComment(Settings.COMMENT.toString());
                 for (final VirtualFile file : fileList) {
                     addToZip(file.getPath(), file.getInputStream(), zos);
                 }
             }
-            if (Settings.PACK_SIZE_SPOOFING.toBool()) ZipSizeSpoofer.spoof(temporary);
-            if (posix && Files.isRegularFile(target)) {
-                Files.setPosixFilePermissions(temporary, Files.getPosixFilePermissions(target));
-            }
-            Files.move(temporary, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
-        } finally {
-            Files.deleteIfExists(temporary);
+            if (Settings.PACK_SIZE_SPOOFING.toBool()) ZipSizeSpoofer.spoof(outputFile.toPath());
+        } catch (final IOException ex) {
+            Logs.logError("Failed to write resource pack zip");
+            Logs.debug(ex);
         }
     }
 
