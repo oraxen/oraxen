@@ -320,6 +320,7 @@ class BlockEventsTest {
 
             assertTrue(events.run(player, Action.RIGHT_CLICK_BLOCK));
             logs.verify(() -> Logs.logWarning("Failed to run Java action in furniture.events of test."));
+            verify(logger).warning("java.lang.IllegalStateException: script failed");
             verify(player, never()).giveExp(10);
             verify(player, never()).performCommand("say mixed");
             verify(player).performCommand("say still ran");

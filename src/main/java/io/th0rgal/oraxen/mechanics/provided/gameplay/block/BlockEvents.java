@@ -262,6 +262,7 @@ public class BlockEvents {
                 script.run(player, Bukkit.getServer());
             } catch (Exception | LinkageError exception) {
                 Logs.logWarning("Failed to run Java action in " + eventPath + " of " + sourceID + ".");
+                Bukkit.getLogger().warning(exception.toString());
                 Logs.debug(exception);
             }
         }
