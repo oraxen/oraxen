@@ -77,6 +77,7 @@ public enum Settings {
     //Pack
     GENERATE("pack.generation.generate"),
     UNPROTECTED_PACK_LOCATION("pack.generation.unprotected-location"),
+    PACK_LOCATION("pack.generation.location"),
     GENERATE_MCMETA("pack.generation.mcmeta"),
     MULTI_VERSION_PACKS("pack.generation.multi-version-packs"),
     EXCLUDED_FILE_EXTENSIONS("pack.excluded-file-extensions"),

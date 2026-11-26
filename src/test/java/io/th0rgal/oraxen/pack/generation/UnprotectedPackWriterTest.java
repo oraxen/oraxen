@@ -1,6 +1,10 @@
 package io.th0rgal.oraxen.pack.generation;
 
+import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.configs.ConfigsManager;
+import io.th0rgal.oraxen.configs.Settings;
 import io.th0rgal.oraxen.utils.VirtualFile;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -15,6 +19,8 @@ import java.util.List;
 import java.util.zip.ZipFile;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.Mockito.*;
 
 class UnprotectedPackWriterTest {
     @TempDir
@@ -85,6 +91,28 @@ class UnprotectedPackWriterTest {
         assertEquals("content", new String(valid.getInputStream().readAllBytes(), StandardCharsets.UTF_8));
         try (var files = Files.list(directory)) {
             assertEquals(List.of(destination), files.toList());
+        }
+    }
+
+    @Test
+    void configuredExportDoesNotOverwriteClientArchiveOutsideSource() throws Exception {
+        Path destination = directory.resolve("client.zip");
+        Files.writeString(destination, "client archive");
+        YamlConfiguration settings = new YamlConfiguration();
+        settings.set(Settings.UNPROTECTED_PACK_LOCATION.getPath(), destination.toString());
+        OraxenPlugin plugin = mock(OraxenPlugin.class);
+        ConfigsManager configs = mock(ConfigsManager.class);
+        when(plugin.getConfigsManager()).thenReturn(configs);
+        when(configs.getSettings()).thenReturn(settings);
+        try (var plugins = mockStatic(OraxenPlugin.class); var logs = mockStatic(Logs.class)) {
+            plugins.when(OraxenPlugin::get).thenReturn(plugin);
+            Settings.invalidateCache();
+            UnprotectedPackWriter.writeConfigured(List.of(file("", "pack.mcmeta", "readable archive")),
+                    directory.resolve("pack").toFile(), List.of(destination.toFile()));
+            assertEquals("client archive", Files.readString(destination));
+            logs.verify(() -> Logs.logWarning(contains("unprotected")));
+        } finally {
+            Settings.invalidateCache();
         }
     }
 

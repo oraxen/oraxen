@@ -9,6 +9,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.attribute.FileTime;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -44,21 +45,26 @@ public class ZipUtils {
     public static void writeZipFile(final File outputFile,
             final List<VirtualFile> fileList) {
 
-        final int compressionLevel = compressionLevel();
         try {
-            try (final FileOutputStream fos = new FileOutputStream(outputFile);
-                final ZipOutputStream zos = new ZipOutputStream(fos, StandardCharsets.UTF_8)) {
-                zos.setLevel(compressionLevel);
-                zos.setComment(Settings.COMMENT.toString());
-                for (final VirtualFile file : fileList) {
-                    addToZip(file.getPath(), file.getInputStream(), zos);
-                }
-            }
-            if (Settings.PACK_SIZE_SPOOFING.toBool()) ZipSizeSpoofer.spoof(outputFile.toPath());
+            writePackZip(outputFile, fileList);
         } catch (final IOException ex) {
             Logs.logError("Failed to write resource pack zip");
             Logs.debug(ex);
         }
+    }
+
+    public static void writePackZip(final File outputFile, final List<VirtualFile> fileList) throws IOException {
+        final int compressionLevel = compressionLevel();
+        Files.createDirectories(outputFile.toPath().toAbsolutePath().getParent());
+        try (final FileOutputStream fos = new FileOutputStream(outputFile);
+            final ZipOutputStream zos = new ZipOutputStream(fos, StandardCharsets.UTF_8)) {
+            zos.setLevel(compressionLevel);
+            zos.setComment(Settings.COMMENT.toString());
+            for (final VirtualFile file : fileList) {
+                addToZip(file.getPath(), file.getInputStream(), zos);
+            }
+        }
+        if (Settings.PACK_SIZE_SPOOFING.toBool()) ZipSizeSpoofer.spoof(outputFile.toPath());
     }
 
     public static void addToZip(String zipFilePath, final InputStream fis, ZipOutputStream zos) throws IOException {

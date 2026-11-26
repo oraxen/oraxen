@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.FileTime;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -24,14 +25,21 @@ final class UnprotectedPackWriter {
     private UnprotectedPackWriter() {
     }
 
-    static void writeConfigured(List<VirtualFile> output, File packFolder) {
+    static void writeConfigured(List<VirtualFile> output, File packFolder, Collection<File> clientPacks) {
         Object location = Settings.UNPROTECTED_PACK_LOCATION.getValue();
         if (location == null || location.toString().isBlank()) return;
 
         try {
-            write(Path.of(location.toString()), output, packFolder);
+            Path destination = Path.of(location.toString()).toFile().getCanonicalFile().toPath();
+            for (File clientPack : clientPacks) {
+                if (destination.equals(clientPack.getCanonicalFile().toPath())) {
+                    throw new IOException("unprotected-location must not match a client resource pack ZIP");
+                }
+            }
+            write(destination, output, packFolder);
         } catch (IOException | RuntimeException exception) {
-            Logs.logWarning("Failed to write unprotected resource pack: " + exception.getMessage());
+            Logs.logWarning("Failed to write unprotected resource pack at " + location);
+            Logs.debug(exception);
         }
     }
 

@@ -12,6 +12,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.mockito.MockedStatic;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
@@ -60,7 +61,7 @@ class ZipUtilsTest {
 
     @Test
     void disabledSpoofingProducesExtractablePack() throws Exception {
-        Path output = writePack("ordinary.zip");
+        Path output = writePack("nested/output/ordinary.zip");
         int entries = 0;
         try (ZipInputStream zip = new ZipInputStream(Files.newInputStream(output))) {
             for (var entry = zip.getNextEntry(); entry != null; entry = zip.getNextEntry()) {
@@ -112,12 +113,12 @@ class ZipUtilsTest {
         }
     }
 
-    private Path writePack(String filename) {
+    private Path writePack(String filename) throws IOException {
         List<VirtualFile> files = contents.entrySet().stream()
                 .map(entry -> new VirtualFile("", entry.getKey(), () -> new ByteArrayInputStream(entry.getValue())))
                 .toList();
         Path output = temporaryDirectory.resolve(filename);
-        ZipUtils.writeZipFile(output.toFile(), files);
+        ZipUtils.writePackZip(output.toFile(), files);
         return output;
     }
 

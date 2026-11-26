@@ -39,6 +39,7 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -56,7 +57,7 @@ public class ResourcePack {
     private ComponentArmorModels componentArmorModels;
     private static final File packFolder = new File(OraxenPlugin.get().getDataFolder(), "pack");
     private static final Set<String> LEGACY_SHADER_OVERLAY_DIRECTORIES = Set.of("overlay_1_21_6_plus", "overlay_1_21_4_5");
-    private final File pack = new File(packFolder, packFolder.getName() + ".zip");
+    private volatile File pack = PackOutputLocation.defaultFile(packFolder);
     private final SoundGenerator soundGenerator = new SoundGenerator();
     private PackFileCollector fileCollector;
     private PackExclusions packExclusions;
@@ -277,12 +278,14 @@ public class ResourcePack {
                 try {
                     if (shutdownRequested) return;
                     filterGeneratedCoreShadersBelow1214(output, MinecraftVersion.getCurrentVersion());
-                    UnprotectedPackWriter.writeConfigured(output, packFolder);
+                    File packFile = resolvePackFile();
+                    UnprotectedPackWriter.writeConfigured(output, packFolder, List.of(packFile));
                     PackObfuscator.obfuscate(output);
                     PackPipeline.sparsifyGeneratedOverlays(output, mergedImportOverlayEntries);
                     if (shutdownRequested) return;
-                    ZipUtils.writeZipFile(pack, output);
+                    ZipUtils.writePackZip(packFile, output);
                     if (shutdownRequested) return;
+                    pack = packFile;
                     SchedulerUtil.runTask(this::uploadGeneratedPackAndFinish);
                 } catch (Exception exception) {
                     handleGenerationFailure(packWorker, "async pack writing", exception);
@@ -384,13 +387,6 @@ public class ResourcePack {
             Logs.logError("HappyHUD detected with hide_scoreboard_numbers enabled!");
             Logs.logWarning(
                     "Recommend following this guide for compatibility: https://docs.oraxen.com/compatibility/happyhud");
-        }
-
-        try {
-            Files.deleteIfExists(pack.toPath());
-        } catch (IOException e) {
-            Logs.logWarning("Failed to delete an obsolete resource pack archive.");
-            Logs.debug(e);
         }
 
         if (!isMcmetaGenerationDisabled()) {
@@ -676,9 +672,20 @@ public class ResourcePack {
         }
 
         // Use MultiVersionPackGenerator for multi-version zip and upload
-        MultiVersionPackGenerator multiVersionGenerator = new MultiVersionPackGenerator(packFolder,
+        File packFile = resolvePackFile();
+        MultiVersionPackGenerator multiVersionGenerator = new MultiVersionPackGenerator(packFolder, packFile,
                 textShaderGenerator.getGeneratedCoreShaderHashes());
-        multiVersionGenerator.generateMultipleVersions(output, switchingFromSinglePack, mergedImportOverlayEntries);
+        if (multiVersionGenerator.generatePacks(output, switchingFromSinglePack, mergedImportOverlayEntries)) pack = packFile;
+    }
+
+    private File resolvePackFile() {
+        try {
+            return PackOutputLocation.resolve(packFolder, Settings.PACK_LOCATION.getValue());
+        } catch (IOException | InvalidPathException exception) {
+            Logs.logWarning("Invalid pack.generation.location, using the default resource pack location.");
+            Logs.debug(exception);
+            return PackOutputLocation.defaultFile(packFolder);
+        }
     }
 
     private void filterGeneratedCoreShadersBelow1214(List<VirtualFile> output, MinecraftVersion targetVersion) {
