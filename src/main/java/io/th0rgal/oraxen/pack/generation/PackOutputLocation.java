@@ -3,10 +3,13 @@ package io.th0rgal.oraxen.pack.generation;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
-final class PackOutputLocation {
+public final class PackOutputLocation {
     private PackOutputLocation() {
     }
 
@@ -15,8 +18,7 @@ final class PackOutputLocation {
     }
 
     static File resolve(File sourceFolder, Object configured) throws IOException {
-        if (configured == null || (configured instanceof String value
-                && (value.isBlank() || value.equals("plugins/Oraxen/pack/pack.zip")))) {
+        if (usesDefaultLocation(configured)) {
             return defaultFile(sourceFolder);
         }
         if (!(configured instanceof String location)) throw new IOException("Expected a ZIP file path");
@@ -33,6 +35,43 @@ final class PackOutputLocation {
             throw new IOException("The ZIP must be at the source folder root or outside it");
         }
         return target.toFile();
+    }
+
+    private static boolean usesDefaultLocation(Object configured) {
+        return configured == null || (configured instanceof String value
+                && (value.isBlank() || value.equals("plugins/Oraxen/pack/pack.zip")));
+    }
+
+    static String packName(File mainPack) {
+        String filename = mainPack.getName();
+        return filename.substring(0, filename.length() - 4);
+    }
+
+    /** Client ZIPs and any configured alias of the main ZIP. */
+    public static List<File> clientPackFiles(File sourceFolder, Object configured, boolean multiVersion) {
+        File mainPack;
+        List<File> files = new ArrayList<>();
+        try {
+            mainPack = resolve(sourceFolder, configured);
+            if (!usesDefaultLocation(configured) && configured instanceof String value) {
+                addConfiguredAlias(value, mainPack, files);
+            }
+        } catch (IOException | InvalidPathException exception) {
+            mainPack = defaultFile(sourceFolder);
+        }
+        files.add(mainPack);
+        if (multiVersion) files.addAll(PackVersionManager.versionPackFiles(mainPack));
+        return files;
+    }
+
+    private static void addConfiguredAlias(String value, File mainPack, List<File> files) {
+        Path requested = Path.of(value).toAbsolutePath().normalize();
+        if (!Files.isSymbolicLink(requested)) return;
+        try {
+            if (requested.toFile().getCanonicalFile().equals(mainPack)) files.add(requested.toFile());
+        } catch (IOException ignored) {
+            // The alias is optional; keep excluding the resolved output.
+        }
     }
 
     private static boolean isNested(Path target, Path source) {

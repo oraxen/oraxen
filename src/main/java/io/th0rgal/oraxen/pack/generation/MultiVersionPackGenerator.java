@@ -98,7 +98,7 @@ public class MultiVersionPackGenerator {
 
     MultiVersionPackGenerator(File packFolder, File legacyPack, Map<String, String> generatedCoreShaderHashes) {
         this(packFolder, legacyPack, generatedCoreShaderHashes,
-                legacyPack.getName().substring(0, legacyPack.getName().length() - 4));
+                PackOutputLocation.packName(legacyPack));
     }
 
     private MultiVersionPackGenerator(File packFolder, File legacyPack, Map<String, String> generatedCoreShaderHashes,

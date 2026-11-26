@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.studio;
 
+import io.th0rgal.oraxen.pack.generation.PackOutputLocation;
 import io.th0rgal.oraxen.studio.StudioApiClient.FileEntry;
 import org.jetbrains.annotations.Nullable;
 
@@ -9,9 +10,11 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 /**
@@ -34,6 +37,11 @@ public final class StudioFileSync {
      *                    store (see {@link StudioBundleUtils#hasUnsupportedCharacters})
      */
     public static Map<String, FileEntry> localManifest(Path dataFolder, List<String> unsupported) throws IOException {
+        return localManifest(dataFolder, unsupported, Set.of());
+    }
+
+    static Map<String, FileEntry> localManifest(Path dataFolder, List<String> unsupported,
+                                                 Set<String> generatedPackPaths) throws IOException {
         Map<String, FileEntry> out = new TreeMap<>();
         if (!Files.isDirectory(dataFolder)) return out;
         List<Path> files;
@@ -42,6 +50,7 @@ public final class StudioFileSync {
         }
         for (Path file : files) {
             String rel = dataFolder.relativize(file).toString().replace('\\', '/');
+            if (generatedPackPaths.contains(rel)) continue;
             if (!StudioBundleUtils.isTrackableRelativePath(rel)) {
                 if (StudioBundleUtils.hasUnsupportedCharacters(rel)) unsupported.add(rel);
                 continue;
@@ -49,6 +58,27 @@ public final class StudioFileSync {
             out.put(rel, new FileEntry(StudioBundleUtils.sha256Hex(file), Files.size(file)));
         }
         return out;
+    }
+
+    static Set<String> generatedClientPackPaths(Path dataFolder, Object location, boolean multiVersion) throws IOException {
+        Path root = dataFolder.toFile().getCanonicalFile().toPath();
+        Set<String> paths = new HashSet<>();
+        for (var file : PackOutputLocation.clientPackFiles(root.resolve("pack").toFile(), location, multiVersion)) {
+            addRelativePath(root, file.toPath(), paths);
+        }
+        return paths;
+    }
+
+    private static void addRelativePath(Path root, Path file, Set<String> paths) {
+        Path output = file.toAbsolutePath().normalize();
+        if (output.startsWith(root)) paths.add(root.relativize(output).toString().replace('\\', '/'));
+    }
+
+    static Map<String, FileEntry> withoutGeneratedPacks(Map<String, FileEntry> files, Set<String> generatedPackPaths) {
+        if (Collections.disjoint(files.keySet(), generatedPackPaths)) return files;
+        Map<String, FileEntry> filtered = new LinkedHashMap<>(files);
+        filtered.keySet().removeAll(generatedPackPaths);
+        return filtered;
     }
 
     /** Hashes of the trackable paths of a manifest, as recorded for the next sync. */

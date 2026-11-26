@@ -87,10 +87,23 @@ public class PackVersionManager {
     }
 
     private void addPackVersion(String mcVersion, int format, int minFormat, int maxFormat) {
-        File packFile = new File(outputFolder, packName + "_" + mcVersion.replace(".", "_") + ".zip");
+        File packFile = versionPackFile(outputFolder, packName, mcVersion);
         PackVersion version = new PackVersion(mcVersion, format, minFormat, maxFormat, packFile);
         packVersions.put(mcVersion, version);
         logInfo("  - " + mcVersion + ": format " + format + " (supports " + minFormat + "-" + maxFormat + ")");
+    }
+
+    static List<File> versionPackFiles(File mainPack) {
+        List<File> files = new ArrayList<>();
+        String name = PackOutputLocation.packName(mainPack);
+        for (Object[] definition : VERSION_DEFINITIONS) {
+            files.add(versionPackFile(mainPack.getParentFile(), name, (String) definition[0]));
+        }
+        return files;
+    }
+
+    private static File versionPackFile(File folder, String packName, String mcVersion) {
+        return new File(folder, packName + "_" + mcVersion.replace(".", "_") + ".zip");
     }
 
     /**
