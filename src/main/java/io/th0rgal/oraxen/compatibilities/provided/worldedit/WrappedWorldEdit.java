@@ -45,7 +45,12 @@ public class WrappedWorldEdit {
     /**
      * The block offsets a schematic covers around the location it is pasted at.
      */
-    public record SchematicRegion(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
+    public record SchematicRegion(int minX, int minY, int minZ, int maxX, int maxY, int maxZ,
+                                  List<BlockOffset> occupiedOffsets) {
+
+        public SchematicRegion {
+            occupiedOffsets = List.copyOf(occupiedOffsets);
+        }
 
         /**
          * Returns the blocks the schematic would replace, without the paste location itself.
@@ -54,14 +59,14 @@ public class WrappedWorldEdit {
             List<Block> blocks = new ArrayList<>();
             if (loc.getWorld() == null) return blocks;
             Block origin = loc.getBlock();
-            for (int x = minX; x <= maxX; x++)
-                for (int y = minY; y <= maxY; y++)
-                    for (int z = minZ; z <= maxZ; z++) {
-                        Block block = origin.getRelative(x, y, z);
-                        if (BlockHelpers.isReplaceable(block) || block.equals(origin)) continue;
-                        blocks.add(block);
-                    }
+            for (BlockOffset offset : occupiedOffsets) {
+                Block block = origin.getRelative(offset.x(), offset.y(), offset.z());
+                if (BlockHelpers.isReplaceable(block) || block.equals(origin)) continue;
+                blocks.add(block);
+            }
             return blocks;
         }
+
+        public record BlockOffset(int x, int y, int z) {}
     }
 }

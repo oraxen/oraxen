@@ -89,8 +89,15 @@ public class WorldEditUtils {
     }
 
     private static WrappedWorldEdit.SchematicRegion toRegion(Clipboard clipboard) {
-        BlockVector3 min = clipboard.getMinimumPoint().subtract(clipboard.getOrigin());
-        BlockVector3 max = clipboard.getMaximumPoint().subtract(clipboard.getOrigin());
-        return new WrappedWorldEdit.SchematicRegion(min.x(), min.y(), min.z(), max.x(), max.y(), max.z());
+        BlockVector3 origin = clipboard.getOrigin();
+        BlockVector3 min = clipboard.getMinimumPoint().subtract(origin);
+        BlockVector3 max = clipboard.getMaximumPoint().subtract(origin);
+        List<WrappedWorldEdit.SchematicRegion.BlockOffset> occupiedOffsets = new ArrayList<>();
+        for (int x = min.x(); x <= max.x(); x++)
+            for (int y = min.y(); y <= max.y(); y++)
+                for (int z = min.z(); z <= max.z(); z++)
+                    if (!clipboard.getBlock(origin.add(x, y, z)).getBlockType().getMaterial().isAir())
+                        occupiedOffsets.add(new WrappedWorldEdit.SchematicRegion.BlockOffset(x, y, z));
+        return new WrappedWorldEdit.SchematicRegion(min.x(), min.y(), min.z(), max.x(), max.y(), max.z(), occupiedOffsets);
     }
 }
