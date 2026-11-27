@@ -30,23 +30,26 @@ final class PackPipeline {
         for (int i = files.size() - 1; i >= 0; i--) {
             VirtualFile file = files.get(i);
             String path = file.getPath();
-            if (!PackAssetMerger.isAdditivePath(path) || (!mergeFonts && path.contains("/font/"))
+            String type = PackAssetMerger.additiveType(path);
+            if (type.isEmpty() || (!mergeFonts && type.equals("font"))
                     || !file.isJsonObject()) continue;
             JsonObject higher = file.toJsonObject();
             if (higher == null) continue;
-            if (path.contains("/lang/") && !validLocale(higher)) continue;
+            if (type.equals("lang") && !validLocale(higher)) continue;
+            if (type.equals("equipment") && !PackAssetMerger.hasEquipmentLayers(higher)) continue;
             JsonObject lower = merged.get(path);
             merged.put(path, lower == null ? higher : PackAssetMerger.mergeJson(path, lower, higher));
         }
         List<VirtualFile> result = new ArrayList<>();
         for (VirtualFile file : files) {
-            JsonObject json = merged.remove(file.getPath());
+            String path = file.getPath();
+            String type = PackAssetMerger.additiveType(path);
+            JsonObject json = merged.remove(path);
             if (json != null) {
-                int slash = file.getPath().lastIndexOf('/');
-                result.add(new VirtualFile(file.getPath().substring(0, slash), file.getPath().substring(slash + 1),
+                int slash = path.lastIndexOf('/');
+                result.add(new VirtualFile(path.substring(0, slash), path.substring(slash + 1),
                         new ByteArrayInputStream(json.toString().getBytes(StandardCharsets.UTF_8))));
-            } else if (!PackAssetMerger.isAdditivePath(file.getPath())
-                    || (!mergeFonts && file.getPath().contains("/font/")) || !file.isJsonObject()) {
+            } else if (type.isEmpty() || (!mergeFonts && type.equals("font")) || !file.isJsonObject()) {
                 result.add(file);
             }
         }

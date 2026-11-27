@@ -3,34 +3,46 @@ package io.th0rgal.oraxen.pack.generation;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 /** Resource-specific composition in ascending pack priority. */
 public final class PackAssetMerger {
     private static final Pattern ADDITIVE_PATH = Pattern.compile(
-            "(?:.*/)?assets/[^/]+/(?:(?:lang|font|atlases|blockstates)/.+|sounds)\\.json");
+            "assets/[^/]+/(?:(lang|font|atlases|blockstates|equipment)/.+|sounds)\\.json");
 
     private PackAssetMerger() {}
 
+    static String additiveType(String path) {
+        int start = path.startsWith("assets/") ? 0 : path.indexOf("/assets/") + 1;
+        var match = ADDITIVE_PATH.matcher(path).region(start, path.length());
+        if (!match.matches()) return "";
+        return match.group(1) == null ? "sounds" : match.group(1);
+    }
+
     public static boolean isAdditivePath(String path) {
-        return ADDITIVE_PATH.matcher(path).matches();
+        return !additiveType(path).isEmpty();
     }
 
     public static JsonObject mergeJson(String path, JsonObject lower, JsonObject higher) {
-        if (path.contains("/lang/")) {
+        String type = additiveType(path);
+        if (type.equals("lang")) {
             JsonObject result = lower.deepCopy();
             higher.entrySet().forEach(entry -> {
                 if (entry.getValue().isJsonPrimitive()) result.add(entry.getKey(), entry.getValue().deepCopy());
             });
             return result;
         }
-        if (path.contains("/font/")) return arrays(lower, higher, "providers", true);
-        if (path.contains("/atlases/")) return arrays(lower, higher, "sources", false);
-        if (path.endsWith("/sounds.json")) {
+        if (type.equals("font")) return arrays(lower, higher, "providers", true);
+        if (type.equals("atlases")) return arrays(lower, higher, "sources", false);
+        if (type.equals("equipment")) return equipment(lower, higher);
+        if (type.equals("sounds")) {
             JsonObject result = lower.deepCopy();
             higher.entrySet().forEach(entry -> {
                 JsonElement value = entry.getValue();
@@ -62,8 +74,30 @@ public final class PackAssetMerger {
             });
             return result;
         }
-        if (path.contains("/blockstates/")) return blockstates(lower, higher);
+        if (type.equals("blockstates")) return blockstates(lower, higher);
         return higher.deepCopy();
+    }
+
+    static boolean hasEquipmentLayers(JsonObject value) {
+        if (value == null || !(value.get("layers") instanceof JsonObject layers) || layers.size() == 0) return false;
+        return layers.entrySet().stream().allMatch(entry -> entry.getValue() instanceof JsonArray list
+                && !list.isEmpty() && list.asList().stream().allMatch(layer -> layer instanceof JsonObject definition
+                && definition.get("texture") instanceof JsonPrimitive texture && texture.isString()));
+    }
+
+    private static JsonObject equipment(JsonObject lower, JsonObject higher) {
+        if (!hasEquipmentLayers(higher)) return lower.deepCopy();
+        if (!hasEquipmentLayers(lower)) return higher.deepCopy();
+        JsonObject result = lower.deepCopy();
+        higher.entrySet().forEach(entry -> {
+            if (!entry.getKey().equals("layers")) result.add(entry.getKey(), entry.getValue().deepCopy());
+        });
+        JsonObject layers = result.getAsJsonObject("layers");
+        higher.getAsJsonObject("layers").entrySet().forEach(entry -> {
+            if (!layers.has(entry.getKey())) layers.add(entry.getKey(), entry.getValue().deepCopy());
+            else entry.getValue().getAsJsonArray().forEach(layer -> layers.getAsJsonArray(entry.getKey()).add(layer.deepCopy()));
+        });
+        return result;
     }
 
     private static JsonObject arrays(JsonObject lower, JsonObject higher, String key, boolean highFirst) {
@@ -76,12 +110,23 @@ public final class PackAssetMerger {
                 if (!entry.getKey().equals(key)) result.add(entry.getKey(), entry.getValue().deepCopy());
             });
         }
-        JsonArray values = new JsonArray();
-        for (JsonObject source : highFirst ? List.of(higher, lower) : List.of(lower, higher)) {
-            if (source.has(key) && source.get(key).isJsonArray())
-                source.getAsJsonArray(key).forEach(value -> values.add(value.deepCopy()));
+        JsonArray low = lower.get(key) instanceof JsonArray array ? array : new JsonArray();
+        JsonArray high = higher.get(key) instanceof JsonArray array ? array : new JsonArray();
+        result.add(key, distinctEntries(low, high, highFirst));
+        return result;
+    }
+
+    static JsonArray distinctEntries(JsonArray lower, JsonArray higher, boolean highFirst) {
+        // Font providers are tried first to last. Atlas operations overwrite or remove earlier sprites.
+        Set<JsonElement> seen = new HashSet<>();
+        List<JsonElement> entries = new ArrayList<>();
+        for (JsonArray source : List.of(higher, lower)) {
+            for (JsonElement entry : highFirst ? source.asList() : source.asList().reversed()) {
+                if (seen.add(entry)) entries.add(entry);
+            }
         }
-        result.add(key, values);
+        JsonArray result = new JsonArray();
+        for (JsonElement entry : highFirst ? entries : entries.reversed()) result.add(entry.deepCopy());
         return result;
     }
 

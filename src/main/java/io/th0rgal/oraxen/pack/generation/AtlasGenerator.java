@@ -121,11 +121,7 @@ public class AtlasGenerator {
             JsonObject itemsJson = JsonParser.parseString(new String(itemsAtlasBytes, StandardCharsets.UTF_8)).getAsJsonObject();
             JsonArray blocksSources = blocksJson.has("sources") ? blocksJson.getAsJsonArray("sources") : new JsonArray();
             JsonArray itemsSources = itemsJson.has("sources") ? itemsJson.getAsJsonArray("sources") : new JsonArray();
-            for (JsonElement entry : itemsSources) {
-                if (!blocksSources.contains(entry)) {
-                    blocksSources.add(entry);
-                }
-            }
+            blocksSources = PackAssetMerger.distinctEntries(blocksSources, itemsSources, false);
             if ("DIRECTORY".equalsIgnoreCase(getAtlasGenerationType())) {
                 removeChildEntriesInDirectoryAtlas(blocksSources);
             }
