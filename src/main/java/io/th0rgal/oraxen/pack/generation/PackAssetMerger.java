@@ -18,8 +18,6 @@ public final class PackAssetMerger {
             "assets/[^/]+/(?:(lang|font|atlases|blockstates|equipment)/.+|sounds)\\.json");
     private static final Pattern LEGACY_EQUIPMENT_PATH = Pattern.compile("assets/[^/]+/models/equipment/.+\\.json");
     private static final Pattern EQUIPMENT_TEXTURE = Pattern.compile("(?:[a-z0-9_.-]*:)?[a-z0-9_./-]+");
-    private static final Set<String> MODEL_FIELDS = Set.of(
-            "parent", "elements", "textures", "display", "gui_light", "ambientocclusion", "overrides");
 
     private PackAssetMerger() {}
 
@@ -38,9 +36,19 @@ public final class PackAssetMerger {
         return LEGACY_EQUIPMENT_PATH.matcher(path).region(assetStart(path), path.length()).matches();
     }
 
-    // Model fields take precedence over custom layers metadata in the shared legacy directory.
+    // Model fields take precedence when their value has the expected JSON type.
     static boolean isLegacyEquipment(JsonObject value) {
-        return value != null && value.has("layers") && MODEL_FIELDS.stream().noneMatch(value::has);
+        return value != null && value.has("layers") && !hasModelFields(value);
+    }
+
+    private static boolean hasModelFields(JsonObject value) {
+        return value.get("parent") instanceof JsonPrimitive parent && parent.isString()
+                || value.get("textures") instanceof JsonObject
+                || value.get("display") instanceof JsonObject
+                || value.get("elements") instanceof JsonArray
+                || value.get("overrides") instanceof JsonArray
+                || value.get("gui_light") instanceof JsonPrimitive light && light.isString()
+                || value.get("ambientocclusion") instanceof JsonPrimitive occlusion && occlusion.isBoolean();
     }
 
     public static boolean isAdditivePath(String path) {

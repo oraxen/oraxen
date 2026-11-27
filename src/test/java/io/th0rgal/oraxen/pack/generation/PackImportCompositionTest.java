@@ -349,20 +349,27 @@ class PackImportCompositionTest {
                 vfile(path, model), vfile(path, base)))).get(path));
     }
 
-    @Test void rejectsLegacyEquipmentWithModelTextureAliases() throws Exception {
+    @ParameterizedTest
+    @ValueSource(strings = {"test:detail", "#trim"})
+    void composesLegacyEquipmentWithDisplayLabels(String texture) throws Exception {
         String path = "assets/test/models/equipment/armor.json";
         String local = "assets/test/models/equipment/local.json";
-        String valid = "{\"layers\":{\"humanoid\":[{\"texture\":\"test:base\"}]}}";
-        String invalid = "{\"layers\":{\"humanoid\":[{\"texture\":\"#trim\"}]}}";
-        write("a", Map.of(path, valid));
-        write("b", Map.of(path, invalid));
+        String base = "{\"layers\":{\"humanoid\":[{\"texture\":\"test:base\"}]}}";
+        String detail = """
+                {"display":"Winter set","layers":{"humanoid_leggings":[{"texture":"%s"}]}}
+                """.formatted(texture);
+        JsonElement expected = JsonParser.parseString(texture.equals("#trim") ? base : """
+                {"display":"Winter set","layers":{"humanoid":[{"texture":"test:base"}],
+                "humanoid_leggings":[{"texture":"test:detail"}]}}
+                """);
+        write("a", Map.of(path, base));
+        write("b", Map.of(path, detail));
         PackMerger merger = new PackMerger(tempDir.toFile());
 
-        assertEquals(valid, contents(merger.mergeUploadedPacks()).get(path));
+        assertEquals(expected, json(contents(merger.mergeUploadedPacks()), path));
         Map<String, String> composed = contents(merger.mergeWithHigherPriorityFiles(List.of(
-                vfile(path, invalid), vfile(local, invalid), vfile(local, valid))));
-        assertEquals(valid, composed.get(path));
-        assertEquals(valid, composed.get(local));
+                vfile(local, detail), vfile(local, base))));
+        assertEquals(expected, json(composed, local));
     }
 
     @Test void reportsLegacyEquipmentReplacingAnOrdinaryModelAsAnOverride() throws Exception {
