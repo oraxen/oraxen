@@ -18,6 +18,8 @@ public final class PackAssetMerger {
             "assets/[^/]+/(?:(lang|font|atlases|blockstates|equipment)/.+|sounds)\\.json");
     private static final Pattern LEGACY_EQUIPMENT_PATH = Pattern.compile("assets/[^/]+/models/equipment/.+\\.json");
     private static final Pattern EQUIPMENT_TEXTURE = Pattern.compile("(?:[a-z0-9_.-]*:)?[a-z0-9_./-]+");
+    private static final Set<String> LEGACY_EQUIPMENT_LAYER_TYPES = Set.of(
+            "humanoid", "humanoid_leggings", "wings", "wolf_body", "horse_body", "llama_body");
     private static final Set<String> MODEL_FIELDS = Set.of(
             "parent", "elements", "textures", "display", "gui_light", "ambientocclusion", "overrides");
 
@@ -40,12 +42,20 @@ public final class PackAssetMerger {
 
     /**
      * The legacy equipment directory can also contain ordinary models, which may carry custom
-     * {@code layers} metadata. Such a file is an equipment definition when its layers follow the
-     * armor schema, or when it has layers and no model fields. Malformed equipment is then rejected.
+     * {@code layers} metadata. Recognize equipment layers by their structure even if their
+     * textures are invalid, so the merge can reject malformed equipment.
      */
     static boolean isLegacyEquipment(String path, JsonObject value) {
         if (!isLegacyEquipmentPath(path) || value == null || !value.has("layers")) return false;
-        return hasEquipmentLayers(value) || MODEL_FIELDS.stream().noneMatch(value::has);
+        if (MODEL_FIELDS.stream().noneMatch(value::has)) return true;
+        return hasLegacyEquipmentLayer(value.get("layers")) || hasEquipmentLayers(value);
+    }
+
+    private static boolean hasLegacyEquipmentLayer(JsonElement value) {
+        if (!(value instanceof JsonObject layers)) return false;
+        return LEGACY_EQUIPMENT_LAYER_TYPES.stream().map(layers::get).anyMatch(layer ->
+                layer instanceof JsonArray entries && entries.asList().stream().anyMatch(entry ->
+                        entry instanceof JsonObject definition && definition.has("texture")));
     }
 
     public static boolean isAdditivePath(String path) {

@@ -346,6 +346,28 @@ class PackImportCompositionTest {
         assertEquals(model, files.get(local));
     }
 
+    @Test void rejectsLegacyEquipmentWithInvalidTexturesEvenWhenItHasModelFields() throws Exception {
+        String root = "assets/test/models/equipment/";
+        String uploaded = root + "uploaded.json";
+        String local = root + "local.json";
+        String valid = """
+                {"layers":{"humanoid":[{"texture":"test:base"}]}}
+                """;
+        String invalid = """
+                {"parent":"minecraft:item/handheld","layers":{"humanoid":[{"texture":"test:Armor"}]}}
+                """;
+        write("a", Map.of(uploaded, valid));
+        write("b", Map.of(uploaded, invalid));
+        PackMerger merger = new PackMerger(tempDir.toFile());
+
+        Map<String, String> uploadedFiles = contents(merger.mergeUploadedPacks());
+        Map<String, String> localFiles = contents(merger.mergeWithHigherPriorityFiles(List.of(
+                vfile(local, invalid), vfile(local, valid))));
+        assertAll(
+                () -> assertEquals(valid, uploadedFiles.get(uploaded), "uploaded packs"),
+                () -> assertEquals(valid, localFiles.get(local), "local duplicates"));
+    }
+
     @Test void reportsLegacyEquipmentReplacingAnOrdinaryModelAsAnOverride() throws Exception {
         String path = "assets/test/models/equipment/armor.json";
         String equipment = "{\"layers\":{\"humanoid\":[{\"texture\":\"test:armor\"}]}}";
