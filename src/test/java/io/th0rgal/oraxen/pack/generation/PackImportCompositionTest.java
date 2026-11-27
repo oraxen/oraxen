@@ -380,8 +380,11 @@ class PackImportCompositionTest {
                 Arguments.of(equipment, "\"test:Armor\""),
                 Arguments.of(model, "\"test:Armor\""),
                 Arguments.of(equipment, "\"#trim\""),
+                Arguments.of(model, "\"#trim\""),
                 Arguments.of(equipment, "null"),
-                Arguments.of(equipment, "42"));
+                Arguments.of(model, "null"),
+                Arguments.of(equipment, "42"),
+                Arguments.of(model, "42"));
     }
 
     @ParameterizedTest

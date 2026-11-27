@@ -251,7 +251,7 @@ public class PackMerger {
                 } else if (PackAssetMerger.isLegacyEquipmentPath(file.getPath())) {
                     JsonObject high = object(first);
                     JsonObject low = object(bytes);
-                    if (low != null && PackAssetMerger.isLegacyEquipment(low, high)) {
+                    if (low != null && PackAssetMerger.isLegacyEquipment(high)) {
                         if (!PackAssetMerger.hasEquipmentLayers(high)) entries.put(file.getPath(), bytes);
                         else if (PackAssetMerger.hasEquipmentLayers(low))
                             entries.put(file.getPath(), PackAssetMerger.mergeJson(file.getPath(), low, high)
@@ -434,7 +434,7 @@ public class PackMerger {
             byte[] previous = lower.get(path);
             JsonObject legacyLower = legacyEquipmentPath ? object(previous) : null;
             JsonObject high = type.isEmpty() && !legacyEquipmentPath ? null : object(bytes);
-            if (legacyEquipmentPath && PackAssetMerger.isLegacyEquipment(legacyLower, high))
+            if (legacyEquipmentPath && PackAssetMerger.isLegacyEquipment(high))
                 type = "equipment";
             if (!type.isEmpty() && !validResource(type, high)) return;
             byte[] incoming = bytes;
