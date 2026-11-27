@@ -18,9 +18,7 @@ public final class PackAssetMerger {
             "assets/[^/]+/(?:(lang|font|atlases|blockstates|equipment)/.+|sounds)\\.json");
     private static final Pattern LEGACY_EQUIPMENT_PATH = Pattern.compile("assets/[^/]+/models/equipment/.+\\.json");
     private static final Pattern EQUIPMENT_TEXTURE = Pattern.compile("(?:[a-z0-9_.-]*:)?[a-z0-9_./-]+");
-    private static final Set<String> LEGACY_EQUIPMENT_LAYER_TYPES = Set.of(
-            "humanoid", "humanoid_leggings", "wings", "wolf_body", "horse_body", "llama_body");
-    private static final Set<String> modelFields = Set.of(
+    private static final Set<String> MODEL_FIELDS = Set.of(
             "parent", "elements", "textures", "display", "gui_light", "ambientocclusion", "overrides");
 
     private PackAssetMerger() {}
@@ -40,25 +38,9 @@ public final class PackAssetMerger {
         return LEGACY_EQUIPMENT_PATH.matcher(path).region(assetStart(path), path.length()).matches();
     }
 
-    /**
-     * The legacy equipment directory can also contain ordinary models with custom {@code layers}
-     * metadata. Direct texture IDs identify armor even when invalid. Explicit model texture
-     * mappings distinguish custom non-string values and texture references from malformed armor.
-     */
+    // Model fields take precedence over custom layers metadata in the shared legacy directory.
     static boolean isLegacyEquipment(JsonObject value) {
-        if (value == null || !value.has("layers")) return false;
-        if (modelFields.stream().noneMatch(value::has)) return true;
-        boolean hasModelTextures = value.get("textures") instanceof JsonObject textures && !textures.isEmpty();
-        return hasEquipmentLayers(value) || hasLegacyEquipmentLayer(value.get("layers"), hasModelTextures);
-    }
-
-    private static boolean hasLegacyEquipmentLayer(JsonElement value, boolean hasModelTextures) {
-        if (!(value instanceof JsonObject layers)) return false;
-        return LEGACY_EQUIPMENT_LAYER_TYPES.stream().map(layers::get).anyMatch(layer ->
-                layer instanceof JsonArray entries && entries.asList().stream().anyMatch(entry ->
-                        entry instanceof JsonObject definition && definition.has("texture")
-                                && (!hasModelTextures || definition.get("texture") instanceof JsonPrimitive texture
-                                && texture.isString() && !texture.getAsString().startsWith("#"))));
+        return value != null && value.has("layers") && MODEL_FIELDS.stream().noneMatch(value::has);
     }
 
     public static boolean isAdditivePath(String path) {
@@ -76,8 +58,11 @@ public final class PackAssetMerger {
         }
         if (type.equals("font")) return arrays(lower, higher, "providers", true);
         if (type.equals("atlases")) return arrays(lower, higher, "sources", false);
-        if (type.equals("equipment") || (isLegacyEquipmentPath(path) && isLegacyEquipment(higher)))
-            return equipment(lower, higher);
+        if (type.equals("equipment")) return equipment(lower, higher);
+        if (isLegacyEquipmentPath(path) && isLegacyEquipment(higher)) {
+            if (!hasEquipmentLayers(higher)) return lower.deepCopy();
+            if (isLegacyEquipment(lower)) return equipment(lower, higher);
+        }
         if (type.equals("sounds")) {
             JsonObject result = lower.deepCopy();
             higher.entrySet().forEach(entry -> {

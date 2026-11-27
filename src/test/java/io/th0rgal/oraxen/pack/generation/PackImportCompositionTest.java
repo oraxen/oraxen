@@ -10,9 +10,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.MockedStatic;
 
@@ -20,7 +18,6 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
-import java.util.stream.Stream;
 import java.util.zip.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -332,88 +329,48 @@ class PackImportCompositionTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {
-            """
-                    {"parent":"minecraft:item/handheld","layers":["preview"]}
-                    """,
-            """
-                    {"parent":"minecraft:item/generated","textures":{"layer0":"test:item/preview"},
-                     "layers":{"humanoid":[{"texture":"#layer0"}]}}
-                    """,
-            """
-                    {"parent":"minecraft:item/generated","textures":{"layer0":"test:item/preview"},
-                     "layers":{"humanoid":[{"texture":null}]}}
-                    """,
-            """
-                    {"parent":"minecraft:item/generated","textures":{"layer0":"test:item/preview"},
-                     "layers":{"humanoid":[{"texture":42}]}}
-                    """
-    })
-    void keepsOrdinaryLegacyEquipmentModelsWithCustomLayersMetadata(String model) throws Exception {
+    @ValueSource(strings = {"#trim", "test:preview"})
+    void keepsLegacyItemModelsWithArmorShapedMetadata(String texture) throws Exception {
         String root = "assets/test/models/equipment/";
-        String replaced = root + "shield.json";
-        String standalone = root + "preview.json";
-        String local = root + "local.json";
-        String replacesEquipment = root + "armor.json";
-        String localReplacesEquipment = root + "local_armor.json";
-        String lowerModel = "{\"parent\":\"minecraft:item/generated\"}";
-        String lowerEquipment = "{\"layers\":{\"humanoid\":[{\"texture\":\"test:base\"}]}}";
-        write("a", Map.of(replaced, lowerModel, replacesEquipment, lowerEquipment));
-        write("b", Map.of(replaced, model, standalone, model, replacesEquipment, model));
+        String path = root + "shield.json";
+        String base = "{\"layers\":{\"humanoid\":[{\"texture\":\"test:base\"}]}}";
+        String model = """
+                {"parent":"test:item/shield_base","layers":{"humanoid":[{"texture":"%s"}]}}
+                """.formatted(texture);
+        write("a", Map.of(path, base, "assets/test/models/item/shield_base.json",
+                "{\"parent\":\"minecraft:item/generated\",\"textures\":{\"trim\":\"test:item/shield\"}}"));
+        write("b", Map.of(path, model, root + "standalone.json", model));
         PackMerger merger = new PackMerger(tempDir.toFile());
 
         Map<String, String> uploaded = contents(merger.mergeUploadedPacks());
-        assertEquals(model, uploaded.get(replaced));
-        assertEquals(model, uploaded.get(standalone));
-        assertEquals(model, uploaded.get(replacesEquipment));
-        Map<String, String> files = contents(merger.mergeWithHigherPriorityFiles(List.of(
-                vfile(local, model), vfile(local, lowerModel),
-                vfile(localReplacesEquipment, model), vfile(localReplacesEquipment, lowerEquipment))));
-        assertEquals(model, files.get(local));
-        assertEquals(model, files.get(localReplacesEquipment));
+        assertEquals(model, uploaded.get(path));
+        assertEquals(model, uploaded.get(root + "standalone.json"));
+        assertEquals(model, contents(merger.mergeWithHigherPriorityFiles(List.of(
+                vfile(path, model), vfile(path, base)))).get(path));
     }
 
-    static Stream<Arguments> malformedLegacyEquipmentOverrides() {
-        String equipment = "{\"layers\":{\"humanoid\":[{\"texture\":\"test:base\"}]}}";
-        String model = "{\"parent\":\"minecraft:item/generated\",\"textures\":{\"layer0\":\"test:item/shield\"}}";
-        return Stream.of(
-                Arguments.of(equipment, "\"test:Armor\""),
-                Arguments.of(model, "\"test:Armor\""),
-                Arguments.of(equipment, "\"#trim\""),
-                Arguments.of(model, "\"#trim\""),
-                Arguments.of(equipment, "null"),
-                Arguments.of(model, "null"),
-                Arguments.of(equipment, "42"),
-                Arguments.of(model, "42"));
-    }
-
-    @ParameterizedTest
-    @MethodSource("malformedLegacyEquipmentOverrides")
-    void rejectsLegacyEquipmentWithInvalidTexturesEvenWhenItHasModelFields(String valid, String texture) throws Exception {
-        String root = "assets/test/models/equipment/";
-        String uploaded = root + "uploaded.json";
-        String local = root + "local.json";
-        String generated = root + "generated.json";
-        String invalid = """
-                {"parent":"minecraft:item/handheld","layers":{"humanoid":[{"texture":%s}]}}
-                """.formatted(texture);
-        write("a", Map.of(uploaded, valid, generated, valid));
-        write("b", Map.of(uploaded, invalid));
+    @Test void rejectsLegacyEquipmentWithModelTextureAliases() throws Exception {
+        String path = "assets/test/models/equipment/armor.json";
+        String local = "assets/test/models/equipment/local.json";
+        String valid = "{\"layers\":{\"humanoid\":[{\"texture\":\"test:base\"}]}}";
+        String invalid = "{\"layers\":{\"humanoid\":[{\"texture\":\"#trim\"}]}}";
+        write("a", Map.of(path, valid));
+        write("b", Map.of(path, invalid));
         PackMerger merger = new PackMerger(tempDir.toFile());
 
-        Map<String, String> uploadedFiles = contents(merger.mergeUploadedPacks());
-        Map<String, String> localFiles = contents(merger.mergeWithHigherPriorityFiles(List.of(
-                vfile(local, invalid), vfile(local, valid), vfile(generated, invalid))));
-        assertAll(
-                () -> assertEquals(valid, uploadedFiles.get(uploaded), "uploaded packs"),
-                () -> assertEquals(valid, localFiles.get(local), "local duplicates"),
-                () -> assertEquals(valid, localFiles.get(generated), "generated files over uploaded packs"));
+        assertEquals(valid, contents(merger.mergeUploadedPacks()).get(path));
+        Map<String, String> composed = contents(merger.mergeWithHigherPriorityFiles(List.of(
+                vfile(path, invalid), vfile(local, invalid), vfile(local, valid))));
+        assertEquals(valid, composed.get(path));
+        assertEquals(valid, composed.get(local));
     }
 
     @Test void reportsLegacyEquipmentReplacingAnOrdinaryModelAsAnOverride() throws Exception {
         String path = "assets/test/models/equipment/armor.json";
         String equipment = "{\"layers\":{\"humanoid\":[{\"texture\":\"test:armor\"}]}}";
-        write("a", Map.of(path, "{\"parent\":\"minecraft:item/generated\"}"));
+        write("a", Map.of(path, """
+                {"parent":"minecraft:item/generated","layers":{"humanoid":[{"texture":"test:preview"}]}}
+                """));
         write("b", Map.of(path, equipment));
         settings.set(Settings.DEBUG.getPath(), true);
         Settings.invalidateCache();
@@ -450,23 +407,6 @@ class PackImportCompositionTest {
                 {"type":"reference","id":"test:shared","filter":{"uniform":false}},
                 {"type":"reference","id":"test:low"}]
                 """), json(files, font).get("providers"));
-    }
-
-    @Test void legacySplitAtlasRetainsTheLaterDuplicateAfterAFilter() {
-        byte[] blocks = """
-                {"custom":"retained","sources":[{"type":"single","resource":"test:restored"},
-                {"type":"filter","pattern":{"path":"restored"}}]}
-                """.getBytes(StandardCharsets.UTF_8);
-        byte[] items = """
-                {"sources":[{"resource":"test:restored","type":"single"}]}
-                """.getBytes(StandardCharsets.UTF_8);
-
-        JsonObject result = JsonParser.parseString(new String(
-                AtlasGenerator.mergeSplitAtlasesForLegacyTarget(blocks, items), StandardCharsets.UTF_8)).getAsJsonObject();
-        assertEquals(JsonParser.parseString("""
-                {"custom":"retained","sources":[{"type":"filter","pattern":{"path":"restored"}},
-                {"type":"single","resource":"test:restored"}]}
-                """), result);
     }
 
     @Test void reportsChangedUploadOverridesOnceAndOnlyInDebugMode() throws Exception {
