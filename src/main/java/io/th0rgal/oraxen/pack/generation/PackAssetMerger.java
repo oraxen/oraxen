@@ -20,7 +20,7 @@ public final class PackAssetMerger {
     private static final Pattern EQUIPMENT_TEXTURE = Pattern.compile("(?:[a-z0-9_.-]*:)?[a-z0-9_./-]+");
     private static final Set<String> LEGACY_EQUIPMENT_LAYER_TYPES = Set.of(
             "humanoid", "humanoid_leggings", "wings", "wolf_body", "horse_body", "llama_body");
-    private static final Set<String> MODEL_FIELDS = Set.of(
+    private static final Set<String> modelFields = Set.of(
             "parent", "elements", "textures", "display", "gui_light", "ambientocclusion", "overrides");
 
     private PackAssetMerger() {}
@@ -41,14 +41,15 @@ public final class PackAssetMerger {
     }
 
     /**
-     * The legacy equipment directory can also contain ordinary models, which may carry custom
-     * {@code layers} metadata. Recognize equipment layers by their structure even if their
-     * textures are invalid, so the merge can reject malformed equipment.
+     * The legacy equipment directory can also contain ordinary models with custom {@code layers}
+     * metadata. For a file with model fields and malformed armor layers, require a valid
+     * lower-priority equipment definition at the same path before treating it as equipment.
      */
-    static boolean isLegacyEquipment(String path, JsonObject value) {
-        if (!isLegacyEquipmentPath(path) || value == null || !value.has("layers")) return false;
-        if (MODEL_FIELDS.stream().noneMatch(value::has)) return true;
-        return hasLegacyEquipmentLayer(value.get("layers")) || hasEquipmentLayers(value);
+    static boolean isLegacyEquipment(JsonObject lower, JsonObject higher) {
+        if (higher == null || !higher.has("layers")) return false;
+        if (modelFields.stream().noneMatch(higher::has)) return true;
+        return hasEquipmentLayers(higher)
+                || (hasLegacyEquipmentLayer(higher.get("layers")) && hasEquipmentLayers(lower));
     }
 
     private static boolean hasLegacyEquipmentLayer(JsonElement value) {
@@ -73,7 +74,8 @@ public final class PackAssetMerger {
         }
         if (type.equals("font")) return arrays(lower, higher, "providers", true);
         if (type.equals("atlases")) return arrays(lower, higher, "sources", false);
-        if (type.equals("equipment") || isLegacyEquipment(path, higher)) return equipment(lower, higher);
+        if (type.equals("equipment") || (isLegacyEquipmentPath(path) && isLegacyEquipment(lower, higher)))
+            return equipment(lower, higher);
         if (type.equals("sounds")) {
             JsonObject result = lower.deepCopy();
             higher.entrySet().forEach(entry -> {

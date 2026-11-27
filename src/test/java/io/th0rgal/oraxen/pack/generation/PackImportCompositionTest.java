@@ -11,6 +11,7 @@ import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.MockedStatic;
 
 import java.io.*;
@@ -327,13 +328,22 @@ class PackImportCompositionTest {
                 """), json(files, equipment).get("layers"));
     }
 
-    @Test void keepsOrdinaryLegacyEquipmentModelsWithCustomLayersMetadata() throws Exception {
+    @ParameterizedTest
+    @ValueSource(strings = {
+            """
+                    {"parent":"minecraft:item/handheld","layers":["preview"]}
+                    """,
+            """
+                    {"parent":"minecraft:item/generated","textures":{"layer0":"test:item/preview"},
+                     "layers":{"humanoid":[{"texture":"#layer0"}]}}
+                    """
+    })
+    void keepsOrdinaryLegacyEquipmentModelsWithCustomLayersMetadata(String model) throws Exception {
         String root = "assets/test/models/equipment/";
         String replaced = root + "shield.json";
         String standalone = root + "preview.json";
         String local = root + "local.json";
         String lowerModel = "{\"parent\":\"minecraft:item/generated\"}";
-        String model = "{\"parent\":\"minecraft:item/handheld\",\"layers\":[\"preview\"]}";
         write("a", Map.of(replaced, lowerModel));
         write("b", Map.of(replaced, model, standalone, model));
         PackMerger merger = new PackMerger(tempDir.toFile());

@@ -251,7 +251,7 @@ public class PackMerger {
                 } else if (PackAssetMerger.isLegacyEquipmentPath(file.getPath())) {
                     JsonObject high = object(first);
                     JsonObject low = object(bytes);
-                    if (PackAssetMerger.isLegacyEquipment(file.getPath(), high) && low != null) {
+                    if (low != null && PackAssetMerger.isLegacyEquipment(low, high)) {
                         if (!PackAssetMerger.hasEquipmentLayers(high)) entries.put(file.getPath(), bytes);
                         else if (PackAssetMerger.hasEquipmentLayers(low))
                             entries.put(file.getPath(), PackAssetMerger.mergeJson(file.getPath(), low, high)
@@ -431,17 +431,19 @@ public class PackMerger {
             if (!path.endsWith(".mcmeta")) lower.remove(path + ".mcmeta");
             String type = PackAssetMerger.additiveType(path);
             boolean legacyEquipmentPath = PackAssetMerger.isLegacyEquipmentPath(path);
-            JsonObject high = type.isEmpty() && !legacyEquipmentPath ? null : object(bytes);
-            if (PackAssetMerger.isLegacyEquipment(path, high)) type = "equipment";
-            if (!type.isEmpty() && !validResource(type, high)) return;
             byte[] previous = lower.get(path);
+            JsonObject legacyLower = legacyEquipmentPath ? object(previous) : null;
+            JsonObject high = type.isEmpty() && !legacyEquipmentPath ? null : object(bytes);
+            if (legacyEquipmentPath && PackAssetMerger.isLegacyEquipment(legacyLower, high))
+                type = "equipment";
+            if (!type.isEmpty() && !validResource(type, high)) return;
             byte[] incoming = bytes;
             boolean merged = false;
             if (shaders.containsKey(path)) {
                 bytes = shaders.get(path);
                 merged = true;
             } else if (shouldMergeNative(type)) {
-                JsonObject low = object(previous);
+                JsonObject low = legacyEquipmentPath ? legacyLower : object(previous);
                 if (low != null && (!legacyEquipmentPath || PackAssetMerger.hasEquipmentLayers(low))) {
                     bytes = PackAssetMerger.mergeJson(path, low, high).toString().getBytes(StandardCharsets.UTF_8);
                     merged = true;
