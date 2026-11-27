@@ -251,7 +251,7 @@ public class PackMerger {
                 } else if (PackAssetMerger.isLegacyEquipmentPath(file.getPath())) {
                     JsonObject high = object(first);
                     JsonObject low = object(bytes);
-                    if (high != null && high.has("layers") && low != null) {
+                    if (PackAssetMerger.isLegacyEquipment(file.getPath(), high) && low != null) {
                         if (!PackAssetMerger.hasEquipmentLayers(high)) entries.put(file.getPath(), bytes);
                         else if (PackAssetMerger.hasEquipmentLayers(low))
                             entries.put(file.getPath(), PackAssetMerger.mergeJson(file.getPath(), low, high)
@@ -430,10 +430,9 @@ public class PackMerger {
         higher.forEach((path, bytes) -> {
             if (!path.endsWith(".mcmeta")) lower.remove(path + ".mcmeta");
             String type = PackAssetMerger.additiveType(path);
-            // The legacy equipment directory can also contain ordinary models.
             boolean legacyEquipmentPath = PackAssetMerger.isLegacyEquipmentPath(path);
             JsonObject high = type.isEmpty() && !legacyEquipmentPath ? null : object(bytes);
-            if (legacyEquipmentPath && high != null && high.has("layers")) type = "equipment";
+            if (PackAssetMerger.isLegacyEquipment(path, high)) type = "equipment";
             if (!type.isEmpty() && !validResource(type, high)) return;
             byte[] previous = lower.get(path);
             byte[] incoming = bytes;

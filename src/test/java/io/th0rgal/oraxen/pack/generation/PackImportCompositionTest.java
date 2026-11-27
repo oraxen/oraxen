@@ -327,6 +327,25 @@ class PackImportCompositionTest {
                 """), json(files, equipment).get("layers"));
     }
 
+    @Test void keepsOrdinaryLegacyEquipmentModelsWithCustomLayersMetadata() throws Exception {
+        String root = "assets/test/models/equipment/";
+        String replaced = root + "shield.json";
+        String standalone = root + "preview.json";
+        String local = root + "local.json";
+        String lowerModel = "{\"parent\":\"minecraft:item/generated\"}";
+        String model = "{\"parent\":\"minecraft:item/handheld\",\"layers\":[\"preview\"]}";
+        write("a", Map.of(replaced, lowerModel));
+        write("b", Map.of(replaced, model, standalone, model));
+        PackMerger merger = new PackMerger(tempDir.toFile());
+
+        Map<String, String> uploaded = contents(merger.mergeUploadedPacks());
+        assertEquals(model, uploaded.get(replaced));
+        assertEquals(model, uploaded.get(standalone));
+        Map<String, String> files = contents(merger.mergeWithHigherPriorityFiles(List.of(
+                vfile(local, model), vfile(local, lowerModel))));
+        assertEquals(model, files.get(local));
+    }
+
     @Test void reportsLegacyEquipmentReplacingAnOrdinaryModelAsAnOverride() throws Exception {
         String path = "assets/test/models/equipment/armor.json";
         String equipment = "{\"layers\":{\"humanoid\":[{\"texture\":\"test:armor\"}]}}";

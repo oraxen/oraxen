@@ -18,6 +18,8 @@ public final class PackAssetMerger {
             "assets/[^/]+/(?:(lang|font|atlases|blockstates|equipment)/.+|sounds)\\.json");
     private static final Pattern LEGACY_EQUIPMENT_PATH = Pattern.compile("assets/[^/]+/models/equipment/.+\\.json");
     private static final Pattern EQUIPMENT_TEXTURE = Pattern.compile("(?:[a-z0-9_.-]*:)?[a-z0-9_./-]+");
+    private static final Set<String> MODEL_FIELDS = Set.of(
+            "parent", "elements", "textures", "display", "gui_light", "ambientocclusion", "overrides");
 
     private PackAssetMerger() {}
 
@@ -36,6 +38,16 @@ public final class PackAssetMerger {
         return LEGACY_EQUIPMENT_PATH.matcher(path).region(assetStart(path), path.length()).matches();
     }
 
+    /**
+     * The legacy equipment directory can also contain ordinary models, which may carry custom
+     * {@code layers} metadata. Such a file is an equipment definition when its layers follow the
+     * armor schema, or when it has layers and no model fields. Malformed equipment is then rejected.
+     */
+    static boolean isLegacyEquipment(String path, JsonObject value) {
+        if (!isLegacyEquipmentPath(path) || value == null || !value.has("layers")) return false;
+        return hasEquipmentLayers(value) || MODEL_FIELDS.stream().noneMatch(value::has);
+    }
+
     public static boolean isAdditivePath(String path) {
         return !additiveType(path).isEmpty();
     }
@@ -51,8 +63,7 @@ public final class PackAssetMerger {
         }
         if (type.equals("font")) return arrays(lower, higher, "providers", true);
         if (type.equals("atlases")) return arrays(lower, higher, "sources", false);
-        if (type.equals("equipment") || (higher.has("layers") && isLegacyEquipmentPath(path)))
-            return equipment(lower, higher);
+        if (type.equals("equipment") || isLegacyEquipment(path, higher)) return equipment(lower, higher);
         if (type.equals("sounds")) {
             JsonObject result = lower.deepCopy();
             higher.entrySet().forEach(entry -> {
