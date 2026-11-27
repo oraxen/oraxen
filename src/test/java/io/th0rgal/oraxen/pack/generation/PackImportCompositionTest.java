@@ -356,26 +356,34 @@ class PackImportCompositionTest {
         assertEquals(model, files.get(local));
     }
 
-    @Test void rejectsLegacyEquipmentWithInvalidTexturesEvenWhenItHasModelFields() throws Exception {
+    @ParameterizedTest
+    @ValueSource(strings = {
+            """
+                    {"layers":{"humanoid":[{"texture":"test:base"}]}}
+                    """,
+            """
+                    {"parent":"minecraft:item/generated","textures":{"layer0":"test:item/shield"}}
+                    """
+    })
+    void rejectsLegacyEquipmentWithInvalidTexturesEvenWhenItHasModelFields(String valid) throws Exception {
         String root = "assets/test/models/equipment/";
         String uploaded = root + "uploaded.json";
         String local = root + "local.json";
-        String valid = """
-                {"layers":{"humanoid":[{"texture":"test:base"}]}}
-                """;
+        String generated = root + "generated.json";
         String invalid = """
                 {"parent":"minecraft:item/handheld","layers":{"humanoid":[{"texture":"test:Armor"}]}}
                 """;
-        write("a", Map.of(uploaded, valid));
+        write("a", Map.of(uploaded, valid, generated, valid));
         write("b", Map.of(uploaded, invalid));
         PackMerger merger = new PackMerger(tempDir.toFile());
 
         Map<String, String> uploadedFiles = contents(merger.mergeUploadedPacks());
         Map<String, String> localFiles = contents(merger.mergeWithHigherPriorityFiles(List.of(
-                vfile(local, invalid), vfile(local, valid))));
+                vfile(local, invalid), vfile(local, valid), vfile(generated, invalid))));
         assertAll(
                 () -> assertEquals(valid, uploadedFiles.get(uploaded), "uploaded packs"),
-                () -> assertEquals(valid, localFiles.get(local), "local duplicates"));
+                () -> assertEquals(valid, localFiles.get(local), "local duplicates"),
+                () -> assertEquals(valid, localFiles.get(generated), "generated files over uploaded packs"));
     }
 
     @Test void reportsLegacyEquipmentReplacingAnOrdinaryModelAsAnOverride() throws Exception {
