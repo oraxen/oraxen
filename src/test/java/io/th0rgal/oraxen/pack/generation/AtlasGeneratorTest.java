@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.pack.generation;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.configs.ConfigsManager;
 import io.th0rgal.oraxen.configs.Settings;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 
 import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -70,6 +72,24 @@ class AtlasGeneratorTest {
                 "{\"type\":\"directory\",\"source\":\"custom/armor\",\"prefix\":\"custom/armor/\"}",
                 "{\"type\":\"single\",\"resource\":\"oraxen:icon\",\"sprite\":\"oraxen:icon\"}");
         assertEquals(expected, atlasSources(output));
+    }
+
+    @Test
+    void legacyDirectoryAtlasRetainsTheChildThatRestoresFilteredSprites() {
+        byte[] blocks = """
+                {"sources":[{"type":"directory","source":"block","prefix":"block/"},
+                {"type":"directory","source":"block/custom","prefix":"block/custom/"},
+                {"type":"filter","pattern":{"path":"block/custom/icon"}}]}
+                """.getBytes(StandardCharsets.UTF_8);
+        byte[] items = """
+                {"sources":[{"type":"directory","source":"block/custom","prefix":"block/custom/"}]}
+                """.getBytes(StandardCharsets.UTF_8);
+        byte[] merged = AtlasGenerator.mergeSplitAtlasesForLegacyTarget(blocks, items);
+        assertEquals(JsonParser.parseString("""
+                {"sources":[{"type":"directory","source":"block","prefix":"block/"},
+                {"type":"filter","pattern":{"path":"block/custom/icon"}},
+                {"type":"directory","source":"block/custom","prefix":"block/custom/"}]}
+                """), JsonParser.parseString(new String(merged, StandardCharsets.UTF_8)));
     }
 
     private static Set<String> atlasSources(List<VirtualFile> output) {

@@ -16,14 +16,24 @@ import java.util.regex.Pattern;
 public final class PackAssetMerger {
     private static final Pattern ADDITIVE_PATH = Pattern.compile(
             "assets/[^/]+/(?:(lang|font|atlases|blockstates|equipment)/.+|sounds)\\.json");
+    private static final Pattern LEGACY_EQUIPMENT_PATH = Pattern.compile("assets/[^/]+/models/equipment/.+\\.json");
+    private static final Pattern EQUIPMENT_TEXTURE = Pattern.compile("(?:[a-z0-9_.-]*:)?[a-z0-9_./-]+");
 
     private PackAssetMerger() {}
 
     static String additiveType(String path) {
-        int start = path.startsWith("assets/") ? 0 : path.indexOf("/assets/") + 1;
+        int start = assetStart(path);
         var match = ADDITIVE_PATH.matcher(path).region(start, path.length());
         if (!match.matches()) return "";
         return match.group(1) == null ? "sounds" : match.group(1);
+    }
+
+    private static int assetStart(String path) {
+        return path.startsWith("assets/") ? 0 : path.indexOf("/assets/") + 1;
+    }
+
+    static boolean isLegacyEquipmentPath(String path) {
+        return LEGACY_EQUIPMENT_PATH.matcher(path).region(assetStart(path), path.length()).matches();
     }
 
     public static boolean isAdditivePath(String path) {
@@ -41,7 +51,8 @@ public final class PackAssetMerger {
         }
         if (type.equals("font")) return arrays(lower, higher, "providers", true);
         if (type.equals("atlases")) return arrays(lower, higher, "sources", false);
-        if (type.equals("equipment")) return equipment(lower, higher);
+        if (type.equals("equipment") || (higher.has("layers") && isLegacyEquipmentPath(path)))
+            return equipment(lower, higher);
         if (type.equals("sounds")) {
             JsonObject result = lower.deepCopy();
             higher.entrySet().forEach(entry -> {
@@ -82,7 +93,8 @@ public final class PackAssetMerger {
         if (value == null || !(value.get("layers") instanceof JsonObject layers) || layers.size() == 0) return false;
         return layers.entrySet().stream().allMatch(entry -> entry.getValue() instanceof JsonArray list
                 && !list.isEmpty() && list.asList().stream().allMatch(layer -> layer instanceof JsonObject definition
-                && definition.get("texture") instanceof JsonPrimitive texture && texture.isString()));
+                && definition.get("texture") instanceof JsonPrimitive texture && texture.isString()
+                && EQUIPMENT_TEXTURE.matcher(texture.getAsString()).matches()));
     }
 
     private static JsonObject equipment(JsonObject lower, JsonObject higher) {

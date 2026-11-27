@@ -121,10 +121,8 @@ public class AtlasGenerator {
             JsonObject itemsJson = JsonParser.parseString(new String(itemsAtlasBytes, StandardCharsets.UTF_8)).getAsJsonObject();
             JsonArray blocksSources = blocksJson.has("sources") ? blocksJson.getAsJsonArray("sources") : new JsonArray();
             JsonArray itemsSources = itemsJson.has("sources") ? itemsJson.getAsJsonArray("sources") : new JsonArray();
+            // These atlases also contain imported operations that can restore sprites after a filter.
             blocksSources = PackAssetMerger.distinctEntries(blocksSources, itemsSources, false);
-            if ("DIRECTORY".equalsIgnoreCase(getAtlasGenerationType())) {
-                removeChildEntriesInDirectoryAtlas(blocksSources);
-            }
             blocksJson.add("sources", blocksSources);
             return blocksJson.toString().getBytes(StandardCharsets.UTF_8);
         } catch (Exception ignored) {
