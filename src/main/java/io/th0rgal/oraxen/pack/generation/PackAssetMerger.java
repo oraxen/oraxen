@@ -42,22 +42,24 @@ public final class PackAssetMerger {
 
     /**
      * The legacy equipment directory can also contain ordinary models with custom {@code layers}
-     * metadata. Recognize armor layers even with invalid texture IDs, while preserving model
-     * texture references such as {@code #layer0}.
+     * metadata. Direct texture IDs identify armor even when invalid. Ambiguous layer values need
+     * a lower-priority equipment definition and no explicit model texture mappings.
      */
-    static boolean isLegacyEquipment(JsonObject value) {
-        if (value == null || !value.has("layers")) return false;
-        if (modelFields.stream().noneMatch(value::has)) return true;
-        return hasEquipmentLayers(value) || hasLegacyEquipmentLayer(value.get("layers"));
+    static boolean isLegacyEquipment(JsonObject lower, JsonObject higher) {
+        if (higher == null || !higher.has("layers")) return false;
+        if (modelFields.stream().noneMatch(higher::has)) return true;
+        boolean replacesEquipment = hasEquipmentLayers(lower)
+                && !(higher.get("textures") instanceof JsonObject textures && !textures.isEmpty());
+        return hasEquipmentLayers(higher) || hasLegacyEquipmentLayer(higher.get("layers"), replacesEquipment);
     }
 
-    private static boolean hasLegacyEquipmentLayer(JsonElement value) {
+    private static boolean hasLegacyEquipmentLayer(JsonElement value, boolean replacesEquipment) {
         if (!(value instanceof JsonObject layers)) return false;
         return LEGACY_EQUIPMENT_LAYER_TYPES.stream().map(layers::get).anyMatch(layer ->
                 layer instanceof JsonArray entries && entries.asList().stream().anyMatch(entry ->
                         entry instanceof JsonObject definition && definition.has("texture")
-                                && !(definition.get("texture") instanceof JsonPrimitive texture && texture.isString()
-                                && texture.getAsString().startsWith("#"))));
+                                && (replacesEquipment || definition.get("texture") instanceof JsonPrimitive texture
+                                && texture.isString() && !texture.getAsString().startsWith("#"))));
     }
 
     public static boolean isAdditivePath(String path) {
@@ -75,7 +77,7 @@ public final class PackAssetMerger {
         }
         if (type.equals("font")) return arrays(lower, higher, "providers", true);
         if (type.equals("atlases")) return arrays(lower, higher, "sources", false);
-        if (type.equals("equipment") || (isLegacyEquipmentPath(path) && isLegacyEquipment(higher)))
+        if (type.equals("equipment") || (isLegacyEquipmentPath(path) && isLegacyEquipment(lower, higher)))
             return equipment(lower, higher);
         if (type.equals("sounds")) {
             JsonObject result = lower.deepCopy();

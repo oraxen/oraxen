@@ -10,7 +10,9 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.MockedStatic;
 
@@ -18,6 +20,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
+import java.util.stream.Stream;
 import java.util.zip.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -336,6 +339,14 @@ class PackImportCompositionTest {
             """
                     {"parent":"minecraft:item/generated","textures":{"layer0":"test:item/preview"},
                      "layers":{"humanoid":[{"texture":"#layer0"}]}}
+                    """,
+            """
+                    {"parent":"minecraft:item/generated","textures":{"layer0":"test:item/preview"},
+                     "layers":{"humanoid":[{"texture":null}]}}
+                    """,
+            """
+                    {"parent":"minecraft:item/generated","textures":{"layer0":"test:item/preview"},
+                     "layers":{"humanoid":[{"texture":42}]}}
                     """
     })
     void keepsOrdinaryLegacyEquipmentModelsWithCustomLayersMetadata(String model) throws Exception {
@@ -343,36 +354,46 @@ class PackImportCompositionTest {
         String replaced = root + "shield.json";
         String standalone = root + "preview.json";
         String local = root + "local.json";
+        String replacesEquipment = root + "armor.json";
+        String localReplacesEquipment = root + "local_armor.json";
         String lowerModel = "{\"parent\":\"minecraft:item/generated\"}";
-        write("a", Map.of(replaced, lowerModel));
-        write("b", Map.of(replaced, model, standalone, model));
+        String lowerEquipment = "{\"layers\":{\"humanoid\":[{\"texture\":\"test:base\"}]}}";
+        write("a", Map.of(replaced, lowerModel, replacesEquipment, lowerEquipment));
+        write("b", Map.of(replaced, model, standalone, model, replacesEquipment, model));
         PackMerger merger = new PackMerger(tempDir.toFile());
 
         Map<String, String> uploaded = contents(merger.mergeUploadedPacks());
         assertEquals(model, uploaded.get(replaced));
         assertEquals(model, uploaded.get(standalone));
+        assertEquals(model, uploaded.get(replacesEquipment));
         Map<String, String> files = contents(merger.mergeWithHigherPriorityFiles(List.of(
-                vfile(local, model), vfile(local, lowerModel))));
+                vfile(local, model), vfile(local, lowerModel),
+                vfile(localReplacesEquipment, model), vfile(localReplacesEquipment, lowerEquipment))));
         assertEquals(model, files.get(local));
+        assertEquals(model, files.get(localReplacesEquipment));
+    }
+
+    static Stream<Arguments> malformedLegacyEquipmentOverrides() {
+        String equipment = "{\"layers\":{\"humanoid\":[{\"texture\":\"test:base\"}]}}";
+        String model = "{\"parent\":\"minecraft:item/generated\",\"textures\":{\"layer0\":\"test:item/shield\"}}";
+        return Stream.of(
+                Arguments.of(equipment, "\"test:Armor\""),
+                Arguments.of(model, "\"test:Armor\""),
+                Arguments.of(equipment, "\"#trim\""),
+                Arguments.of(equipment, "null"),
+                Arguments.of(equipment, "42"));
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {
-            """
-                    {"layers":{"humanoid":[{"texture":"test:base"}]}}
-                    """,
-            """
-                    {"parent":"minecraft:item/generated","textures":{"layer0":"test:item/shield"}}
-                    """
-    })
-    void rejectsLegacyEquipmentWithInvalidTexturesEvenWhenItHasModelFields(String valid) throws Exception {
+    @MethodSource("malformedLegacyEquipmentOverrides")
+    void rejectsLegacyEquipmentWithInvalidTexturesEvenWhenItHasModelFields(String valid, String texture) throws Exception {
         String root = "assets/test/models/equipment/";
         String uploaded = root + "uploaded.json";
         String local = root + "local.json";
         String generated = root + "generated.json";
         String invalid = """
-                {"parent":"minecraft:item/handheld","layers":{"humanoid":[{"texture":"test:Armor"}]}}
-                """;
+                {"parent":"minecraft:item/handheld","layers":{"humanoid":[{"texture":%s}]}}
+                """.formatted(texture);
         write("a", Map.of(uploaded, valid, generated, valid));
         write("b", Map.of(uploaded, invalid));
         PackMerger merger = new PackMerger(tempDir.toFile());
