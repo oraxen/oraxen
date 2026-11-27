@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.protection.AntiGriefLib;
 import io.th0rgal.oraxen.utils.timers.Timer;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Ageable;
@@ -66,6 +67,7 @@ public class HarvestingMechanicListener implements Listener {
         playerTimer.reset();
         List<Block> nearbyBlocks = getNearbyBlocks(clickedBlock.getLocation(), mechanic.getRadius(), mechanic.getHeight());
         for (final Block block : nearbyBlocks) {
+            if (!Bukkit.isOwnedByCurrentRegion(block)) continue;
             if (block.getBlockData() instanceof Ageable ageable
                     && ageable.getAge() == ageable.getMaximumAge()
                     && AntiGriefLib.canBreak(player, block.getLocation())
