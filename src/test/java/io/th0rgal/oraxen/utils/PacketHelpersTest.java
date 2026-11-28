@@ -3,8 +3,12 @@ package io.th0rgal.oraxen.utils;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.configs.ConfigsManager;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.ComponentIteratorType;
+import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -13,8 +17,11 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.parallel.Isolated;
 import org.mockito.MockedStatic;
 
+import java.util.function.Consumer;
+
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
@@ -61,18 +68,37 @@ class PacketHelpersTest {
     }
 
     @Test
-    void existingStylesAndChildrenArePreserved() {
-        Component input = Component.text("<red>C:\\temp</red>", NamedTextColor.BLUE)
-                .append(Component.translatable("container.chest"));
-        Component expected = Component.text("", NamedTextColor.BLUE)
-                .append(Component.text("C:\\temp", NamedTextColor.RED))
-                .append(Component.translatable("container.chest"));
-        assertBothPaths(expected, input);
+    void backslashesKeepInlineAndExistingColors() {
+        Component expected = Component.text("C:\\temp", NamedTextColor.GREEN);
+        assertBothPaths(expected, Component.text("<green>C:\\temp</green>"));
+        assertBothPaths(expected, expected);
     }
 
     @Test
-    void legacyColorsAreParsedWithoutRemovingBackslashes() {
-        assertBothPaths(Component.text("C:\\temp", NamedTextColor.GREEN), Component.text("&aC:\\temp"));
+    void structuredJsonKeepsEscapedBackslashes() {
+        Component input = Component.translatable("example.key", Component.text("C:\\new\\users"));
+        assertBothPaths(input, input);
+    }
+
+    @Test
+    void existingResetAndCompactRgbStillWork() {
+        assertBothPaths(Component.text("Hello"), Component.text("<reset>Hello", NamedTextColor.BLUE));
+        assertBothPaths(Component.text("Hello", TextColor.color(0xff0000)), Component.text("&#ff0000Hello"));
+    }
+
+    @Test
+    void legacyDecorationDoesNotSplitMiniMessageGradient() {
+        assertBothPaths(Component.text("<gradient:red:blue>A &lB</gradient>"), formatted -> {
+            assertEquals("A B", AdventureUtils.PLAIN_TEXT.serialize(formatted));
+            for (Component part : formatted.iterable(ComponentIteratorType.DEPTH_FIRST)) {
+                if (part instanceof TextComponent text && text.content().equals("B")) {
+                    assertEquals(NamedTextColor.BLUE, text.color());
+                    assertEquals(TextDecoration.State.TRUE, text.decoration(TextDecoration.BOLD));
+                    return;
+                }
+            }
+            fail("Expected a styled B in the gradient");
+        });
     }
 
     private void assertSameText(String text) {
@@ -80,9 +106,13 @@ class PacketHelpersTest {
     }
 
     private void assertBothPaths(Component expected, Component input) {
+        assertBothPaths(input, actual -> assertEquals(expected.compact(), actual.compact()));
+    }
+
+    private void assertBothPaths(Component input, Consumer<Component> assertion) {
         assertAll(
-                () -> assertEquals(expected.compact(), PacketHelpers.translateTitle(input).compact()),
-                () -> assertEquals(expected.compact(), AdventureUtils.GSON_SERIALIZER.deserialize(
-                        PacketHelpers.translateJson(AdventureUtils.GSON_SERIALIZER.serialize(input))).compact()));
+                () -> assertion.accept(PacketHelpers.translateTitle(input)),
+                () -> assertion.accept(AdventureUtils.GSON_SERIALIZER.deserialize(
+                        PacketHelpers.translateJson(AdventureUtils.GSON_SERIALIZER.serialize(input)))));
     }
 }
