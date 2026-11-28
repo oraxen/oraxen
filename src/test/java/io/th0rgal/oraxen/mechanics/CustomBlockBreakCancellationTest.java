@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.api.events.noteblock.OraxenNoteBlockBreakEvent;
 import io.th0rgal.oraxen.api.events.stringblock.OraxenStringBlockBreakEvent;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.shaped.ShapedBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicListener;
 import io.th0rgal.oraxen.packets.PacketAdapter;
@@ -26,10 +27,12 @@ import org.bukkit.event.Cancellable;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.plugin.PluginManager;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InOrder;
 import org.mockito.MockedStatic;
@@ -38,6 +41,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.inOrder;
@@ -58,6 +62,9 @@ class CustomBlockBreakCancellationTest extends MechanicTestSupport {
             when(tag.getValues()).thenReturn(Set.of());
             return tag;
         });
+        ItemStack emptyStack = mock(ItemStack.class);
+        when(emptyStack.getType()).thenReturn(Material.AIR);
+        when(Bukkit.getServer().getUnsafe().createEmptyStack()).thenReturn(emptyStack);
         Class.forName(BlockHelpers.class.getName());
     }
 
@@ -214,6 +221,41 @@ class CustomBlockBreakCancellationTest extends MechanicTestSupport {
             verify(block).setType(Material.AIR);
             verify(mechanic, never()).runBreakEvents(any());
         }
+    }
+
+    @ParameterizedTest
+    @CsvSource({"NOTE_BLOCK, false", "NOTE_BLOCK, true",
+            "WAXED_EXPOSED_CUT_COPPER_SLAB, false", "WAXED_EXPOSED_CUT_COPPER_SLAB, true"})
+    void playerlessRemovalDropsConfiguredLootOnlyWhenForced(Material material, boolean forceDrop) {
+        Block block = mock(Block.class);
+        Location location = mock(Location.class);
+        Drop drop = mock(Drop.class);
+        when(block.getType()).thenReturn(material);
+        when(block.getLocation()).thenReturn(location);
+        when(location.getBlock()).thenReturn(block);
+
+        try (MockedStatic<OraxenBlocks> blocks = mockStatic(OraxenBlocks.class, CALLS_REAL_METHODS);
+                MockedStatic<BlockHelpers> helpers = mockStatic(BlockHelpers.class)) {
+            if (material == Material.NOTE_BLOCK) {
+                Block above = mock(Block.class);
+                when(block.getRelative(BlockFace.UP)).thenReturn(above);
+                when(block.getRelative(BlockFace.UP, 2)).thenReturn(above);
+                NoteBlockMechanic mechanic = mock(NoteBlockMechanic.class);
+                when(mechanic.getDrop(any())).thenReturn(drop);
+                blocks.when(() -> OraxenBlocks.getNoteBlockMechanic(block)).thenReturn(mechanic);
+            } else {
+                ShapedBlockMechanic mechanic = mock(ShapedBlockMechanic.class);
+                when(mechanic.getDrop(any())).thenReturn(drop);
+                blocks.when(() -> OraxenBlocks.getShapedMechanic(block)).thenReturn(mechanic);
+                PersistentDataContainer data = mock(PersistentDataContainer.class);
+                helpers.when(() -> BlockHelpers.getPDC(block)).thenReturn(data);
+            }
+
+            assertTrue(OraxenBlocks.remove(location, null, forceDrop));
+        }
+
+        verify(block).setType(Material.AIR);
+        verify(drop, times(forceDrop ? 1 : 0)).spawns(eq(location), any(ItemStack.class));
     }
 
     private static Player playerWithTool() {

@@ -353,10 +353,13 @@ public class OraxenBlocks {
      *
      * @param location  The location of the OraxenBlock
      * @param player    The player that broke the block, can be null
-     * @param forceDrop Whether to force the block to drop, even if player is null or in creative mode
+     * @param forceDrop Whether to force the block to drop, even if player is null or in creative mode.
+     *                  If false and player is null, configured block loot is suppressed.
      * @return True if the block was broken, false if the block was not an OraxenBlock or could not be broken
      */
     public static boolean remove(Location location, @Nullable Player player, boolean forceDrop) {
+        if (!forceDrop) return remove(location, player, player == null ? Drop.emptyDrop() : null);
+
         Block block = location.getBlock();
 
         NoteBlockMechanic noteMechanic = getNoteBlockMechanic(block);
@@ -364,8 +367,7 @@ public class OraxenBlocks {
         ChorusBlockMechanic chorusMechanic = getChorusMechanic(block);
         ShapedBlockMechanic shapedMechanic = getShapedMechanic(block);
         ItemStack tool = player != null ? player.getInventory().getItemInMainHand() : new ItemStack(Material.AIR);
-        Drop overrideDrop = !forceDrop ? null
-                : noteMechanic != null ? noteMechanic.getDrop(tool)
+        Drop overrideDrop = noteMechanic != null ? noteMechanic.getDrop(tool)
                 : stringMechanic != null ? stringMechanic.getDrop(tool)
                 : chorusMechanic != null ? chorusMechanic.getDrop(tool)
                 : shapedMechanic != null ? shapedMechanic.getDrop(tool)
