@@ -353,10 +353,13 @@ public class OraxenBlocks {
      *
      * @param location  The location of the OraxenBlock
      * @param player    The player that broke the block, can be null
-     * @param forceDrop Whether to force the block to drop, even if player is null or in creative mode
+     * @param forceDrop Whether to force the block to drop, even if player is null or in creative mode.
+     *                  If false and player is null, configured block loot is suppressed.
      * @return True if the block was broken, false if the block was not an OraxenBlock or could not be broken
      */
     public static boolean remove(Location location, @Nullable Player player, boolean forceDrop) {
+        if (!forceDrop) return remove(location, player, player == null ? Drop.emptyDrop() : null);
+
         Block block = location.getBlock();
 
         NoteBlockMechanic noteMechanic = getNoteBlockMechanic(block);
@@ -364,8 +367,7 @@ public class OraxenBlocks {
         ChorusBlockMechanic chorusMechanic = getChorusMechanic(block);
         ShapedBlockMechanic shapedMechanic = getShapedMechanic(block);
         ItemStack tool = player != null ? player.getInventory().getItemInMainHand() : new ItemStack(Material.AIR);
-        Drop overrideDrop = !forceDrop ? null
-                : noteMechanic != null ? noteMechanic.getDrop(tool)
+        Drop overrideDrop = noteMechanic != null ? noteMechanic.getDrop(tool)
                 : stringMechanic != null ? stringMechanic.getDrop(tool)
                 : chorusMechanic != null ? chorusMechanic.getDrop(tool)
                 : shapedMechanic != null ? shapedMechanic.getDrop(tool)
@@ -413,9 +415,10 @@ public class OraxenBlocks {
             BlockDurability.applyConfigured(player, itemInHand, getDurabilityAction(mechanic, itemInHand));
         }
 
-        if (drop != null) drop.spawns(block.getLocation(), itemInHand);
+        // A shulker storage holding items drops its own item with the contents in place of the normal drop
+        boolean droppedShulker = dropStorageIfPresent(mechanic, block, itemID);
+        if (drop != null && !droppedShulker) drop.spawns(block.getLocation(), itemInHand);
         removeLight(block, itemID);
-        dropStorageIfPresent(mechanic, block);
         if (preRemove != null) preRemove.run();
         block.setType(Material.AIR);
         BlockHelpers.removePDC(block);
@@ -452,10 +455,10 @@ public class OraxenBlocks {
             block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, block.getBlockData());
     }
 
-    private static void dropStorageIfPresent(Mechanic mechanic, Block block) {
+    private static boolean dropStorageIfPresent(Mechanic mechanic, Block block, String itemID) {
         StorageMechanic storage = getStorageMechanic(mechanic);
-        if (storage != null && storage.getStorageType() == StorageMechanic.StorageType.STORAGE)
-            storage.dropStorageContent(block);
+        if (storage == null || (!storage.isStorage() && !storage.isShulker())) return false;
+        return storage.dropStorageContent(block, itemID);
     }
 
     @Nullable

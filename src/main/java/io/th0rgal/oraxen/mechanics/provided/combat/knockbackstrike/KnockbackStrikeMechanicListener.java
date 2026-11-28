@@ -19,8 +19,11 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
+
+import java.util.UUID;
 
 public class KnockbackStrikeMechanicListener implements Listener {
 
@@ -28,6 +31,15 @@ public class KnockbackStrikeMechanicListener implements Listener {
 
     public KnockbackStrikeMechanicListener(MechanicFactory factory) {
         this.factory = factory;
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        UUID playerId = event.getPlayer().getUniqueId();
+        for (String itemId : factory.getItems()) {
+            if (factory.getMechanic(itemId) instanceof KnockbackStrikeMechanic mechanic)
+                mechanic.clearHits(playerId);
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -114,7 +126,8 @@ public class KnockbackStrikeMechanicListener implements Listener {
                         mechanic.getSoundPitch()
                     );
                 } catch (Exception e) {
-                    // Continue silently if sound fails
+                    Logs.debug("Failed to play knockback strike sound " + mechanic.getSoundType());
+                    Logs.debug(e);
                 }
             }
         }

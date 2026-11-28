@@ -1,16 +1,20 @@
 # Existing servers are temporary and used for validation. Agents should reset them.
 # Starts a local Paper/Folia server for a version used by VersionLoadingTest.
-# Usage: ./scripts/server.ps1 --version Paper/26.3 [--no-reset]
+# Usage: ./scripts/server.ps1 --version Paper/26.3 [--port 25568] [--instance name] [--no-reset]
 $ErrorActionPreference = 'Stop'
 
 function Show-Usage {
-    Write-Host 'Usage: ./scripts/server.ps1 --version <Paper|Folia>/<version> [--no-reset]'
+    Write-Host 'Usage: ./scripts/server.ps1 --version <Paper|Folia>/<version> [--port <port>] [--instance <name>] [--no-reset]'
     Write-Host '  --version, -v  Server and Minecraft version, for example Paper/26.3'
+    Write-Host '  --port, -p     Server port, 25568 by default'
+    Write-Host '  --instance     Use a separate server directory, so several servers of one version can run at once'
     Write-Host '  --no-reset     Keep the existing plugins and world files'
     Write-Host '  --help, -h     Show this help'
 }
 
 $versionSpec = ''
+$serverPort = '25568'
+$instanceName = ''
 $noReset = $false
 for ($i = 0; $i -lt $args.Count; $i++) {
     switch -Regex ($args[$i]) {
@@ -24,6 +28,26 @@ for ($i = 0; $i -lt $args.Count; $i++) {
             if (-not $versionSpec) { throw '--version requires a value' }
             break
         }
+        '^(--port|-p)$' {
+            if ($i + 1 -ge $args.Count -or -not $args[$i + 1]) { throw "$($args[$i]) requires a value" }
+            $serverPort = [string]$args[++$i]
+            break
+        }
+        '^--port=(.*)$' {
+            $serverPort = $Matches[1]
+            if (-not $serverPort) { throw '--port requires a value' }
+            break
+        }
+        '^--instance$' {
+            if ($i + 1 -ge $args.Count -or -not $args[$i + 1]) { throw "$($args[$i]) requires a value" }
+            $instanceName = [string]$args[++$i]
+            break
+        }
+        '^--instance=(.*)$' {
+            $instanceName = $Matches[1]
+            if (-not $instanceName) { throw '--instance requires a value' }
+            break
+        }
         '^--no-reset$' { $noReset = $true; break }
         '^(--help|-h)$' { Show-Usage; exit 0 }
         default { throw "Unknown option '$($args[$i])' (use --help for usage)" }
@@ -35,19 +59,30 @@ if ($versionSpec -cnotmatch '^(Paper|Folia)/([0-9]+(?:\.[0-9]+)*)$') {
 }
 $serverName = $Matches[1]
 $mcVersion = $Matches[2]
+if ($serverPort -notmatch '^[0-9]{1,5}$' -or [int]$serverPort -lt 1 -or [int]$serverPort -gt 65535) {
+    throw 'Port must be a number between 1 and 65535'
+}
+if ($instanceName -and $instanceName -cnotmatch '^[A-Za-z0-9_-]+$') {
+    throw 'Instance names may only contain letters, digits, hyphens and underscores'
+}
 $projectName = $serverName.ToLowerInvariant()
 $projectDir = Split-Path -Parent $PSScriptRoot
 $serversDir = Join-Path ([Environment]::GetFolderPath('UserProfile')) 'Oraxen/Servers'
-$serverDir = Join-Path (Join-Path $serversDir $serverName) $mcVersion
+$downloadDir = Join-Path $serversDir $serverName
+$versionDir = Join-Path $downloadDir $mcVersion
+# Instances share the downloaded server jar of their version but keep their own files.
+$sharedJar = Join-Path $versionDir 'server.jar'
+$serverDir = if ($instanceName) { "$versionDir-$instanceName" } else { $versionDir }
 $serverJar = Join-Path $serverDir 'server.jar'
 
-# The version is restricted to digits and dots. Confirm the reset target is below Servers.
+# The version and instance only contain safe characters. Confirm the reset target is below Servers.
 $serversRoot = [System.IO.Path]::GetFullPath($serversDir).TrimEnd('\', '/') + [System.IO.Path]::DirectorySeparatorChar
 if (-not [System.IO.Path]::GetFullPath($serverDir).StartsWith($serversRoot, [System.StringComparison]::OrdinalIgnoreCase)) {
     throw "Server directory is outside $serversDir"
 }
 
-$requiredJavaVersion = if ($mcVersion.StartsWith('26.')) { '25' } else { '21' }
+$mcMajorVersion = [int][regex]::Match($mcVersion, '^(?:1\.)?([0-9]+)').Groups[1].Value
+$requiredJavaVersion = if ($mcMajorVersion -ge 26) { '25' } else { '21' }
 function Test-JavaVersion([string]$javaCommand, [string]$expectedVersion) {
     if (-not (Test-Path -LiteralPath $javaCommand -PathType Leaf)) { return $false }
     try {
@@ -94,7 +129,7 @@ function Get-OraxenJar {
     }
     if ($LASTEXITCODE -ne 0) { throw "Gradle shadowJar failed with exit code $LASTEXITCODE" }
     $jars = @(Get-ChildItem -LiteralPath $libsDir -Filter 'oraxen-*.jar' -File -ErrorAction SilentlyContinue |
-        Where-Object { $_.Name -notmatch '-(sources|javadoc)\.jar$' } |
+        Where-Object { $_.Name -notmatch '-(sources|javadoc|plain)\.jar$' } |
         Sort-Object LastWriteTimeUtc -Descending)
     if ($jars.Count -eq 0) { throw "Could not find the built Oraxen jar in $libsDir" }
     return $jars[0].FullName
@@ -147,7 +182,7 @@ $knownDownloads = @{
     'folia/1.21.11' = 'https://fill-data.papermc.io/v1/objects/f52c408490a0225611e67907a3ca19f7e6da2c6bc899e715d5f46844e7103c39/folia-1.21.11-14.jar'
 }
 
-if (-not (Test-Path -LiteralPath $serverJar -PathType Leaf)) {
+if (-not (Test-Path -LiteralPath $sharedJar -PathType Leaf)) {
     $downloadUrl = $knownDownloads["$projectName/$mcVersion"]
     if (-not $downloadUrl) {
         $buildsUrl = "https://api.papermc.io/v2/projects/$projectName/versions/$mcVersion/builds"
@@ -156,15 +191,25 @@ if (-not (Test-Path -LiteralPath $serverJar -PathType Leaf)) {
         if (-not $build) { throw "Could not find a $serverName build for Minecraft $mcVersion" }
         $downloadUrl = "https://api.papermc.io/v2/projects/$projectName/versions/$mcVersion/builds/$build/downloads/$projectName-$mcVersion-$build.jar"
     }
-    [void][System.IO.Directory]::CreateDirectory($serverDir)
-    $temporaryJar = Join-Path $serverDir 'server.jar.download'
+    [void][System.IO.Directory]::CreateDirectory($versionDir)
+    # Keep partial downloads outside the default server directory so its reset cannot remove another instance's download.
+    $temporaryJar = Join-Path $downloadDir ("server-{0}.jar.download.{1}" -f $mcVersion, [guid]::NewGuid().ToString('N'))
     Write-Host "Downloading $serverName $mcVersion..."
     try {
         Invoke-WebRequest -Uri $downloadUrl -OutFile $temporaryJar
-        Move-Item -LiteralPath $temporaryJar -Destination $serverJar -Force
+        if (-not (Test-Path -LiteralPath $sharedJar -PathType Leaf)) {
+            try {
+                Move-Item -LiteralPath $temporaryJar -Destination $sharedJar -Force
+            } catch {
+                if (-not (Test-Path -LiteralPath $sharedJar -PathType Leaf)) { throw }
+            }
+        }
     } catch {
-        Remove-Item -LiteralPath $temporaryJar -Force -ErrorAction SilentlyContinue
         throw "Could not download $serverName $mcVersion`: $_"
+    } finally {
+        if (Test-Path -LiteralPath $temporaryJar -PathType Leaf) {
+            Remove-Item -LiteralPath $temporaryJar -Force -ErrorAction SilentlyContinue
+        }
     }
 }
 
@@ -173,18 +218,21 @@ if (-not $noReset) {
     Get-ChildItem -LiteralPath $serverDir -Force | Where-Object { $_.FullName -ne $serverJar } |
         Remove-Item -Recurse -Force
 }
+if ($serverJar -ne $sharedJar -and -not (Test-Path -LiteralPath $serverJar -PathType Leaf)) {
+    Copy-Item -LiteralPath $sharedJar -Destination $serverJar
+}
 $pluginsDir = Join-Path $serverDir 'plugins'
 [void][System.IO.Directory]::CreateDirectory($pluginsDir)
 [System.IO.File]::WriteAllText((Join-Path $serverDir 'eula.txt'), "eula=true`n", (New-Object System.Text.UTF8Encoding($false)))
 Set-ServerProperties (Join-Path $serverDir 'server.properties')
 Copy-Item -LiteralPath $oraxenJar -Destination (Join-Path $pluginsDir 'Oraxen.jar') -Force
 
-Write-Host "Starting $serverName $mcVersion"
+Write-Host "Starting $serverName $mcVersion on port $serverPort"
 Write-Host "Server directory: $serverDir"
 Write-Host "Oraxen jar: $oraxenJar"
 Push-Location $serverDir
 try {
-    & $javaCommand -Xmx1G -jar server.jar --nogui --port 25568
+    & $javaCommand -Xmx1G -jar server.jar --nogui --port $serverPort
     $serverExitCode = $LASTEXITCODE
 } finally {
     Pop-Location

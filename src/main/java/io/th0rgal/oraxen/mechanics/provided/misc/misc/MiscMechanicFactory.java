@@ -55,6 +55,11 @@ public class MiscMechanicFactory extends MechanicFactory {
     }
 
     @Override
+    public void onUnregister() {
+        if (instance == this) instance = null;
+    }
+
+    @Override
     public MiscMechanic getMechanic(String itemID) {
         return (MiscMechanic) super.getMechanic(itemID);
     }

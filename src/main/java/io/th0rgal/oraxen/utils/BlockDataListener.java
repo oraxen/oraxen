@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.utils;
 
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenFurniture;
+import org.bukkit.ExplosionResult;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
@@ -52,13 +53,22 @@ public final class BlockDataListener implements Listener {
         if (event.getTo() != event.getBlock().getType()) remove(event.getBlock());
     }
 
+    // Explosions like wind charges only trigger or keep the blocks in their list
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockExplode(BlockExplodeEvent event) {
+        if (VersionUtil.atOrAbove("1.21")) {
+            ExplosionResult result = event.getExplosionResult();
+            if (result != ExplosionResult.DESTROY && result != ExplosionResult.DESTROY_WITH_DECAY) return;
+        }
         remove(event.blockList());
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onEntityExplode(EntityExplodeEvent event) {
+        if (VersionUtil.atOrAbove("1.21")) {
+            ExplosionResult result = event.getExplosionResult();
+            if (result != ExplosionResult.DESTROY && result != ExplosionResult.DESTROY_WITH_DECAY) return;
+        }
         remove(event.blockList());
     }
 

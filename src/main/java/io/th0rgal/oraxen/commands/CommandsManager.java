@@ -132,7 +132,7 @@ public class CommandsManager {
         sender.sendPlainMessage("Oraxen commands");
         sender.sendPlainMessage("/oraxen inventory - Open the item browser");
         sender.sendPlainMessage("/oraxen give <player> <item> [amount] - Give an Oraxen item");
-        sender.sendPlainMessage("/oraxen pack <send|msg|extract_default> - Manage the resource pack");
+        sender.sendPlainMessage("/oraxen pack <send|extract_default> - Manage the resource pack");
         sender.sendPlainMessage("/oraxen studio <connect|status|pull|push|disconnect> - Sync with Oraxen Studio");
         sender.sendPlainMessage("/oraxen reload - Reload Oraxen");
         sender.sendPlainMessage("/oraxen info <item|glyph|block> <id|all> - Show Oraxen info");
@@ -282,7 +282,9 @@ public class CommandsManager {
                     final Collection<Player> targets = (Collection<Player>) args.get("targets");
                     final String itemID = (String) args.getOrDefault("item", "");
                     final Optional<Integer> amount = args.getOptionalByClass("amount", Integer.class);
-                    if (!OraxenItems.exists(itemID)) {
+                    if (amount.isPresent() && !isValidGiveAmount(amount.get())) {
+                        sendInvalidGiveAmount(sender);
+                    } else if (!OraxenItems.exists(itemID)) {
                         Message.ITEM_NOT_FOUND.send(sender, AdventureUtils.tagResolver("item", itemID));
                     } else
                         for (final Player target : targets) {

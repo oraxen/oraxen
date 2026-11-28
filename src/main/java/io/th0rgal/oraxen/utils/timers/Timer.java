@@ -4,11 +4,8 @@ import io.th0rgal.oraxen.configs.Message;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import org.bukkit.entity.Player;
 
-import java.text.DecimalFormat;
-
 public class Timer {
 
-    public static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("##.##");
     // Mutated and read from different region threads on Folia; volatile also prevents
     // torn reads of the 64-bit value on 32-bit JVMs.
     private volatile long lastUsage = 0;
@@ -28,7 +25,8 @@ public class Timer {
     }
 
     public boolean isFinished() {
-        return System.currentTimeMillis() >= lastUsage + delay;
+        long last = lastUsage;
+        return last == 0 || System.currentTimeMillis() - last >= delay;
     }
 
     public long getRemainingTime() {

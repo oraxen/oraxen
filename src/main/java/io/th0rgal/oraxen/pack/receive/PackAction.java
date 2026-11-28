@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.pack.receive;
 
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.commands.CommandsParser;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
@@ -9,7 +10,13 @@ import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
+import java.util.Locale;
+
 public class PackAction {
+
+    public enum MessageType {
+        KICK, CHAT, ACTION_BAR, TITLE
+    }
 
     private final int delay;
 
@@ -17,7 +24,7 @@ public class PackAction {
     private float soundVolume;
     private float soundPitch;
 
-    private String messageType;
+    private MessageType messageType;
     private Component messageContent;
 
     private final CommandsParser commandsParser;
@@ -37,13 +44,25 @@ public class PackAction {
         if (configurationSection.isConfigurationSection("message")) {
             ConfigurationSection messageSection = configurationSection.getConfigurationSection("message");
             assert messageSection != null;
-            messageType = messageSection.getString("type");
             if (messageSection.getBoolean("enabled", false)) {
+                messageType = parseMessageType(messageSection);
                 messageContent = AdventureUtils.MINI_MESSAGE.deserialize(messageSection.getString("content", ""), tagResolver);
             }
         }
 
         commandsParser = new CommandsParser(configurationSection.getConfigurationSection("commands"), tagResolver);
+    }
+
+    private static MessageType parseMessageType(ConfigurationSection messageSection) {
+        String type = messageSection.getString("type");
+        if (type != null) {
+            try {
+                return MessageType.valueOf(type.trim().toUpperCase(Locale.ROOT));
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
+        Logs.logWarning("Invalid message type '" + type + "' at " + messageSection.getCurrentPath() + ".type. Falling back to CHAT.");
+        return MessageType.CHAT;
     }
 
     public int getDelay() {
@@ -62,7 +81,7 @@ public class PackAction {
         return messageContent != null;
     }
 
-    public String getMessageType() {
+    public MessageType getMessageType() {
         return messageType;
     }
 

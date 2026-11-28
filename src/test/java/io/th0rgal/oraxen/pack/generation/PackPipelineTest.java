@@ -135,6 +135,32 @@ class PackPipelineTest {
         assertEquals("filter", sources.get(1).getAsJsonObject().get("type").getAsString());
     }
 
+    @Test
+    void equipmentUnderFontNamedOverlayMergesWhenFontMergingIsDisabled() {
+        for (String path : List.of("font/assets/test/equipment/example.json", "assets/font/equipment/example.json")) {
+            List<VirtualFile> files = new ArrayList<>(List.of(
+                    file(path, "{\"layers\":[]}"),
+                    file(path, "{\"layers\":{\"wings\":[{\"texture\":\"test:wings\"}]}}"),
+                    file(path, "{\"layers\":{\"humanoid\":[{\"texture\":\"test:base\"}]}}")));
+
+            PackPipeline.mergeNativeFiles(files, false);
+
+            assertEquals(1, files.size());
+            assertEquals(json("""
+                    {"layers":{"humanoid":[{"texture":"test:base"}],"wings":[{"texture":"test:wings"}]}}
+                    """), files.getFirst().toJsonObject());
+        }
+    }
+
+    @Test
+    void anAssetsSegmentInsideAModelPathDoesNotMakeItAdditive() {
+        String path = "assets/test/models/assets/demo/equipment/example.json";
+        List<VirtualFile> files = new ArrayList<>(List.of(file(path, "{\"parent\":\"test:high\"}"),
+                file(path, "{\"parent\":\"test:low\"}")));
+        PackPipeline.mergeNativeFiles(files, true);
+        assertEquals(2, files.size());
+    }
+
     private static JsonObject json(String value) {
         return JsonParser.parseString(value).getAsJsonObject();
     }

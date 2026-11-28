@@ -32,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -94,6 +95,23 @@ public class BlockHelpers {
     /** Centered on the block horizontally, but at the bottom of the block vertically. */
     public static Location toCenterBlockLocation(Location location) {
         return location.toCenterLocation().subtract(0, 0.5, 0);
+    }
+
+    /**
+     * Resends the blocks of the given type around a location to the players near it.
+     */
+    public static void resendNearbyBlocks(Location location, Material type) {
+        World world = location.getWorld();
+        if (world == null) return;
+        List<BlockState> states = new ArrayList<>();
+        for (int x = location.getBlockX() - 10; x < location.getBlockX() + 10; x++)
+            for (int y = location.getBlockY() - 4; y < location.getBlockY() + 4; y++)
+                for (int z = location.getBlockZ() - 10; z < location.getBlockZ() + 10; z++) {
+                    Block block = world.getBlockAt(x, y, z);
+                    if (block.getType() == type) states.add(block.getState(false));
+                }
+        if (states.isEmpty()) return;
+        for (Player player : location.getNearbyPlayers(20)) player.sendBlockChanges(states);
     }
 
     public static boolean isStandingInside(final Player player, final Block block) {

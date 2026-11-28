@@ -154,6 +154,10 @@ public class KnockbackStrikeMechanic extends Mechanic {
         return shouldTrigger[0];
     }
 
+    public void clearHits(UUID playerUUID) {
+        hitCounters.remove(playerUUID);
+    }
+
     /**
      * Returns current hit count for player
      * Thread-safe implementation

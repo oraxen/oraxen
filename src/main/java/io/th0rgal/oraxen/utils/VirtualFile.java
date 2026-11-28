@@ -80,12 +80,10 @@ public class VirtualFile implements Comparable<VirtualFile> {
 
     @Nullable
     public JsonElement toJsonElement() {
-        InputStream fontInput = getInputStream();
-        String fontContent;
-        try {
-            fontContent = IOUtils.toString(fontInput, StandardCharsets.UTF_8);
-            inputStream.close();
-            inputStream = new ByteArrayInputStream(fontContent.getBytes(StandardCharsets.UTF_8));
+        try (InputStream fontInput = getInputStream()) {
+            String fontContent = IOUtils.toString(fontInput, StandardCharsets.UTF_8);
+            if (inputStreamSupplier == null)
+                inputStream = new ByteArrayInputStream(fontContent.getBytes(StandardCharsets.UTF_8));
             return JsonParser.parseString(fontContent);
         } catch (Exception e) {
             Logs.logError(FilenameUtils.getName(getPath()) + " was empty");

@@ -50,7 +50,8 @@ public final class StudioBundleUtils {
         if (hasUnsupportedCharacters(clean)) return false;
 
         String lower = clean.toLowerCase(Locale.ROOT);
-        if (lower.equals("settings.yml") || lower.equals("pack.zip") || lower.endsWith("/pack.zip")) {
+        boolean generatedPack = lower.startsWith("pack/") && lower.indexOf('/', 5) < 0 && lower.endsWith(".zip");
+        if (lower.equals("settings.yml") || lower.equals("pack.zip") || lower.endsWith("/pack.zip") || generatedPack) {
             return false;
         }
 

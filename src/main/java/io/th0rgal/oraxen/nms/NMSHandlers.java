@@ -11,31 +11,34 @@ import org.jetbrains.annotations.NotNull;
 
 public class NMSHandlers {
 
-    private static NMSHandler handler;
+    private static volatile NMSHandler handler;
     private static String version;
     private static boolean packDispatchListenerRegistered;
 
     @NotNull
     public static NMSHandler getHandler() {
-        if (handler != null)
-            return handler;
-        else {
-            setup();
-            if (handler instanceof NMSHandler.EmptyNMSHandler && Settings.DEBUG.toBool()) {
-                Logs.logError("Failed to setup NMS handler for server version: " + Bukkit.getVersion());
-                Logs.logError("Supported versions: " + VersionUtil.supportedVersions());
-                Logs.logError("Current server implements Paper: " + VersionUtil.isPaperServer());
-                Logs.logError("NMS features will be disabled or limited.");
+        NMSHandler current = handler;
+        if (current != null)
+            return current;
+        synchronized (NMSHandlers.class) {
+            if (handler == null) {
+                setup();
+                if (handler instanceof NMSHandler.EmptyNMSHandler && Settings.DEBUG.toBool()) {
+                    Logs.logError("Failed to setup NMS handler for server version: " + Bukkit.getVersion());
+                    Logs.logError("Supported versions: " + VersionUtil.supportedVersions());
+                    Logs.logError("Current server implements Paper: " + VersionUtil.isPaperServer());
+                    Logs.logError("NMS features will be disabled or limited.");
+                }
             }
+            return handler;
         }
-        return handler;
     }
 
     public static String getVersion() {
         return version;
     }
 
-    public static void setup() {
+    public static synchronized void setup() {
         if (handler != null)
             return;
 
@@ -60,7 +63,7 @@ public class NMSHandlers {
                 Bukkit.getPluginManager().registerEvents(new PackDispatchListener(), OraxenPlugin.get());
                 packDispatchListenerRegistered = true;
             }
-        } catch (ReflectiveOperationException | LinkageError e) {
+        } catch (ReflectiveOperationException | LinkageError | RuntimeException e) {
             Logs.logWarning("Failed to load guarded NMS handler; NMS features will be disabled...");
             Logs.debug(e);
             handler = new NMSHandler.EmptyNMSHandler();
@@ -77,7 +80,7 @@ public class NMSHandlers {
                 : "io.th0rgal.oraxen.nms.handler.java21.NMSHandler";
     }
 
-    public static void shutdown() {
+    public static synchronized void shutdown() {
         if (handler != null) {
             handler.shutdown();
         }

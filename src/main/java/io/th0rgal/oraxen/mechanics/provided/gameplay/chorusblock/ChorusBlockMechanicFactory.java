@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicConfigProperty;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockStateCodec;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.CustomBlockService;
 import io.th0rgal.oraxen.nms.NMSHandlers;
@@ -95,7 +96,10 @@ public class ChorusBlockMechanicFactory extends MechanicFactory {
     }
 
     public static void clearInstance(ChorusBlockMechanicFactory factory) {
-        if (instance == factory) instance = null;
+        if (instance != factory) return;
+        instance = null;
+        BLOCK_PER_VARIATION.clear();
+        CustomBlockService.clearChorusBlocks();
     }
 
     /**
@@ -180,7 +184,8 @@ public class ChorusBlockMechanicFactory extends MechanicFactory {
         }
         variants.add(getBlockstateVariantName(mechanic.getCustomVariation()),
                 getModelJson(mechanic.getModel(itemMechanicConfiguration.getParent().getParent())));
-        CustomBlockService.registerChorusBlock(mechanic.getCustomVariation(), mechanic);
+        ChorusBlockMechanic previous = CustomBlockService.registerChorusBlock(mechanic.getCustomVariation(), mechanic);
+        BlockMechanicFactory.logDuplicateVariation(previous, mechanic, mechanic.getCustomVariation());
         addToImplemented(mechanic);
         return mechanic;
     }
@@ -240,7 +245,7 @@ public class ChorusBlockMechanicFactory extends MechanicFactory {
                         "type", MechanicConfigProperty.string("type", "ALLOW or DENY list type"),
                         "block_types", MechanicConfigProperty.list("block_types", "Block types to allow/deny")
                 )),
-                MechanicConfigProperty.list("events", "Actions for placed block clicks or successful player breaks or placements. Use trigger: click with type: LEFT, RIGHT, or BOTH, trigger: break, or trigger: place. The trigger defaults to click; the legacy click filter remains supported.")
+                MechanicConfigProperty.list("events", "Actions for placed block clicks or successful player breaks or placements. Use trigger: click with type: LEFT, RIGHT, or BOTH, trigger: break, or trigger: place. The trigger defaults to click; the legacy click filter remains supported. Actions accept an optional cooldown such as 80ms, 2s, 3m, 1h, or 2d. Use java for a Java action with player and server variables.")
         );
     }
 }

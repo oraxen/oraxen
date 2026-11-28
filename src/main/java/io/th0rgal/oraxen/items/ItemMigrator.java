@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.configs.MiningConfigMigration;
 import io.th0rgal.oraxen.configs.ClickActionsMigration;
 import io.th0rgal.oraxen.configs.FurnitureConfigMigration;
+import io.th0rgal.oraxen.configs.SoulboundConfigMigration;
 import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.configuration.ConfigurationSection;
@@ -61,6 +62,13 @@ public final class ItemMigrator {
             if (OraxenPlugin.get() != null)
                 Logs.logWarning("Item " + section.getName()
                         + " uses deprecated mechanics.bigmining; migrated to face-relative mechanics.mining radius and depth.");
+        }
+        if (section != null && SoulboundConfigMigration.migrateItem(section)) {
+            configUpdated = true;
+            blockConfigMigrated = true;
+            if (OraxenPlugin.get() != null)
+                Logs.logWarning("Item " + section.getName()
+                        + " uses a fraction for mechanics.soulbound.lose_chance; migrated it to a percentage from 0 to 100.");
         }
     }
 

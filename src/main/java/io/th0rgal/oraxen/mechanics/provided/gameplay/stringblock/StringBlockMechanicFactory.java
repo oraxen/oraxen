@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicConfigProperty;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockStateCodec;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.CustomBlockService;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingListener;
@@ -101,7 +102,10 @@ public class StringBlockMechanicFactory extends MechanicFactory {
     }
 
     public static void clearInstance(StringBlockMechanicFactory factory) {
-        if (instance == factory) instance = null;
+        if (instance != factory) return;
+        instance = null;
+        BLOCK_PER_VARIATION.clear();
+        CustomBlockService.clearStringBlocks();
     }
 
 
@@ -163,7 +167,8 @@ public class StringBlockMechanicFactory extends MechanicFactory {
         variants.add(getBlockstateVariantName(mechanic.getCustomVariation()),
                 getModelJson(mechanic.getModel(itemMechanicConfiguration.getParent()
                         .getParent())));
-        CustomBlockService.registerStringBlock(mechanic.getCustomVariation(), mechanic);
+        StringBlockMechanic previous = CustomBlockService.registerStringBlock(mechanic.getCustomVariation(), mechanic);
+        BlockMechanicFactory.logDuplicateVariation(previous, mechanic, mechanic.getCustomVariation());
 
         // Register stackable variations: each stack level gets its own blockstate entry
         // but maps back to the parent mechanic for unified drop/interaction handling
@@ -172,8 +177,9 @@ public class StringBlockMechanicFactory extends MechanicFactory {
                 Logs.logError("Stackable custom_variation " + sv.customVariation() + " of " + mechanic.getItemID() + " must be between 1 and 127!");
                 continue;
             }
-            if (BLOCK_PER_VARIATION.containsKey(sv.customVariation())) {
-                Logs.logError("Stackable custom_variation " + sv.customVariation() + " of " + mechanic.getItemID() + " collides with an existing block!");
+            StringBlockMechanic existing = BLOCK_PER_VARIATION.get(sv.customVariation());
+            if (existing != null) {
+                Logs.logError("Stackable custom_variation " + sv.customVariation() + " of " + mechanic.getItemID() + " is already used by " + existing.getItemID() + "!");
                 continue;
             }
             String stackModel = sv.model() != null ? sv.model()
@@ -255,10 +261,18 @@ public class StringBlockMechanicFactory extends MechanicFactory {
                         "silktouch", MechanicConfigProperty.bool("silktouch", "Require silk touch", false),
                         "loots", MechanicConfigProperty.list("loots", "List of loot entries")
                 )),
-                MechanicConfigProperty.object("sapling", "Sapling growth configuration", Map.of(
-                        "min_light", MechanicConfigProperty.integer("min_light", "Minimum light level to grow", 9, 0, 15),
-                        "grow_block", MechanicConfigProperty.string("grow_block", "Block ID when grown"),
-                        "grow_chance", MechanicConfigProperty.decimal("grow_chance", "Growth chance per check", 0.1, 0.0, 1.0)
+                MechanicConfigProperty.object("sapling", "Sapling growth configuration", Map.ofEntries(
+                        Map.entry("canGrowNaturally", MechanicConfigProperty.bool("canGrowNaturally", "Whether the sapling grows over time", true)),
+                        Map.entry("naturalGrowthTime", MechanicConfigProperty.integer("naturalGrowthTime", "Ticks until the sapling grows", 6000, 0)),
+                        Map.entry("canGrowFromBoneMeal", MechanicConfigProperty.bool("canGrowFromBoneMeal", "Whether bone meal speeds up growth", true)),
+                        Map.entry("boneMealGrowthSpeedup", MechanicConfigProperty.integer("boneMealGrowthSpeedup", "Ticks of growth each bone meal adds", 1200, 0)),
+                        Map.entry("growSound", MechanicConfigProperty.string("growSound", "Sound played when the sapling grows")),
+                        Map.entry("minLightLevel", MechanicConfigProperty.integer("minLightLevel", "Minimum light level to grow", 0, 0, 15)),
+                        Map.entry("requiresWaterSource", MechanicConfigProperty.bool("requiresWaterSource", "Whether the sapling needs water below it", false)),
+                        Map.entry("schematicName", MechanicConfigProperty.string("schematicName", "Schematic pasted when the sapling grows")),
+                        Map.entry("replaceBlocks", MechanicConfigProperty.bool("replaceBlocks", "Whether the schematic may replace existing blocks", false)),
+                        Map.entry("shouldCopyBiomes", MechanicConfigProperty.bool("shouldCopyBiomes", "Whether the schematic pastes its biomes", false)),
+                        Map.entry("shouldCopyEntities", MechanicConfigProperty.bool("shouldCopyEntities", "Whether the schematic pastes its entities", false))
                 )),
                 MechanicConfigProperty.list("stackable", "List of stack variations (custom_variation + model per level)")
         );

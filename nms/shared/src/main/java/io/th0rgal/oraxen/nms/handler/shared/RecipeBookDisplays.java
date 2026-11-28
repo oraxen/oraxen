@@ -80,7 +80,7 @@ final class RecipeBookDisplays {
     private static List<SlotDisplay> replaceSlots(List<SlotDisplay> original, Map<Integer, List<ItemStack>> overrides) {
         List<SlotDisplay> slots = new ArrayList<>(original);
         overrides.forEach((index, items) -> {
-            if (index >= slots.size() || slots.get(index) == SlotDisplay.Empty.INSTANCE) return;
+            if (index < 0 || index >= slots.size() || slots.get(index) == SlotDisplay.Empty.INSTANCE) return;
             List<SlotDisplay> alternatives = items.stream().map(RecipeBookDisplays::displayItem).toList();
             slots.set(index, alternatives.size() == 1 ? alternatives.getFirst() : new SlotDisplay.Composite(alternatives));
         });

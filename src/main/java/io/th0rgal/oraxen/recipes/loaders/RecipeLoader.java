@@ -184,11 +184,27 @@ public abstract class RecipeLoader {
         return new NamespacedKey(OraxenPlugin.get(), getRecipeName());
     }
 
+    /** Rejects a duplicate key before the loader stages matchers that would replace the first recipe's. */
+    protected NamespacedKey getUniqueKey() {
+        NamespacedKey key = getNamespacedKey();
+        if (KEYS_REGISTERED_THIS_PASS.contains(key))
+            throw new IllegalArgumentException("Duplicate recipe key '" + key + "'");
+        return key;
+    }
+
     protected String getGroup() {
         return getSection().getString("group", "");
     }
 
     public abstract void registerRecipe();
+
+    /** Keeps the last working version after this recipe failed to load. Server recipes stay through {@link #retainedKeys()}. */
+    public void retainPreviousVersion() {
+    }
+
+    protected static boolean resetsRecipes() {
+        return reset;
+    }
 
     protected void loadRecipe(Recipe recipe) {
         Map<Integer, List<ItemStack>> display = RecipeIngredients.displayOverrides(recipe);

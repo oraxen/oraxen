@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.pack.generation;
 
+import com.google.gson.JsonParser;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.configs.ConfigsManager;
 import io.th0rgal.oraxen.configs.Settings;
@@ -18,6 +19,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.MockedStatic;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
@@ -130,9 +132,11 @@ class ModelEnginePackPriorityTest {
 
         List<VirtualFile> output = new ArrayList<>(List.of(
                 file("assets/oraxen/models/generated.json", "{\"source\":\"generated\"}")));
-        var merge = ResourcePack.class.getDeclaredMethod("mergeUploadedPacks", List.class);
+        var resolveModelEngineFolder = ResourcePack.class.getDeclaredMethod("resolveModelEngineFolder");
+        resolveModelEngineFolder.setAccessible(true);
+        var merge = ResourcePack.class.getDeclaredMethod("mergeUploadedPacks", List.class, File.class);
         merge.setAccessible(true);
-        merge.invoke(resourcePack, output);
+        merge.invoke(resourcePack, output, resolveModelEngineFolder.invoke(null));
 
         Map<String, String> files = contents(output);
         boolean liveImported = importEnabled && !emptyLivePack;
@@ -149,6 +153,33 @@ class ModelEnginePackPriorityTest {
                 files.get("oraxen_import_0/assets/modelengine/models/mob.json"));
         assertEquals("{\"source\":\"generated\"}", files.get("assets/oraxen/models/generated.json"));
         assertEquals("{\"source\":\"generated\"}", files.get("oraxen_import_0/assets/oraxen/models/generated.json"));
+    }
+
+    @ParameterizedTest
+    @CsvSource({"true", "false"})
+    void mergesSodiumMetadataIntoTheOutputPack(boolean generateMcmeta) throws Exception {
+        settings.set(Settings.GENERATE_MCMETA.getPath(), generateMcmeta);
+        writePack(uploadedPacks.resolve("uploaded"), Map.of("pack.mcmeta", """
+                {"sodium":{"ignored_shaders":["fog.glsl","fog.glsl"],"extra_list":[{"a":1}],"custom_flag":false}}
+                """));
+        writePack(uploadedPacks.resolve("uploaded/nested"), Map.of("pack.mcmeta", """
+                {"sodium":{"ignored_shaders":["light.glsl","fog.glsl"],"extra_list":[{"a":1},{"b":2}]}}
+                """));
+        writePack(modelEnginePack, Map.of("pack.mcmeta", """
+                {"sodium":{"ignored_shaders":["light.glsl","terrain.vsh"]}}
+                """));
+        List<VirtualFile> output = new ArrayList<>(List.of(file("pack.mcmeta", """
+                {"sodium":{"ignored_shaders":["terrain.vsh","terrain.fsh"],"custom_flag":true},"custom_metadata":{"keep":true}}
+                """)));
+        var merge = ResourcePack.class.getDeclaredMethod("mergeUploadedPacks", List.class, File.class);
+        merge.setAccessible(true);
+        merge.invoke(resourcePack, output, modelEnginePack.getParent().toFile());
+
+        var metadata = JsonParser.parseString(contents(output).get("pack.mcmeta")).getAsJsonObject();
+        assertEquals(JsonParser.parseString("""
+                {"ignored_shaders":["fog.glsl","light.glsl","terrain.vsh","terrain.fsh"],"extra_list":[{"a":1},{"b":2}],"custom_flag":true}
+                """), metadata.get("sodium"));
+        assertEquals(JsonParser.parseString("{\"keep\":true}"), metadata.get("custom_metadata"));
     }
 
     private static String metadata(String description) {
@@ -194,7 +225,7 @@ class ModelEnginePackPriorityTest {
 
     private static VirtualFile file(String path, String content) {
         int separator = path.lastIndexOf('/');
-        return new VirtualFile(path.substring(0, separator), path.substring(separator + 1),
+        return new VirtualFile(separator < 0 ? "" : path.substring(0, separator), path.substring(separator + 1),
                 new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)));
     }
 }

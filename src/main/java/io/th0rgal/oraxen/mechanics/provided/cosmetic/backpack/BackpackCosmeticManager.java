@@ -48,7 +48,7 @@ public class BackpackCosmeticManager {
         activeBackpacks.put(playerId, data);
 
         // Spawn the backpack for all nearby players
-        spawnBackpackForViewers(player, data);
+        refreshViewers(player, data);
     }
 
     /**
@@ -193,46 +193,49 @@ public class BackpackCosmeticManager {
     private void refreshViewers(Player owner, BackpackData data) {
         BackpackCosmeticMechanic mechanic = data.getMechanic();
         int viewDistance = mechanic.getViewDistance();
-        boolean viewersChanged = false;
 
         // Also ensure owner can see their own backpack if enabled
         if (mechanic.isVisibleToSelf() && !data.getViewers().contains(owner.getUniqueId())) {
             spawnBackpackForViewer(owner, owner, data);
             data.addViewer(owner.getUniqueId());
-            viewersChanged = true;
-        }
-
-        // Find new viewers
-        for (Player potentialViewer : owner.getWorld().getPlayers()) {
-            if (potentialViewer.equals(owner)) continue;
-
-            boolean inRange = isWithinViewDistance(potentialViewer, owner, viewDistance);
-            boolean isViewer = data.getViewers().contains(potentialViewer.getUniqueId());
-
-            if (inRange && !isViewer) {
-                spawnBackpackForViewer(potentialViewer, owner, data);
-                data.addViewer(potentialViewer.getUniqueId());
-                viewersChanged = true;
-            } else if (!inRange && isViewer) {
-                data.getViewers().remove(potentialViewer.getUniqueId());
-                NMSHandlers.getHandler().sendEntityDestroy(potentialViewer, data.getEntityId());
-                viewersChanged = true;
-            }
         }
 
         // Remove offline viewers
-        viewersChanged |= data.getViewers().removeIf(viewerId -> {
+        data.getViewers().removeIf(viewerId -> {
             Player viewer = Bukkit.getPlayer(viewerId);
             return viewer == null || !viewer.isOnline();
         });
 
-        // Only resync mount packets when the viewer set or passenger list actually changed;
+        // Only resync mount packets when the passenger list changed or a resync was requested;
         // periodic resyncs every tick are an O(N*M) packet storm.
         int[] currentPassengers = getMergedPassengerIds(owner, data.getEntityId());
-        if (viewersChanged || data.consumeNeedsResync()
-                || !Arrays.equals(currentPassengers, data.getLastSyncedPassengers())) {
-            resyncBackpackMount(owner);
-            data.setLastSyncedPassengers(currentPassengers);
+        boolean resync = data.consumeNeedsResync() || !Arrays.equals(currentPassengers, data.getLastSyncedPassengers());
+        data.setLastSyncedPassengers(currentPassengers);
+        if (resync && data.getViewers().contains(owner.getUniqueId()))
+            sendBackpackMountPacket(owner, owner, currentPassengers);
+
+        // Other players may be owned by another region on Folia, so each one is checked on its
+        // own thread against a snapshot of the owner taken here
+        Location location = owner.getLocation();
+        int vehicleId = owner.getEntityId();
+        float yaw = owner.getBodyYaw();
+        for (Player potentialViewer : owner.getWorld().getPlayers()) {
+            if (potentialViewer.equals(owner)) continue;
+
+            SchedulerUtil.runOnOwningThread(potentialViewer, () -> {
+                if (activeBackpacks.get(owner.getUniqueId()) != data) return;
+                boolean inRange = isWithinViewDistance(potentialViewer, location, viewDistance);
+                boolean isViewer = data.getViewers().contains(potentialViewer.getUniqueId());
+                // Spawns new viewers, removes viewers out of range and resyncs the mount for the others
+                if (inRange != isViewer || (inRange && resync)) {
+                    updateBackpackViewer(potentialViewer, data, location, vehicleId, yaw, currentPassengers);
+                    // hideBackpack may have run on the owner's thread meanwhile and missed this viewer
+                    if (activeBackpacks.get(owner.getUniqueId()) != data) {
+                        data.getViewers().remove(potentialViewer.getUniqueId());
+                        NMSHandlers.getHandler().sendEntityDestroy(potentialViewer, data.getEntityId());
+                    }
+                }
+            });
         }
     }
 
@@ -243,25 +246,6 @@ public class BackpackCosmeticManager {
     public void requestResync(Player owner) {
         BackpackData data = activeBackpacks.get(owner.getUniqueId());
         if (data != null) data.markNeedsResync();
-    }
-
-    private void spawnBackpackForViewers(Player owner, BackpackData data) {
-        BackpackCosmeticMechanic mechanic = data.getMechanic();
-
-        // Also spawn for the owner themselves so they can see their own backpack
-        if (mechanic.isVisibleToSelf()) {
-            spawnBackpackForViewer(owner, owner, data);
-            data.addViewer(owner.getUniqueId());
-        }
-
-        for (Player viewer : owner.getWorld().getPlayers()) {
-            if (viewer.equals(owner)) continue;
-
-            if (isWithinViewDistance(viewer, owner, mechanic.getViewDistance())) {
-                spawnBackpackForViewer(viewer, owner, data);
-                data.addViewer(viewer.getUniqueId());
-            }
-        }
     }
 
     private void spawnBackpackForViewer(Player viewer, Player owner, BackpackData data) {

@@ -16,8 +16,6 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.Tripwire;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -46,7 +44,7 @@ public class StringBlockMechanicListener implements Listener {
 
     public StringBlockMechanicListener() {
         // BreakerSystem no longer requires a packet library, register unconditionally.
-        BreakerSystem.MODIFIERS.add(getHardnessModifier());
+        BreakerSystem.registerModifier(StringBlockMechanicListener.class, getHardnessModifier());
     }
 
     private HardnessModifier getHardnessModifier() {
@@ -382,7 +380,10 @@ public class StringBlockMechanicListener implements Listener {
         }
 
         BlockData data = StringBlockMechanicFactory.createTripwireData(customVariation);
-        makePlayerPlaceBlock(player, event.getHand(), item, placedAgainst, event.getBlockFace(), data);
+        if (makePlayerPlaceBlock(player, event.getHand(), item, placedAgainst, event.getBlockFace(), data)) {
+            event.setUseInteractedBlock(Event.Result.DENY);
+            event.setUseItemInHand(Event.Result.DENY);
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -442,8 +443,12 @@ public class StringBlockMechanicListener implements Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onExplosionDestroy(EntityExplodeEvent event) {
+        if (VersionUtil.atOrAbove("1.21")) {
+            ExplosionResult result = event.getExplosionResult();
+            if (result != ExplosionResult.DESTROY && result != ExplosionResult.DESTROY_WITH_DECAY) return;
+        }
         List<Block> blockList = event.blockList().stream().filter(block -> block.getType().equals(Material.TRIPWIRE))
                 .toList();
         blockList.forEach(block -> {
@@ -478,8 +483,12 @@ public class StringBlockMechanicListener implements Listener {
         });
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockExplosionDestroy(BlockExplodeEvent event) {
+        if (VersionUtil.atOrAbove("1.21")) {
+            ExplosionResult result = event.getExplosionResult();
+            if (result != ExplosionResult.DESTROY && result != ExplosionResult.DESTROY_WITH_DECAY) return;
+        }
         List<Block> blockList = event.blockList().stream().filter(block -> block.getType().equals(Material.TRIPWIRE))
                 .toList();
         blockList.forEach(block -> {
@@ -629,7 +638,7 @@ public class StringBlockMechanicListener implements Listener {
         handleFallingOraxenBlockAbove(blockAbove);
     }
 
-    private void makePlayerPlaceBlock(final Player player, final EquipmentSlot hand, final ItemStack item,
+    private boolean makePlayerPlaceBlock(final Player player, final EquipmentSlot hand, final ItemStack item,
             final Block placedAgainst, final BlockFace face, final BlockData newData) {
         final Block target;
         final Material type = placedAgainst.getType();
@@ -638,10 +647,10 @@ public class StringBlockMechanicListener implements Listener {
         else
             target = placedAgainst.getRelative(face);
         if (!BlockHelpers.isReplaceable(target.getType()))
-            return;
+            return false;
 
         StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(newData);
-        if (mechanic != null && !mechanic.canPlaceOn(face, placedAgainst)) return;
+        if (mechanic != null && !mechanic.canPlaceOn(face, placedAgainst)) return false;
 
         // Store oldData incase event(s) is cancelled, set the target blockData
         Block blockAbove = target.getRelative(BlockFace.UP);
@@ -673,7 +682,7 @@ public class StringBlockMechanicListener implements Listener {
             target.setBlockData(oldData);
             if (mechanic != null && mechanic.isTall())
                 blockAbove.setBlockData(oldDataAbove);
-            return;
+            return false;
         }
 
         if (mechanic != null) {
@@ -685,8 +694,9 @@ public class StringBlockMechanicListener implements Listener {
                 target.setBlockData(oldData);
                 if (mechanic.isTall())
                     blockAbove.setBlockData(oldDataAbove);
-                return;
+                return false;
             }
+            if (mechanic.isStorage()) mechanic.getStorage().loadStorageContent(target, item);
 
             // Handle falling blocks
             if (mechanic.isFalling()) {
@@ -717,23 +727,10 @@ public class StringBlockMechanicListener implements Listener {
             BlockHelpers.correctAllBlockStates(placedAgainst, player, hand, face, item, newData);
         }
         target.getWorld().sendGameEvent(player, GameEvent.BLOCK_PLACE, target.getLocation().toVector());
+        return true;
     }
 
     public static void fixClientsideUpdate(Location loc) {
-        List<Entity> players = Objects.requireNonNull(loc.getWorld()).getNearbyEntities(loc, 20, 20, 20)
-                .stream().filter(entity -> entity.getType() == EntityType.PLAYER).toList();
-
-        for (double x = loc.getX() - 10; x < loc.getX() + 10; x++) {
-            for (double y = loc.getY() - 4; y < loc.getY() + 4; y++) {
-                for (double z = loc.getZ() - 10; z < loc.getZ() + 10; z++) {
-                    if (loc.getBlock().getType() == Material.TRIPWIRE) {
-                        Location newLoc = new Location(loc.getWorld(), x, y, z);
-                        for (Entity e : players) {
-                            ((Player) e).sendBlockChange(newLoc, newLoc.getBlock().getBlockData());
-                        }
-                    }
-                }
-            }
-        }
+        BlockHelpers.resendNearbyBlocks(loc, Material.TRIPWIRE);
     }
 }

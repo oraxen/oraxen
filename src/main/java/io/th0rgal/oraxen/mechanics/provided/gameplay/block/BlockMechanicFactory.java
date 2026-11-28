@@ -7,9 +7,13 @@ import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.chorusblock.ChorusBlockMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.chorusblock.ChorusBlockMechanicListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.shaped.ShapedBlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicListener;
+import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.NotNull;
@@ -58,6 +62,9 @@ public class BlockMechanicFactory extends MechanicFactory {
         StringBlockMechanicFactory.clearInstance(stringBlockFactory);
         ChorusBlockMechanicFactory.clearInstance(chorusBlockFactory);
         ShapedBlockMechanicFactory.clearInstance(shapedBlockFactory);
+        BreakerSystem.unregisterModifier(NoteBlockMechanicListener.class);
+        BreakerSystem.unregisterModifier(StringBlockMechanicListener.class);
+        BreakerSystem.unregisterModifier(ChorusBlockMechanicListener.class);
     }
 
     @Override
@@ -119,6 +126,18 @@ public class BlockMechanicFactory extends MechanicFactory {
         if (!section.contains(to) && section.contains(from)) section.set(to, section.get(from));
     }
 
+    /**
+     * Logs an error when a block mechanic takes a variation that another item already uses.
+     * A previous mechanic of the same item is a leftover from an items reload, not a conflict.
+     */
+    public static void logDuplicateVariation(@Nullable Mechanic previous, Mechanic mechanic, int variation) {
+        if (previous == null || previous.getItemID().equals(mechanic.getItemID())) return;
+        Logs.logError("The custom_variation " + variation + " of " + mechanic.getItemID()
+                + " is already used by " + previous.getItemID() + "!");
+        Logs.logWarning("Placed " + previous.getItemID() + " blocks will turn into " + mechanic.getItemID()
+                + ". Give each block a unique custom_variation.");
+    }
+
     private String itemId(ConfigurationSection section) {
         ConfigurationSection itemSection = section.getParent() != null ? section.getParent().getParent() : null;
         return itemSection != null ? itemSection.getName() : section.getCurrentPath();
@@ -149,7 +168,7 @@ public class BlockMechanicFactory extends MechanicFactory {
                 )),
                 MechanicConfigProperty.integer("custom-variation", "Backing-state variation ID", 1),
                 MechanicConfigProperty.list("breaking", "Ordered block breaking rules"),
-                MechanicConfigProperty.list("events", "Actions for placed block clicks or successful player breaks or placements. Use trigger: click with type: LEFT, RIGHT, or BOTH, trigger: break, or trigger: place. The trigger defaults to click; the legacy click filter remains supported."),
+                MechanicConfigProperty.list("events", "Actions for placed block clicks or successful player breaks or placements. Use trigger: click with type: LEFT, RIGHT, or BOTH, trigger: break, or trigger: place. The trigger defaults to click; the legacy click filter remains supported. Actions accept an optional cooldown such as 80ms, 2s, 3m, 1h, or 2d. Use java for a Java action with player and server variables."),
                 MechanicConfigProperty.integer("light", "Light level emitted by the placed block (0-15, 0 disables)", 0, 0, 15),
                 MechanicConfigProperty.object("placeable", "Placement face and block restrictions", Map.of(
                         "roof", MechanicConfigProperty.bool("roof", "Allow placement on ceilings", true),

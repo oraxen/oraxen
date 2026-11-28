@@ -9,7 +9,9 @@ import io.th0rgal.oraxen.protection.AntiGriefLib;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Levelled;
+import org.bukkit.block.data.Orientable;
 import org.bukkit.entity.*;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
@@ -35,7 +37,10 @@ import java.util.Arrays;
 
 public class MiscListener implements Listener {
 
+    private final MiscMechanicFactory factory;
+
     public MiscListener(MiscMechanicFactory factory) {
+        this.factory = factory;
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -45,7 +50,7 @@ public class MiscListener implements Listener {
         ItemStack resultItem = event.getResult();
         if (inputItem == null || resultItem == null || inputItem.getType() == Material.AIR) return;
 
-        MiscMechanic mechanic = MiscMechanicFactory.get().getMechanic(inputItem);
+        MiscMechanic mechanic = factory.getMechanic(inputItem);
         if (mechanic == null || !mechanic.preventsRenaming()) return;
 
         // Only cancel when the user actually typed a rename. Repair/enchant operations leave
@@ -77,7 +82,7 @@ public class MiscListener implements Listener {
         if (composter.getType() != Material.COMPOSTER) return;
         if (!(composter.getBlockData() instanceof Levelled levelled)) return;
 
-        MiscMechanic mechanic = MiscMechanicFactory.get().getMechanic(event.getItem());
+        MiscMechanic mechanic = factory.getMechanic(event.getItem());
         if (mechanic == null || !mechanic.isCompostable()) return;
 
         if (levelled.getLevel() < levelled.getMaximumLevel()) {
@@ -101,7 +106,7 @@ public class MiscListener implements Listener {
         if (item == null || block == null || block.getType() != Material.COMPOSTER) return;
         if (!(block.getBlockData() instanceof Levelled levelled)) return;
         if (!AntiGriefLib.canInteract(player, block.getLocation())) return;
-        MiscMechanic mechanic = MiscMechanicFactory.get().getMechanic(item);
+        MiscMechanic mechanic = factory.getMechanic(item);
         if (mechanic == null || !mechanic.isCompostable()) return;
         if (event.useInteractedBlock() == Event.Result.DENY) return;
         event.setUseInteractedBlock(Event.Result.ALLOW);
@@ -122,11 +127,13 @@ public class MiscListener implements Listener {
         Block block = event.getClickedBlock();
         ItemStack item = event.getItem();
         Player player = event.getPlayer();
-        MiscMechanic mechanic = MiscMechanicFactory.get().getMechanic(item);
 
-        if (block == null || !Tag.LOGS.isTagged(block.getType())) return;
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || item == null) return;
+        if (block == null || event.getAction() != Action.RIGHT_CLICK_BLOCK || item == null) return;
+        MiscMechanic mechanic = factory.getMechanic(item);
         if (mechanic == null || !mechanic.canStripLogs()) return;
+        Material strippedLog = Material.matchMaterial("STRIPPED_" + block.getType().name());
+        if (strippedLog == null) return;
+        if (!AntiGriefLib.canBuild(player, block.getLocation())) return;
 
         if (item.getItemMeta() instanceof Damageable axeDurabilityMeta) {
             int durability = axeDurabilityMeta.getDamage();
@@ -140,7 +147,10 @@ public class MiscListener implements Listener {
                 item.setType(Material.AIR);
             }
         }
-        block.setType(getStrippedLog(block.getType()));
+        BlockData strippedData = strippedLog.createBlockData();
+        if (block.getBlockData() instanceof Orientable log && strippedData instanceof Orientable stripped)
+            stripped.setAxis(log.getAxis());
+        block.setBlockData(strippedData);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -159,17 +169,17 @@ public class MiscListener implements Listener {
             event.setCancelled(true);
     }
 
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onDisableVanillaInteraction(PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        MiscMechanic mechanic = MiscMechanicFactory.get().getMechanic(event.getItem());
+        MiscMechanic mechanic = factory.getMechanic(event.getItem());
         if (mechanic == null || !mechanic.isVanillaInteractionDisabled()) return;
         event.setUseItemInHand(Event.Result.DENY);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onDisableItemConsume(PlayerItemConsumeEvent event) {
-        MiscMechanic mechanic = MiscMechanicFactory.get().getMechanic(event.getItem());
+        MiscMechanic mechanic = factory.getMechanic(event.getItem());
         if (mechanic == null || !mechanic.isVanillaInteractionDisabled()) return;
         event.setCancelled(true);
     }
@@ -177,7 +187,7 @@ public class MiscListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onDisableBowShoot(EntityShootBowEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
-        MiscMechanic mechanic = MiscMechanicFactory.get().getMechanic(event.getConsumable());
+        MiscMechanic mechanic = factory.getMechanic(event.getConsumable());
         if (mechanic == null || !mechanic.isVanillaInteractionDisabled()) return;
         event.setConsumeItem(false);
         event.setCancelled(true);
@@ -197,7 +207,7 @@ public class MiscListener implements Listener {
         else return;
 
 
-        MiscMechanic mechanic = MiscMechanicFactory.get().getMechanic(item);
+        MiscMechanic mechanic = factory.getMechanic(item);
         if (mechanic == null || !mechanic.isVanillaInteractionDisabled()) return;
         event.setCancelled(true);
     }
@@ -206,41 +216,15 @@ public class MiscListener implements Listener {
     public void onDisableHorseArmorEquip(PlayerInteractEntityEvent event) {
         if (!(event.getRightClicked() instanceof Horse)) return;
         ItemStack item = event.getPlayer().getInventory().getItemInMainHand();
-        MiscMechanic mechanic = MiscMechanicFactory.get().getMechanic(item);
+        MiscMechanic mechanic = factory.getMechanic(item);
         if (mechanic == null || !mechanic.isVanillaInteractionDisabled()) return;
         if (item.getType().name().endsWith("_HORSE_ARMOR")) {
             event.setCancelled(true);
         }
     }
 
-    private Material getStrippedLog(Material log) {
-        return switch (log) {
-            case OAK_LOG -> Material.STRIPPED_OAK_LOG;
-            case SPRUCE_LOG -> Material.STRIPPED_SPRUCE_LOG;
-            case BIRCH_LOG -> Material.STRIPPED_BIRCH_LOG;
-            case JUNGLE_LOG -> Material.STRIPPED_JUNGLE_LOG;
-            case ACACIA_LOG -> Material.STRIPPED_ACACIA_LOG;
-            case DARK_OAK_LOG -> Material.STRIPPED_DARK_OAK_LOG;
-            case CRIMSON_STEM -> Material.STRIPPED_CRIMSON_STEM;
-            case WARPED_STEM -> Material.STRIPPED_WARPED_STEM;
-            case MANGROVE_LOG -> Material.STRIPPED_MANGROVE_LOG;
-
-            case OAK_WOOD -> Material.STRIPPED_OAK_WOOD;
-            case SPRUCE_WOOD -> Material.STRIPPED_SPRUCE_WOOD;
-            case BIRCH_WOOD -> Material.STRIPPED_BIRCH_WOOD;
-            case JUNGLE_WOOD -> Material.STRIPPED_JUNGLE_WOOD;
-            case ACACIA_WOOD -> Material.STRIPPED_ACACIA_WOOD;
-            case DARK_OAK_WOOD -> Material.STRIPPED_DARK_OAK_WOOD;
-            case CRIMSON_HYPHAE -> Material.STRIPPED_CRIMSON_HYPHAE;
-            case WARPED_HYPHAE -> Material.STRIPPED_WARPED_HYPHAE;
-            case MANGROVE_WOOD -> Material.STRIPPED_MANGROVE_WOOD;
-
-            default -> null;
-        };
-    }
-
     private boolean shouldPreventPiglinAggro(ItemStack itemStack) {
-        MiscMechanic mechanic = MiscMechanicFactory.get().getMechanic(OraxenItems.getIdByItem(itemStack));
+        MiscMechanic mechanic = factory.getMechanic(OraxenItems.getIdByItem(itemStack));
         return mechanic != null && mechanic.piglinIgnoreWhenEquipped();
     }
 

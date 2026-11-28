@@ -19,6 +19,7 @@ import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.SmithingTransformRecipe;
 
 import java.util.Arrays;
+import java.util.Iterator;
 
 public class SmithingRecipeEvents implements Listener {
 
@@ -67,7 +68,8 @@ public class SmithingRecipeEvents implements Listener {
 
         String oraxenItemId = OraxenItems.getIdByItem(input);
         if (oraxenItemId == null) return;
-        MiscMechanic mechanic = MiscMechanicFactory.get().getMechanic(input);
+        MiscMechanicFactory factory = MiscMechanicFactory.get();
+        MiscMechanic mechanic = factory == null ? null : factory.getMechanic(input);
         if (mechanic != null && mechanic.isAllowedInVanillaRecipes()) return;
 
         preventMismatchedVanillaSmithingRecipes(event, template, material, oraxenItemId);
@@ -75,12 +77,14 @@ public class SmithingRecipeEvents implements Listener {
 
     private void preventMismatchedVanillaSmithingRecipes(PrepareSmithingEvent event, ItemStack template,
                                                          ItemStack material, String oraxenItemId) {
-        Bukkit.recipeIterator().forEachRemaining(recipe -> {
-            if (!(recipe instanceof SmithingTransformRecipe smithing)) return;
-            if (!smithing.getTemplate().test(template) || !smithing.getAddition().test(material)) return;
-            if (oraxenItemId.equals(OraxenItems.getIdByItem(smithing.getBase().getItemStack()))) return;
+        Iterator<Recipe> recipes = Bukkit.recipeIterator();
+        while (recipes.hasNext()) {
+            if (!(recipes.next() instanceof SmithingTransformRecipe smithing)) continue;
+            if (!smithing.getTemplate().test(template) || !smithing.getAddition().test(material)) continue;
+            if (oraxenItemId.equals(OraxenItems.getIdByItem(smithing.getBase().getItemStack()))) continue;
             event.setResult(null);
-        });
+            return;
+        }
     }
 
     @EventHandler(ignoreCancelled = true)

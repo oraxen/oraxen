@@ -5,12 +5,14 @@ import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.protection.AntiGriefLib;
 import io.th0rgal.oraxen.utils.wrappers.ParticleWrapper;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
 
 import java.util.Map;
 import java.util.UUID;
@@ -45,10 +47,17 @@ public class BleedingMechanicListener implements Listener {
         if (Math.random() > mechanic.getChance())
             return;
 
-        applyBleeding(victim, mechanic);
+        applyBleeding(victim, damager.getUniqueId(), mechanic);
     }
 
-    private void applyBleeding(LivingEntity victim, BleedingMechanic mechanic) {
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onDeath(EntityDeathEvent event) {
+        // A player can respawn before the next bleed tick sees them dead
+        SchedulerUtil.ScheduledTask task = bleedingTasks.remove(event.getEntity().getUniqueId());
+        if (task != null) task.cancel();
+    }
+
+    private void applyBleeding(LivingEntity victim, UUID attackerId, BleedingMechanic mechanic) {
         UUID victimId = victim.getUniqueId();
 
         SchedulerUtil.ScheduledTask existingTask = bleedingTasks.remove(victimId);
@@ -67,6 +76,9 @@ public class BleedingMechanicListener implements Listener {
                 return;
             }
 
+            // setKiller credits the attacker without an attack damage source that would re-trigger on-hit mechanics
+            Player attacker = Bukkit.getPlayer(attackerId);
+            if (attacker != null) victim.setKiller(attacker);
             victim.damage(mechanic.getDamagePerTick());
             // Decrement before spawning particles so a failing particle can never stall the countdown
             ticksRemaining[0] -= mechanic.getTickInterval();

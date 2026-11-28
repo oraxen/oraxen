@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution;
 
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenFurniture;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.BlockLocation;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
@@ -17,6 +18,10 @@ import org.bukkit.entity.Entity;
 import org.bukkit.block.data.type.Light;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.EVOLUTION_KEY;
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.STAGE_INDEX_KEY;
@@ -120,8 +125,7 @@ public class EvolutionTask implements Runnable {
             lightBoostTick = currentStage.getLightBoostTick();
         }
         
-        if (currentStage.isRainBoosted() && world.hasStorm() && 
-            world.getHighestBlockAt(entityLoc).getY() > entityLoc.getY()) {
+        if (currentStage.isRainBoosted() && isExposedToRain(world, entityLoc, mechanic.getBarriers(entity))) {
             rainBoostTick = currentStage.getRainBoostTick();
         }
         
@@ -173,7 +177,7 @@ public class EvolutionTask implements Runnable {
         if (evolution.isLightBoosted() && entityLoc.getBlock().getLightLevel() >= evolution.getMinimumLightLevel())
             lightBoostTick = evolution.getLightBoostTick();
 
-        if (evolution.isRainBoosted() && world.hasStorm() && world.getHighestBlockAt(entityLoc).getY() > entityLoc.getY())
+        if (evolution.isRainBoosted() && isExposedToRain(world, entityLoc, mechanic.getBarriers(entity)))
             rainBoostTick = evolution.getRainBoostTick();
 
         int evolutionStep = pdc.get(EVOLUTION_KEY, PersistentDataType.INTEGER) + delay + lightBoostTick + rainBoostTick;
@@ -185,11 +189,33 @@ public class EvolutionTask implements Runnable {
             FurnitureMechanic nextMechanic = (FurnitureMechanic) furnitureFactory.getMechanic(evolution.getNextStage());
             if (nextMechanic == null) return;
 
-            OraxenFurniture.remove(entity, null);
-            nextMechanic.place(entity.getLocation(), entity.getLocation().getYaw(), entity.getFacing());
+            replaceWithNextStage(entity, mechanic, nextMechanic);
         } else {
             pdc.set(EVOLUTION_KEY, PersistentDataType.INTEGER, evolutionStep);
         }
+    }
+
+    // Walks down from the highest block above the furniture and only skips its own barriers
+    static boolean isExposedToRain(World world, Location location, List<BlockLocation> barriers) {
+        if (!world.hasStorm()) return false;
+        int baseY = location.getBlockY();
+        Set<Integer> ownBarrierYs = barriers.stream().filter(barrier -> barrier.getX() == 0 && barrier.getZ() == 0)
+                .map(barrier -> baseY + barrier.getY()).collect(Collectors.toSet());
+        for (int y = world.getHighestBlockYAt(location); y > baseY; y--) {
+            Block block = world.getBlockAt(location.getBlockX(), y, location.getBlockZ());
+            if (ownBarrierYs.contains(y) && block.getType() == Material.BARRIER) continue;
+            if (!block.isPassable() || block.isLiquid()) return false;
+        }
+        return true;
+    }
+
+    static void replaceWithNextStage(Entity entity, FurnitureMechanic mechanic, FurnitureMechanic nextMechanic) {
+        Location location = entity.getLocation();
+        float yaw = location.getYaw();
+        BlockFace facing = entity.getFacing();
+        if (!OraxenFurniture.remove(entity, null)) return;
+        // Put the current stage back if the next stage cannot be placed, so the plant is not lost
+        if (nextMechanic.place(location, yaw, facing) == null) mechanic.place(location, yaw, facing);
     }
 
     /**

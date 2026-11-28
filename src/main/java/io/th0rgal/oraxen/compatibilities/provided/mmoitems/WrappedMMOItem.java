@@ -30,7 +30,7 @@ public class WrappedMMOItem {
 
             // Check if template exists
             if (!MMOItems.plugin.getTemplates().hasTemplate(type, id)) {
-                Message.MMOITEMS_LOADING_ITEM_FAILED.log(AdventureUtils.tagResolver("id", id));
+                Message.MMOITEMS_LOADING_ITEM_FAILED.log(AdventureUtils.tagResolver("item", id));
                 Message.MMOITEMS_MISSING_TEMPLATE.log();
             }
 
@@ -60,7 +60,7 @@ public class WrappedMMOItem {
         if (MMOItems.plugin.getTemplates().hasTemplate(type, id)) {
             return MMOItems.plugin.getTemplates().getTemplate(type, id);
         } else {
-            Message.MMOITEMS_LOADING_ITEM_FAILED.log(AdventureUtils.tagResolver("id", id));
+            Message.MMOITEMS_LOADING_ITEM_FAILED.log(AdventureUtils.tagResolver("item", id));
             Message.MMOITEMS_MISSING_TEMPLATE.log();
             return null;
         }
@@ -70,7 +70,7 @@ public class WrappedMMOItem {
         if (PluginUtils.isEnabled("MMOItems")) {
             MMOItemTemplate template = getTemplate();
             if (template == null) {
-                Message.MMOITEMS_LOADING_ITEM_FAILED.log(AdventureUtils.tagResolver("id", id));
+                Message.MMOITEMS_LOADING_ITEM_FAILED.log(AdventureUtils.tagResolver("item", id));
                 Message.MMOITEMS_MISSING_ITEM.log();
             } else
                 return template.newBuilder().build().newBuilder().build();

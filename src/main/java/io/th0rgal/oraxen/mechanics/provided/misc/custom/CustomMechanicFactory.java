@@ -26,4 +26,9 @@ public class CustomMechanicFactory extends MechanicFactory {
         addToImplemented(mechanic);
         return mechanic;
     }
+
+    @Override
+    public void onUnregister() {
+        CustomMechanic.unregisterListeners();
+    }
 }

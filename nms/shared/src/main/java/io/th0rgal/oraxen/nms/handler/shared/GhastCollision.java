@@ -26,7 +26,7 @@ final class GhastCollision {
             return true;
         } catch (IllegalAccessException exception) {
             Logs.logError("Could not keep a furniture ghast stationary");
-            exception.printStackTrace();
+            Logs.debug(exception);
             return false;
         }
     }
@@ -38,7 +38,7 @@ final class GhastCollision {
             return field;
         } catch (ReflectiveOperationException exception) {
             Logs.logError("Could not access Happy Ghast collision state");
-            exception.printStackTrace();
+            Logs.debug(exception);
             return null;
         }
     }
@@ -51,7 +51,7 @@ final class GhastCollision {
             return (EntityDataAccessor<Boolean>) field.get(null);
         } catch (IllegalAccessException exception) {
             Logs.logError("Could not access the Happy Ghast stationary flag");
-            exception.printStackTrace();
+            Logs.debug(exception);
             return null;
         }
     }

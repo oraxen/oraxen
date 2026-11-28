@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution;
 
-import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.events.furniture.OraxenFurnitureInteractEvent;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
@@ -101,10 +100,8 @@ public class EvolutionListener implements Listener {
         if (consumeBoneMeal) boneMeal.setAmount(boneMeal.getAmount() - 1);
         entity.getWorld().playEffect(entity.getLocation(), Effect.BONE_MEAL_USE, 3);
         
-        if (randomChance(evolution.getBoneMealChance())) {
-            OraxenFurniture.remove(entity, null);
-            nextMechanic.place(entity.getLocation(), entity.getLocation().getYaw(), entity.getFacing());
-        }
+        if (randomChance(evolution.getBoneMealChance()))
+            EvolutionTask.replaceWithNextStage(entity, mechanic, nextMechanic);
     }
 
     private boolean randomChance(double chance) {

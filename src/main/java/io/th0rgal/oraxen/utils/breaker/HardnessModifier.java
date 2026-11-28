@@ -10,4 +10,8 @@ public interface HardnessModifier {
     void breakBlock(Player player, Block block, ItemStack tool);
 
     long getPeriod(Player player, Block block, ItemStack tool);
+
+    default long getDelay(Player player, Block block, ItemStack tool) {
+        return 0;
+    }
 }

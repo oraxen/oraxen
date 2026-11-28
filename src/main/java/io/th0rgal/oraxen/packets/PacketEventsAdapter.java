@@ -52,16 +52,14 @@ public class PacketEventsAdapter implements PacketAdapter {
             OraxenPlugin.get().getLogger().severe("[PacketEventsAdapter]: Inventory Listener is already registered!");
             return;
         }
-        inventoryPacketListener = register(new InventoryPacketListener(), PacketListenerPriority.MONITOR);
+        inventoryPacketListener = register(new InventoryPacketListener(), PacketListenerPriority.NORMAL);
     }
 
     @Override
     public void registerScoreboardListener() {
-        if(scoreboardPacketListener != null) {
-            OraxenPlugin.get().getLogger().severe("[PacketEventsAdapter]: Scoreboard Listener is already registered!");
-            return;
-        }
-        scoreboardPacketListener = register(new ScoreboardPacketListener(), PacketListenerPriority.MONITOR);
+        // Every pack generation registers it again, so keep the existing listener.
+        if(scoreboardPacketListener != null) return;
+        scoreboardPacketListener = register(new ScoreboardPacketListener(), PacketListenerPriority.NORMAL);
     }
 
     @Override
@@ -70,7 +68,7 @@ public class PacketEventsAdapter implements PacketAdapter {
             OraxenPlugin.get().getLogger().severe("[PacketEventsAdapter]: Title Listener is already registered!");
             return;
         }
-        titlePacketListener = register(new TitlePacketListener(), PacketListenerPriority.MONITOR);
+        titlePacketListener = register(new TitlePacketListener(), PacketListenerPriority.NORMAL);
     }
 
     @Override
@@ -78,6 +76,13 @@ public class PacketEventsAdapter implements PacketAdapter {
         if(inventoryPacketListener != null)
             PacketEvents.getAPI().getEventManager().unregisterListener(inventoryPacketListener);
         inventoryPacketListener = null;
+    }
+
+    @Override
+    public void removeScoreboardListener() {
+        if(scoreboardPacketListener != null)
+            PacketEvents.getAPI().getEventManager().unregisterListener(scoreboardPacketListener);
+        scoreboardPacketListener = null;
     }
 
     @Override

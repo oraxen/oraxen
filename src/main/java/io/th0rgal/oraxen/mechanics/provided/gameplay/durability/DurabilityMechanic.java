@@ -57,21 +57,16 @@ public class DurabilityMechanic extends Mechanic {
                     int realDurabRemain = pdc.getOrDefault(DURABILITY_KEY, PersistentDataType.INTEGER, realMaxDurab);
 
                     // If item was max durab before damage, set the fake one
-                    if (damageable.hasDamage() && realDurabRemain == realMaxDurab) {
-                        pdc.set(DURABILITY_KEY, PersistentDataType.INTEGER,
-                                (int) (realMaxDurab - (((double) damageable.getDamage() / (double) baseMaxDurab) * realMaxDurab)));
-                        item.setItemMeta(itemMeta);
-                        // Call function again to have itemmeta stick and run below part aswell
-                        changeDurability(player, item, amount);
+                    if (damageable.hasDamage() && realDurabRemain == realMaxDurab)
+                        realDurabRemain = (int) (realMaxDurab - (((double) damageable.getDamage() / (double) baseMaxDurab) * realMaxDurab));
+
+                    realDurabRemain = Math.min(realDurabRemain + amount, realMaxDurab);
+                    if (realDurabRemain > 0) {
+                        pdc.set(DURABILITY_KEY, PersistentDataType.INTEGER, realDurabRemain);
+                        (damageable).setDamage((int) ((double) baseMaxDurab - (((double) realDurabRemain / realMaxDurab) * (double) baseMaxDurab)));
                     } else {
-                        realDurabRemain = realDurabRemain + amount;
-                        if (realDurabRemain > 0) {
-                            pdc.set(DURABILITY_KEY, PersistentDataType.INTEGER, realDurabRemain);
-                            (damageable).setDamage((int) ((double) baseMaxDurab - (((double) realDurabRemain / realMaxDurab) * (double) baseMaxDurab)));
-                        } else {
-                            new PlayerItemBreakEvent(player, item).callEvent();
-                            item.setAmount(0);
-                        }
+                        new PlayerItemBreakEvent(player, item).callEvent();
+                        item.setAmount(0);
                     }
                 }
             }

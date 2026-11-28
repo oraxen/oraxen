@@ -7,6 +7,7 @@ import io.papermc.paper.event.player.AsyncChatEvent;
 import io.papermc.paper.event.player.PlayerOpenSignEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.compatibilities.provided.placeholderapi.PapiAliases;
 import io.th0rgal.oraxen.configs.Message;
 import io.th0rgal.oraxen.configs.Settings;
@@ -253,7 +254,7 @@ public class FontEvents implements Listener {
 
     private String replaceUnpermittedGlyphs(Player player, String displayName) {
         Glyph required = manager.getGlyphFromName("required");
-        String replacement = required.hasPermission(player) ? required.getCharacters() : "";
+        String replacement = required != null && required.hasPermission(player) ? required.getCharacters() : "";
         StringBuilder builder = new StringBuilder(displayName);
         Set<Glyph> warnedGlyphs = new HashSet<>();
         for (GlyphMatch match : findGlyphMatches(displayName).reversed()) {
@@ -282,6 +283,9 @@ public class FontEvents implements Listener {
     }
 
     private List<GlyphMatch> findGlyphMatches(String text) {
+        Map<String, String> glyphCharacters = manager.getReverseMap();
+        if (text.codePoints().noneMatch(codePoint -> glyphCharacters.containsKey(Character.toString(codePoint))))
+            return List.of();
         List<GlyphMatch> matches = new ArrayList<>();
         boolean[] occupied = new boolean[text.length()];
         for (Glyph glyph : manager.getGlyphsByCharacterLength()) {
@@ -313,7 +317,7 @@ public class FontEvents implements Listener {
     private String replaceGlyphPlaceholders(Player player, String displayName) {
         for (Map.Entry<String, Glyph> entry : manager.getGlyphByPlaceholderMap().entrySet()) {
             if (!entry.getValue().hasPermission(player)) continue;
-            String replacement = (manager.permsChatcolor == null)
+            String replacement = (manager.permsChatcolor == null || !CompatibilitiesManager.hasPlugin("PlaceholderAPI"))
                     ? entry.getValue().getCharacters()
                     : "<white>" + entry.getValue().getCharacters()
                             + PapiAliases.setPlaceholders(player, manager.permsChatcolor);

@@ -1013,7 +1013,7 @@ public class SchemaGenerator {
         addMechanicIfAbsent(mechanics, "commands", "misc", "Execute commands on events",
                 Map.of(
                         "permission", prop("string", "Required permission", null, null),
-                        "cooldown", prop("integer", "Cooldown in ticks", 0, null)));
+                        "cooldown", prop("integer", "Cooldown in milliseconds", 0, null)));
 
         addMechanicIfAbsent(mechanics, "custom", "misc", "Custom mechanic with actions and conditions", Map.of());
         addMechanicIfAbsent(mechanics, "consumable", "misc", "Legacy consumable behavior (pre-1.21.2)", Map.of());

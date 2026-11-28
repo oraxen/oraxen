@@ -13,6 +13,7 @@ import org.mockito.MockedStatic;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.ServerSocket;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -128,6 +129,32 @@ class SelfHostTest {
         } finally {
             connection.disconnect();
         }
+    }
+
+    @Test
+    void stoppedServerReleasesItsPortAndIgnoresLateUploads() throws Exception {
+        int port;
+        try (ServerSocket socket = new ServerSocket(0)) {
+            port = socket.getLocalPort();
+        }
+        Path file = Files.write(tempDir.resolve("pack.zip"), zip("pack"));
+        provider = selfHost(port, "old.example.test");
+        assertTrue(provider.uploadPack(file.toFile()));
+        provider.stopServer();
+        assertFalse(provider.uploadPack(file.toFile()));
+
+        provider = selfHost(port, "new.example.test");
+        assertTrue(provider.uploadPack(file.toFile()));
+        assertEquals("http://new.example.test/pack.zip", provider.getPackURL());
+        assertArrayEquals(Files.readAllBytes(file), download());
+    }
+
+    private static SelfHost selfHost(int port, String domain) {
+        MemoryConfiguration config = new MemoryConfiguration();
+        config.set("host", "127.0.0.1");
+        config.set("port", port);
+        config.set("domain", domain);
+        return new SelfHost(config);
     }
 
     private HttpURLConnection connection() throws Exception {

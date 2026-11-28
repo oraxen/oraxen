@@ -167,6 +167,7 @@ dependencies {
     testImplementation(oraxenLibs.commons.io)
     testImplementation(oraxenLibs.commons.lang3)
     testImplementation(oraxenLibs.spring.expression)
+    testImplementation(oraxenLibs.janino)
     testImplementation("net.kyori:adventure-api:4.18.0")
     testImplementation("net.kyori:adventure-text-minimessage:4.18.0")
     testImplementation("net.kyori:adventure-text-serializer-legacy:4.18.0")
@@ -194,12 +195,6 @@ tasks {
 
     compileJava {
         options.encoding = Charsets.UTF_8.name()
-    }
-
-    compileTestJava {
-        if (!project.hasProperty("runVersionLoadingTest")) {
-            exclude("io/th0rgal/oraxen/loading/versionLoadingTest.java")
-        }
     }
 
     test {
@@ -318,20 +313,6 @@ tasks {
 
     build.get().dependsOn(shadowJar)
 }
-
-// Task to run PackMerger debug tool
-tasks.register<JavaExec>("runPackMergerDebug") {
-    group = "debug"
-    description = "Runs the PackMerger debug tool to analyze resource pack zip files"
-    classpath = sourceSets["test"].runtimeClasspath
-    mainClass.set("io.th0rgal.oraxen.pack.generation.PackMergerDebugRunner")
-
-    // Pass command line args: ./gradlew runPackMergerDebug --args="path/to/pack.zip"
-    if (project.hasProperty("packFile")) {
-        args(project.property("packFile").toString())
-    }
-}
-
 
 paper {
     load = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.PluginLoadOrder.POSTWORLD

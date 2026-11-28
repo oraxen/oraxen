@@ -7,6 +7,7 @@ import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.music_disc.MusicDiscMechanic;
 import io.th0rgal.oraxen.nms.NMSHandlers;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.sound.SoundStop;
@@ -24,7 +25,6 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Locale;
-import java.util.logging.Level;
 
 public class MusicDiscHelpers {
     public static final NamespacedKey MUSIC_DISC_KEY = new NamespacedKey(OraxenPlugin.get(), "music_disc");
@@ -41,7 +41,8 @@ public class MusicDiscHelpers {
             // TODO: maybe try recovering from the old format
             // possible causes item was saved on paper pre 1.21.5 and now its 1.21.5 or later
             // or it was saved on spigot and now loaded on paper.
-            OraxenPlugin.get().getLogger().log(Level.SEVERE, "Failed to read Music disc from pdc! " + pdc.toString(), e);
+            Logs.logWarning("Failed to read a stored music disc, it was probably saved in an older format.");
+            Logs.debug(e);
             return null;
         }
     }

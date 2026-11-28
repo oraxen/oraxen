@@ -38,4 +38,14 @@ class UpdateCheckerTest {
         assertTrue(UpdateChecker.compareVersions("v1.200.0", "1.199.1") > 0);
         assertEquals(0, UpdateChecker.compareVersions("1.199.0", "1.199"));
     }
+
+    @Test
+    void releaseIsNewerThanItsPreReleases() {
+        assertTrue(UpdateChecker.compareVersions("v1.200.0", "1.200.0-beta.2") > 0);
+        assertTrue(UpdateChecker.compareVersions("1.200.0-beta.2", "1.200.0") < 0);
+        assertTrue(UpdateChecker.compareVersions("1.200.0-beta.10", "1.200.0-beta.2") > 0);
+        assertTrue(UpdateChecker.compareVersions("1.200.0-rc.1", "1.200.0-beta.2") > 0);
+        assertTrue(UpdateChecker.compareVersions("1.200.0-beta.1", "1.199.0") > 0);
+        assertEquals(0, UpdateChecker.compareVersions("1.200.0+build.5", "1.200.0"));
+    }
 }

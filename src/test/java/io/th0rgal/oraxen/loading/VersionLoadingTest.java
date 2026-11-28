@@ -230,24 +230,6 @@ public class VersionLoadingTest {
         throw new IllegalStateException("Could not find built Oraxen jar in " + searchRoots);
     }
 
-    private static ProcessBuilder gradleWrapper(Path projectDir, String... arguments) {
-        boolean windows = System.getProperty("os.name").toLowerCase().contains("win");
-        Path wrapper = projectDir.resolve(windows ? "gradlew.bat" : "gradlew");
-        List<String> command = new ArrayList<>();
-        if (windows) {
-            command.add("cmd");
-            command.add("/c");
-            command.add(wrapper.toString());
-        } else if (Files.isExecutable(wrapper)) {
-            command.add(wrapper.toString());
-        } else {
-            command.add("sh");
-            command.add(wrapper.toString());
-        }
-        command.addAll(List.of(arguments));
-        return new ProcessBuilder(command);
-    }
-
     private static boolean hasPluginDescriptor(Path jar) {
         try (JarFile jarFile = new JarFile(jar.toFile())) {
             return jarFile.getEntry("plugin.yml") != null || jarFile.getEntry("paper-plugin.yml") != null;

@@ -1,17 +1,9 @@
 package io.th0rgal.oraxen.utils.actions;
 
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.configs.Settings;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import me.gabytm.util.actions.actions.Action;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
-import org.springframework.expression.EvaluationContext;
-import org.springframework.expression.EvaluationException;
-import org.springframework.expression.ExpressionParser;
-import org.springframework.expression.ParseException;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.expression.spel.support.SimpleEvaluationContext;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,8 +11,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 public class ClickAction {
-
-    private static final ExpressionParser PARSER = new SpelExpressionParser();
 
     private final List<String> conditions;
     private final List<Action<Player>> actions;
@@ -73,31 +63,7 @@ public class ClickAction {
     }
 
     public boolean canRun(final Player player) {
-        if (conditions.isEmpty()) return true;
-        if (actions.isEmpty()) return false;
-
-        final EvaluationContext context = SimpleEvaluationContext.forReadOnlyDataBinding()
-                .withInstanceMethods()
-                .withRootObject(player)
-                .build();
-        context.setVariable("player", player);
-        context.setVariable("server", org.bukkit.Bukkit.getServer());
-
-        for (final String condition : conditions) {
-            try {
-                final Boolean result = PARSER.parseExpression(condition).getValue(context, Boolean.class);
-
-                if (result == null || !result) {
-                    return false;
-                }
-            } catch (ParseException | EvaluationException e) {
-                Logs.logWarning("Failed to evaluate click action condition '" + condition + "' for player " + player.getName() + "; blocking action.");
-                Logs.debug(e);
-                return false;
-            }
-        }
-
-        return true;
+        return ActionConditions.matches(player, conditions);
     }
 
     public void performActions(final Player player) {

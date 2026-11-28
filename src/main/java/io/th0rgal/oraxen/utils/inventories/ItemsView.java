@@ -10,6 +10,7 @@ import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.ItemUtils;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.io.FilenameUtils;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -18,8 +19,12 @@ import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ItemsView {
+
+    // Every player builds their own view, so each conflict is only reported once per reload.
+    private static final Set<String> WARNED_SLOT_CONFLICTS = ConcurrentHashMap.newKeySet();
 
     private final YamlConfiguration settings = OraxenPlugin.get().getResourceManager().getSettings();
 
@@ -44,9 +49,14 @@ public class ItemsView {
         GuiItem emptyGuiItem = new GuiItem(Material.AIR);
         List<GuiItem> guiItems = new ArrayList<>(Collections.nCopies(highestUsedSlot + 1, emptyGuiItem));
 
+        Map<Integer, File> slotOwners = new HashMap<>();
         for (Map.Entry<File, PaginatedGui> entry : files.entrySet()) {
             int slot = getGuiItemSlot(entry.getKey()).slot();
             if (slot == -1) continue;
+            File previous = slotOwners.put(slot, entry.getKey());
+            if (previous != null && WARNED_SLOT_CONFLICTS.add(previous.getPath() + "|" + entry.getKey().getPath()))
+                Logs.logWarning("Item files " + previous.getName() + " and " + entry.getKey().getName()
+                        + " use the same inventory slot " + (slot + 1) + ", only " + entry.getKey().getName() + " is shown.");
             guiItems.set(slot, new GuiItem(getGuiItemSlot(entry.getKey()).itemStack, e -> entry.getValue().open(e.getWhoClicked())));
         }
 
@@ -79,6 +89,10 @@ public class ItemsView {
         mainGui.setItem(6, 5, new GuiItem(exitIcon, event -> event.getWhoClicked().closeInventory()));
 
         return mainGui;
+    }
+
+    static void resetWarnings() {
+        WARNED_SLOT_CONFLICTS.clear();
     }
 
     private PaginatedGui createSubGUI(final String fileName, final List<ItemBuilder> items) {

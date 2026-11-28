@@ -26,6 +26,7 @@ public final class BlockDurability {
 
     public static void applyConfigured(Player player, ItemStack item, @Nullable BlockBreaking.DurabilityAction action) {
         if (action == null || player.getGameMode() == GameMode.CREATIVE || ItemUtils.isInvalidItem(item)) return;
+        if (action.add() <= 0 && action.remove() <= 0) return;
 
         if (action.add() > 0) repairItem(player, item, action.add());
         if (action.remove() > 0 && !ItemUtils.isInvalidItem(item)) damageItem(player, action.remove());

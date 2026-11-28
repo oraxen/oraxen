@@ -10,7 +10,7 @@ public class SmithingLoader extends RecipeLoader {
 
     @Override
     public void registerRecipe() {
-        SmithingTransformRecipe recipe = new SmithingTransformRecipe(getNamespacedKey(), getValidResult(),
+        SmithingTransformRecipe recipe = new SmithingTransformRecipe(getUniqueKey(), getValidResult(),
                 getRequiredChoice("template"), getRequiredChoice("base"), getRequiredChoice("addition"));
         String source = getSection().getString("transform.source", "base");
         if (!source.equals("base"))

@@ -33,10 +33,6 @@ public class EfficiencyMechanicFactory extends MechanicFactory {
         return mechanic;
     }
 
-    public EfficiencyMechanicFactory getInstance() {
-        return this;
-    }
-
     @Override
     public @Nullable String getMechanicCategory() {
         return "gameplay";

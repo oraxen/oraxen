@@ -1,8 +1,12 @@
 package io.th0rgal.oraxen.pack.generation;
 
+import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.configs.ConfigsManager;
+import io.th0rgal.oraxen.configs.Settings;
 import io.th0rgal.oraxen.utils.ZipUtils;
 import io.th0rgal.oraxen.utils.VirtualFile;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.MockedStatic;
@@ -13,7 +17,9 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.zip.*;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 
 class DuplicateWriterTest {
     @TempDir Path temporary;
@@ -68,6 +74,39 @@ class DuplicateWriterTest {
             assertEquals("correct", new String(zip.readAllBytes(), StandardCharsets.UTF_8));
             assertNull(zip.getNextEntry());
         }
+    }
+
+    @Test
+    void rejectedDuplicateFromLegacyPackLayoutMigratesIntoItemConfig() throws Exception {
+        Path source = temporary.resolve("pack/models/item/diamond_sword.json");
+        Files.createDirectories(source.getParent());
+        Files.writeString(source, "{\"overrides\":[{\"predicate\":{\"custom_model_data\":7},\"model\":\"custom/sword\"}]}");
+        OraxenPlugin plugin = mock(OraxenPlugin.class);
+        ConfigsManager configs = mock(ConfigsManager.class);
+        YamlConfiguration settings = new YamlConfiguration();
+        settings.set(Settings.MERGE_DUPLICATES.getPath(), true);
+        settings.set(Settings.RETAIN_CUSTOM_MODEL_DATA.getPath(), true);
+        when(plugin.getDataFolder()).thenReturn(temporary.toFile());
+        when(plugin.getConfigsManager()).thenReturn(configs);
+        when(configs.getSettings()).thenReturn(settings);
+
+        try (MockedStatic<OraxenPlugin> pluginAccess = mockStatic(OraxenPlugin.class);
+             MockedStatic<Logs> logs = mockStatic(Logs.class);
+             ZipOutputStream zip = new ZipOutputStream(new ByteArrayOutputStream())) {
+            pluginAccess.when(OraxenPlugin::get).thenReturn(plugin);
+            Settings.invalidateCache();
+            ZipEntry entry = new ZipEntry("assets/minecraft/models/item/diamond_sword.json");
+            assertTrue(DuplicationHandler.tryOpenEntry(zip, entry));
+            assertFalse(DuplicationHandler.tryOpenEntry(zip, new ZipEntry(entry.getName())));
+        } finally {
+            Settings.invalidateCache();
+        }
+
+        YamlConfiguration migrated = YamlConfiguration.loadConfiguration(
+                temporary.resolve("items/migrated_duplicates/duplicate_diamond_sword.yml").toFile());
+        assertEquals("custom/sword", migrated.getString("migrated_custom_sword.pack.model"));
+        assertEquals(7, migrated.getInt("migrated_custom_sword.pack.custom_model_data"));
+        assertTrue(Files.readString(source).startsWith("// This file was recognized as a duplicate"));
     }
 
     @Test

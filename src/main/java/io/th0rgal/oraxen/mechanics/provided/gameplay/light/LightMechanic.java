@@ -2,11 +2,14 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.light;
 
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenFurniture;
+import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.chorusblock.ChorusBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.shaped.ShapedBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.togglelight.ToggleLightMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.togglelight.ToggleLightMechanicFactory;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -64,16 +67,36 @@ public class LightMechanic {
     public static void removeBlockLightAt(Block block) {
         for (BlockFace face : BLOCK_FACES) {
             Block relative = block.getRelative(face);
-            // If relative is Light we want to remove it
-            if (relative.getType() == Material.LIGHT)
-                relative.setType(Material.AIR);
-            // But also update the surrounding blocks
+            if (relative.getType() != Material.LIGHT) continue;
+            // Other lit blocks next to this light block share it, so keep the level they still need
+            int neighborLightLevel = 0;
             for (BlockFace relativeFace : BLOCK_FACES) {
-                if (relativeFace == face.getOppositeFace()) continue;
-                //refreshBlockLight(relative.getRelative(relativeFace));
-                //refreshBlockLight(relative.getRelative(relativeFace));
+                Block neighbor = relative.getRelative(relativeFace);
+                if (!neighbor.equals(block))
+                    neighborLightLevel = Math.max(neighborLightLevel, getEmittedLightLevel(neighbor));
+            }
+            if (neighborLightLevel <= 0) relative.setType(Material.AIR);
+            else if (relative.getBlockData() instanceof Light light && light.getLevel() != neighborLightLevel) {
+                light.setLevel(neighborLightLevel);
+                relative.setBlockData(light);
             }
         }
+    }
+
+    private static int getEmittedLightLevel(Block block) {
+        Mechanic mechanic = OraxenBlocks.getOraxenBlock(block.getLocation());
+        if (mechanic == null) return 0;
+        ToggleLightMechanicFactory toggleLightFactory = ToggleLightMechanicFactory.getInstance();
+        ToggleLightMechanic toggleLight = toggleLightFactory != null ? toggleLightFactory.getMechanic(mechanic.getItemID()) : null;
+        if (toggleLight != null && (toggleLight.hasToggleLight() || toggleLight.getBaseLightLevel() > 0))
+            return toggleLight.getCurrentLightLevel(block);
+
+        LightMechanic light = mechanic instanceof NoteBlockMechanic noteBlock ? noteBlock.getLight()
+                : mechanic instanceof StringBlockMechanic stringBlock ? stringBlock.getLight()
+                : mechanic instanceof ChorusBlockMechanic chorusBlock ? chorusBlock.getLight()
+                : mechanic instanceof ShapedBlockMechanic shapedBlock ? shapedBlock.getLight()
+                : null;
+        return light != null && light.hasLightLevel() ? light.getLightLevel() : 0;
     }
 
     public static void refreshBlockLight(Block block) {

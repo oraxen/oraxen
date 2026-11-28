@@ -7,6 +7,7 @@ import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicConfigProperty;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockStateCodec;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.CustomBlockService;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.directional.DirectionalBlock;
@@ -38,6 +39,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class NoteBlockMechanicFactory extends MechanicFactory {
 
+    // Higher ids wrap around to the block states of 374 and 375
+    public static final int MAX_BLOCK_VARIATION = BlockStateCodec.MAX_NOTEBLOCK_VARIATION;
     // Repopulated on reload (a region/command thread on Folia) while every block
     // event handler reads it from other region threads.
     public static final Map<Integer, NoteBlockMechanic> BLOCK_PER_VARIATION = new ConcurrentHashMap<>();
@@ -144,7 +147,10 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
     }
 
     public static void clearInstance(NoteBlockMechanicFactory factory) {
-        if (instance == factory) instance = null;
+        if (instance != factory) return;
+        instance = null;
+        BLOCK_PER_VARIATION.clear();
+        CustomBlockService.clearNoteBlocks();
     }
 
     public boolean removeMineableTag() {
@@ -207,8 +213,8 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
     public Mechanic parse(ConfigurationSection itemMechanicConfiguration) {
         enable();
         NoteBlockMechanic mechanic = new NoteBlockMechanic(this, itemMechanicConfiguration);
-        if (!Range.between(0, 775).contains(mechanic.getCustomVariation())) {
-            Logs.logError("The custom_variation of " + mechanic.getItemID() + " is " + mechanic.getCustomVariation() + ", but must be between 0 and 775!");
+        if (!Range.between(0, MAX_BLOCK_VARIATION).contains(mechanic.getCustomVariation())) {
+            Logs.logError("The custom_variation of " + mechanic.getItemID() + " is " + mechanic.getCustomVariation() + ", but must be between 0 and " + MAX_BLOCK_VARIATION + "!");
             Logs.logWarning("The item has failed to build for now to prevent bugs and issues.");
             return null;
         }
@@ -225,7 +231,8 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
                     getModelJson(modelName));
         }
 
-        CustomBlockService.registerNoteBlock(mechanic.getCustomVariation(), mechanic);
+        NoteBlockMechanic previous = CustomBlockService.registerNoteBlock(mechanic.getCustomVariation(), mechanic);
+        BlockMechanicFactory.logDuplicateVariation(previous, mechanic, mechanic.getCustomVariation());
         addToImplemented(mechanic);
         return mechanic;
     }
@@ -257,7 +264,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
     public NoteBlock createNoteBlockData(String itemID) {
         /* We have 16 instruments with 25 notes. All of those blocks can be powered.
          * That's: 16*25*2 = 800 variations. The first 25 variations of PIANO (not powered)
-         * will be reserved for the vanilla behavior. We still have 800-25 = 775 variations
+         * will be reserved for the vanilla behavior. Ids start at 26, which leaves 774 variations
          */
         return createNoteBlockData(((NoteBlockMechanic) getInstance().getMechanic(itemID)).getCustomVariation());
     }
@@ -278,17 +285,17 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
 
     @Override
     public @Nullable String getMechanicDescription() {
-        return "Creates custom blocks using noteblock states (up to 775 variations)";
+        return "Creates custom blocks using noteblock states (up to 774 variations)";
     }
 
     @Override
     public @NotNull List<MechanicConfigProperty> getConfigSchema() {
         return List.of(
-                MechanicConfigProperty.integer("custom_variation", "Unique variation ID (0-775)", 0, 0, 775),
+                MechanicConfigProperty.integer("custom_variation", "Unique variation ID (0-773)", 0, 0, MAX_BLOCK_VARIATION),
                 MechanicConfigProperty.string("model", "Block model path"),
                 MechanicConfigProperty.decimal("hardness", "Block break hardness", 1.0, 0.0),
                 MechanicConfigProperty.integer("light", "Light level emitted (0-15)", 0, 0, 15),
-                MechanicConfigProperty.bool("canIgnite", "Whether the block can be ignited", false),
+                MechanicConfigProperty.bool("can_ignite", "Whether the block can be ignited", false),
                 MechanicConfigProperty.bool("blast_resistant", "Whether block resists explosions", false),
                 MechanicConfigProperty.bool("immovable", "Whether block resists pistons", false),
                 MechanicConfigProperty.object("drop", "Drop configuration when broken", Map.of(
@@ -302,15 +309,14 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
                         "z_block", MechanicConfigProperty.string("z_block", "Z-axis variant ID")
                 )),
                 MechanicConfigProperty.object("farmblock", "Farm block configuration", Map.of(
-                        "moisture", MechanicConfigProperty.integer("moisture", "Moisture level", 0, 0),
-                        "dry_block", MechanicConfigProperty.string("dry_block", "Block ID when dried")
+                        "farmBlockPath", MechanicConfigProperty.string("farmBlockPath", "Block ID used when the farm block is dry"),
+                        "moistFarmBlockPath", MechanicConfigProperty.string("moistFarmBlockPath", "Block ID used when the farm block is moist"),
+                        "farmBlockDryOutTime", MechanicConfigProperty.integer("farmBlockDryOutTime", "Ticks without water before a moist farm block dries out", 50000, 0)
                 )),
-                MechanicConfigProperty.object("log_strip", "Log stripping configuration", Map.of(
-                        "drop", MechanicConfigProperty.object("drop", "Item dropped on strip", Map.of(
-                                "oraxen_item", MechanicConfigProperty.string("oraxen_item", "Oraxen item ID"),
-                                "minecraft_type", MechanicConfigProperty.string("minecraft_type", "Vanilla item type")
-                        )),
-                        "stripped_log", MechanicConfigProperty.string("stripped_log", "Stripped log block ID")
+                MechanicConfigProperty.object("logStrip", "Log stripping configuration", Map.of(
+                        "stripped_log", MechanicConfigProperty.string("stripped_log", "Stripped log block ID"),
+                        "drop", MechanicConfigProperty.string("drop", "Oraxen item ID dropped when the log is stripped"),
+                        "decrease_axe_durability", MechanicConfigProperty.bool("decrease_axe_durability", "Whether stripping damages the axe", false)
                 ))
         );
     }

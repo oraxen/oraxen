@@ -27,6 +27,14 @@ class UtilsTest {
     }
 
     @Test
+    void parseToRangeUsesTheFallbackForMissingBounds() {
+        assertEquals(new IntegerRange(2, 5), Utils.parseToRange("..", new IntegerRange(2, 5)));
+        assertEquals(new IntegerRange(2, 3), Utils.parseToRange("..3", new IntegerRange(2, 5)));
+        assertEquals(new IntegerRange(4, 5), Utils.parseToRange("4..", new IntegerRange(2, 5)));
+        assertEquals(new IntegerRange(3, 7), Utils.parseToRange("3..7", new IntegerRange(2, 5)));
+    }
+
+    @Test
     void customRoundDoesNotDependOnTheDefaultLocale() {
         Locale originalLocale = Locale.getDefault();
         try {

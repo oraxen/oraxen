@@ -17,17 +17,21 @@ public class BukkitPackSender extends PackSender implements Listener {
     private final String prompt = Settings.SEND_PACK_PROMPT.toString();
     private final boolean mandatory = Settings.SEND_PACK_MANDATORY.toBool();
     private Listener preJoinListener;
+    private boolean registered;
 
     public BukkitPackSender(HostingProvider hostingProvider) {
         super(hostingProvider);
     }
 
     public void register() {
+        if (registered) return;
+        registered = true;
         Bukkit.getPluginManager().registerEvents(this, OraxenPlugin.get());
         registerPreJoinListener();
     }
 
     public void unregister() {
+        registered = false;
         HandlerList.unregisterAll(this);
         if (preJoinListener != null) {
             HandlerList.unregisterAll(preJoinListener);
@@ -66,9 +70,9 @@ public class BukkitPackSender extends PackSender implements Listener {
         if (!sendOnJoin && sendPreJoin) sendOnJoin = true;
         if (!sendOnJoin) return;
 
-        int delay = (int) Settings.SEND_PACK_DELAY.getValue();
+        long delay = PackSender.getSendDelayTicks();
         if (delay <= 0) sendPack(player);
-        else SchedulerUtil.runForEntityLater(player, delay * 20L, () ->
+        else SchedulerUtil.runForEntityLater(player, delay, () ->
                 sendPack(player), null);
     }
 

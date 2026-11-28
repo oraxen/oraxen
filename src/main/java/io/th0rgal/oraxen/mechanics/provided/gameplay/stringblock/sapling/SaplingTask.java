@@ -69,7 +69,7 @@ public class SaplingTask implements Runnable {
             if (!sapling.canGrowNaturally()) return;
             if (sapling.requiresWaterSource() && !sapling.isUnderWater(block)) return;
             if (sapling.requiresLight() && block.getLightLevel() < sapling.getMinLightLevel()) return;
-            if (!sapling.replaceBlocks() && !WrappedWorldEdit.getBlocksInSchematic(block.getLocation(), sapling.getSchematic()).isEmpty()) return;
+            if (!sapling.replaceBlocks() && !sapling.getBlocksInSchematic(block.getLocation()).isEmpty()) return;
 
             int growthTimeRemains = pdc.getOrDefault(SAPLING_KEY, PersistentDataType.INTEGER, 0) - delay;
             if (growthTimeRemains <= 0) {

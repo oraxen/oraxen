@@ -51,6 +51,7 @@ import org.joml.Vector3f;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 public class FurnitureMechanic extends Mechanic {
 
@@ -98,6 +99,7 @@ public class FurnitureMechanic extends Mechanic {
     private final List<FurnitureHitbox> hitboxes;
     private final List<FurnitureGhastHitbox> ghasts;
     private final List<FurnitureShulkerHitbox> shulkers;
+    private final List<FurnitureBed> beds;
     private final boolean isRotatable;
     private final boolean small;
     private final ArmorStandProperties armorStandProperties;
@@ -229,8 +231,14 @@ public class FurnitureMechanic extends Mechanic {
 
         hitboxes = parseHitboxes(section);
         hitbox = hitboxes.isEmpty() ? null : hitboxes.get(0);
-        ghasts = parseGhasts(section);
-        shulkers = parseShulkers(section);
+        ghasts = parseOffsets(section, "ghasts", "1.21.6", "ghast hitbox", "ghast hitboxes",
+                FurnitureGhastHitbox::parse, "'<x>,<y>,<z> <scale>' with a scale between 0.0625 and 1.");
+        shulkers = parseOffsets(section, "shulkers", "1.21.2", "shulker hitbox", "shulker hitboxes",
+                FurnitureShulkerHitbox::parse, "'<x>,<y>,<z> <scale> [peek] [direction]' with a scale between 0.0625 and 3,"
+                        + " a peek between 0 and 100 and a direction of UP, DOWN, NORTH, EAST, SOUTH or WEST.");
+        beds = parseOffsets(section, "beds", "1.21.2", "bed", "beds", FurnitureBed::parse,
+                "'<x>,<y>,<z> [skip_night] [reset_phantoms] [night_only] [set_respawn]'"
+                        + " where each option is true or false.");
 
         seats = parseSeats(section);
         hasSeat = !seats.isEmpty();
@@ -333,49 +341,27 @@ public class FurnitureMechanic extends Mechanic {
         return !hasBarriers() ? List.of(new FurnitureHitbox(1.0f, 1.0f)) : List.of();
     }
 
-    private List<FurnitureGhastHitbox> parseGhasts(ConfigurationSection section) {
-        if (!section.contains("ghasts")) return List.of();
-        if (!VersionUtil.atOrAbove("1.21.6")) {
-            Logs.logWarning("Ghast hitboxes for furniture '" + getItemID() + "' require Minecraft 1.21.6 or newer.");
+    private <T> List<T> parseOffsets(ConfigurationSection section, String key, String minVersion,
+                                     String singular, String plural, Function<Object, T> parser, String expected) {
+        if (!section.contains(key)) return List.of();
+        if (!VersionUtil.atOrAbove(minVersion)) {
+            Logs.logWarning(Character.toUpperCase(plural.charAt(0)) + plural.substring(1) + " for furniture '"
+                    + getItemID() + "' require Minecraft " + minVersion + " or newer.");
             return List.of();
         }
 
-        List<?> entries = section.getList("ghasts");
+        List<?> entries = section.getList(key);
         if (entries == null) {
-            Logs.logError("Expected a list of ghast hitboxes for furniture '" + getItemID() + "'.");
+            Logs.logError("Expected a list of " + plural + " for furniture '" + getItemID() + "'.");
             return List.of();
         }
 
-        List<FurnitureGhastHitbox> parsed = new ArrayList<>();
+        List<T> parsed = new ArrayList<>();
         for (Object entry : entries) {
-            FurnitureGhastHitbox ghast = FurnitureGhastHitbox.parse(entry);
-            if (ghast != null) parsed.add(ghast);
-            else Logs.logError("Invalid ghast hitbox '" + entry + "' for furniture '" + getItemID()
-                    + "'. Expected '<x>,<y>,<z> <scale>' with a scale between 0.0625 and 1.");
-        }
-        return List.copyOf(parsed);
-    }
-
-    private List<FurnitureShulkerHitbox> parseShulkers(ConfigurationSection section) {
-        if (!section.contains("shulkers")) return List.of();
-        if (!VersionUtil.atOrAbove("1.21.2")) {
-            Logs.logWarning("Shulker hitboxes for furniture '" + getItemID() + "' require Minecraft 1.21.2 or newer.");
-            return List.of();
-        }
-
-        List<?> entries = section.getList("shulkers");
-        if (entries == null) {
-            Logs.logError("Expected a list of shulker hitboxes for furniture '" + getItemID() + "'.");
-            return List.of();
-        }
-
-        List<FurnitureShulkerHitbox> parsed = new ArrayList<>();
-        for (Object entry : entries) {
-            FurnitureShulkerHitbox shulker = FurnitureShulkerHitbox.parse(entry);
-            if (shulker != null) parsed.add(shulker);
-            else Logs.logError("Invalid shulker hitbox '" + entry + "' for furniture '" + getItemID()
-                    + "'. Expected '<x>,<y>,<z> <scale> [peek] [direction]' with a scale between 0.0625 and 3,"
-                    + " a peek between 0 and 100 and a direction of UP, DOWN, NORTH, EAST, SOUTH or WEST.");
+            T value = parser.apply(entry);
+            if (value != null) parsed.add(value);
+            else Logs.logError("Invalid " + singular + " '" + entry + "' for furniture '" + getItemID()
+                    + "'. Expected " + expected);
         }
         return List.copyOf(parsed);
     }
@@ -707,6 +693,14 @@ public class FurnitureMechanic extends Mechanic {
         return isGhastHitbox(entity) || isShulkerHitbox(entity);
     }
 
+    public boolean hasBeds() {
+        return !beds.isEmpty();
+    }
+
+    List<FurnitureBed> getBeds() {
+        return beds;
+    }
+
     public boolean hasSeat() {
         return hasSeat;
     }
@@ -793,7 +787,7 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     public boolean isInteractable() {
-        return isRotatable || hasSeat || isStorage();
+        return isRotatable || hasSeat || isStorage() || hasBeds();
     }
 
     public Entity place(Location location) {
@@ -808,7 +802,6 @@ public class FurnitureMechanic extends Mechanic {
     public Entity place(Location location, ItemStack originalItem, Float yaw, BlockFace facing, boolean checkSpace) {
         if (!location.isWorldLoaded()) return null;
         if (checkSpace && this.notEnoughSpace(yaw, location)) return null;
-        assert location.getWorld() != null;
         assert location.getWorld() != null;
         BlockFace resolvedFacing = facing != null ? facing : BlockFace.NORTH;
 
@@ -1207,6 +1200,8 @@ public class FurnitureMechanic extends Mechanic {
 
     // Track which legacy fallback warnings have been logged to avoid spam
     private static final Set<String> loggedLegacyWarnings = ConcurrentHashMap.newKeySet();
+    // Base entities that Oraxen removes itself after clearing their barriers and sub-entities
+    private static final Set<UUID> removingBaseEntities = ConcurrentHashMap.newKeySet();
 
     /**
      * Swaps the item model of a furniture entity to a different model key.
@@ -1284,7 +1279,9 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     public void removeSolid(Entity baseEntity, Location rootLocation, float orientation) {
-        if (hasLimitedPlacing() && limitedPlacing.isRoof() && furnitureType == FurnitureType.DISPLAY_ENTITY)
+        // Placement turns FIXED displays on a roof by 180 degrees and tilts them to pitch 90,
+        // but keeps the original yaw for their barriers. Later updates keep that rotation.
+        if (baseEntity instanceof ItemDisplay && baseEntity.getLocation().getPitch() == 90f)
             orientation = orientation - 180;
         List<BlockLocation> blockLocations = baseEntity.getPersistentDataContainer().getOrDefault(BARRIER_KEY, DataType.asList(BlockLocation.dataType), new ArrayList<>());
         List<BlockLocation> barriersToRemove = blockLocations.isEmpty() ? getBarriers() : blockLocations;
@@ -1384,12 +1381,23 @@ public class FurnitureMechanic extends Mechanic {
         removeBaseEntity(baseEntity);
     }
 
+    static boolean isRemovingBaseEntity(Entity baseEntity) {
+        return removingBaseEntities.contains(baseEntity.getUniqueId());
+    }
+
     private void removeBaseEntity(Entity baseEntity) {
         if (baseEntity == null) return;
         UUID baseUuid = baseEntity.getUniqueId();
         int baseEntityId = baseEntity.getEntityId();
         removeSubEntitiesOfFurniture(baseEntity);
-        if (!baseEntity.isDead()) baseEntity.remove();
+        if (!baseEntity.isDead()) {
+            removingBaseEntities.add(baseUuid);
+            try {
+                baseEntity.remove();
+            } finally {
+                removingBaseEntities.remove(baseUuid);
+            }
+        }
         SchedulerUtil.runTask(() -> {
             FurnitureTextEntry entry = FurnitureTextRegistry.byUuid(baseUuid);
             if (entry != null && entry.getBaseEntityId() == baseEntityId)
@@ -1402,7 +1410,10 @@ public class FurnitureMechanic extends Mechanic {
     private void removeSubEntitiesOfFurniture(Entity baseEntity) {
         removeInitialLight(baseEntity);
         if (VersionUtil.atOrAbove("1.21.6")) FurnitureGhastEntities.remove(baseEntity);
-        if (VersionUtil.atOrAbove("1.21.2")) FurnitureShulkerEntities.remove(baseEntity);
+        if (VersionUtil.atOrAbove("1.21.2")) {
+            FurnitureShulkerEntities.remove(baseEntity);
+            FurnitureBeds.leave(baseEntity);
+        }
         if (hasSeat) {
             removeFurnitureSeats(baseEntity.getPersistentDataContainer());
             removeFurnitureSeat(baseEntity.getLocation());
@@ -1536,7 +1547,9 @@ public class FurnitureMechanic extends Mechanic {
     public Entity getBaseEntity(Block block) {
         PersistentDataContainer pdc = BlockHelpers.getPDC(block);
         if (pdc.isEmpty()) return null;
-        final BlockLocation blockLoc = new BlockLocation(Objects.requireNonNull(pdc.get(ROOT_KEY, PersistentDataType.STRING)));
+        String serializedRoot = pdc.get(ROOT_KEY, PersistentDataType.STRING);
+        if (serializedRoot == null) return null;
+        final BlockLocation blockLoc = new BlockLocation(serializedRoot);
         Location originLoc = blockLoc.toLocation(block.getWorld());
 
         if (pdc.has(BASE_ENTITY_KEY, DataType.UUID))
@@ -1717,7 +1730,10 @@ public class FurnitureMechanic extends Mechanic {
         else baseEntity.setRotation(newYaw, baseEntity.getLocation().getPitch());
         updateFurnitureHitboxes(baseEntity, newYaw);
         if (VersionUtil.atOrAbove("1.21.6")) FurnitureGhastEntities.rotate(baseEntity, newYaw);
-        if (VersionUtil.atOrAbove("1.21.2")) FurnitureShulkerEntities.rotate(baseEntity, newYaw);
+        if (VersionUtil.atOrAbove("1.21.2")) {
+            FurnitureShulkerEntities.rotate(baseEntity, newYaw);
+            FurnitureBeds.leave(baseEntity);
+        }
         updateFurnitureSeats(baseEntity, newYaw);
         if (hasFurnitureLights())
             createFurnitureLights(BlockHelpers.toCenterBlockLocation(baseEntity.getLocation()), newYaw);

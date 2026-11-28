@@ -68,9 +68,10 @@ public class FurnitureUpdater implements Listener {
                     // Skip if there is a baseEntity
                     if (baseEntity != null) continue;
 
-                    Location rootLoc = new BlockLocation(BlockHelpers.getPDC(block).getOrDefault(ROOT_KEY, DataType.STRING, "")).toLocation(block.getWorld());
+                    String serializedRoot = BlockHelpers.getPDC(block).get(ROOT_KEY, DataType.STRING);
+                    if (serializedRoot == null) continue;
+                    Location rootLoc = new BlockLocation(serializedRoot).toLocation(block.getWorld());
                     float yaw = BlockHelpers.getPDC(block).getOrDefault(ORIENTATION_KEY, PersistentDataType.FLOAT, 0f);
-                    if (rootLoc == null) continue;
 
                     //OraxenFurniture.remove(block.getLocation(), null);
                     mechanic.getLocations(yaw, rootLoc, mechanic.getBarriers()).forEach(loc -> {

@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.mechanics.provided.combat.spell.energyblast;
 
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.combat.spell.SpellMechanic;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.oraxen.utils.wrappers.ParticleWrapper;
 import org.bukkit.Color;
 import org.bukkit.Particle;
@@ -19,10 +20,13 @@ public class EnergyBlastMechanic extends SpellMechanic {
     public EnergyBlastMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         super(mechanicFactory, section);
         ConfigurationSection particleSection = section.getConfigurationSection("particle");
-        assert particleSection != null;
+        String particleType = particleSection == null ? null : particleSection.getString("type");
+        if (particleType == null || particleType.isBlank()) {
+            Logs.logError("Energyblast mechanic of item " + getItemID() + " has no particle.type set, using CRIT");
+            this.particle = Particle.CRIT;
+        } else this.particle = ParticleWrapper.resolve(particleType);
 
-        this.particle = ParticleWrapper.resolve(particleSection.getString("type"));
-        if (particleSection.isConfigurationSection("color")) {
+        if (particleSection != null && particleSection.isConfigurationSection("color")) {
             ConfigurationSection colorSection = particleSection.getConfigurationSection("color");
             this.particleColor = new Particle.DustOptions(Color
                     .fromRGB(Objects.requireNonNull(colorSection).getInt("red"), colorSection.getInt("green"),

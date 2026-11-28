@@ -12,6 +12,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -147,16 +148,19 @@ public class AdminCommand {
      * block on the calling thread; callers hop to the owning region thread
      * per location before accessing world state.
      */
-    private Collection<Location> getTargetLocations(Location loc, int radius, boolean isRandom) {
-        Location origin = new Location(loc.getWorld(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
-        if (radius <= 0) return Collections.singletonList(origin);
+    static Collection<Location> getTargetLocations(Location loc, int radius, boolean isRandom) {
+        World world = loc.getWorld();
+        int range = Math.max(radius, 0);
+        int minY = Math.max(loc.getBlockY() - range, world.getMinHeight());
+        int maxY = Math.min(loc.getBlockY() + range, world.getMaxHeight() - 1);
         List<Location> locations = new ArrayList<>();
-        for (int x = origin.getBlockX() - radius; x <= origin.getBlockX() + radius; x++)
-            for (int z = origin.getBlockZ() - radius; z <= origin.getBlockZ() + radius; z++)
-                for (int y = origin.getBlockY() - radius; y <= origin.getBlockY() + radius; y++) {
-                    locations.add(new Location(loc.getWorld(), x, y, z));
+        for (int x = loc.getBlockX() - range; x <= loc.getBlockX() + range; x++)
+            for (int z = loc.getBlockZ() - range; z <= loc.getBlockZ() + range; z++)
+                for (int y = minY; y <= maxY; y++) {
+                    locations.add(new Location(world, x, y, z));
                 }
-        if (isRandom) return Collections.singletonList(locations.get(new Random().nextInt(locations.size())));
+        if (isRandom && !locations.isEmpty())
+            return Collections.singletonList(locations.get(ThreadLocalRandom.current().nextInt(locations.size())));
         return locations;
     }
 }

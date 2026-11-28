@@ -24,6 +24,8 @@ public final class ActionConditions {
     private static final Pattern STRING_LITERAL = Pattern.compile("'(?:[^']|'')*'|\"(?:[^\"]|\"\")*\"");
     private static final Pattern COMPARISON = Pattern.compile("==|!=|>=|<=|>|<");
     private static final Pattern LOGICAL_OPERATOR = Pattern.compile("&&|\\|\\||(?i)\\b(?:and|or)\\b");
+    // Ternary and Elvis operators, but not safe navigation (?.) or selection (.?[)
+    private static final Pattern CONDITIONAL_OPERATOR = Pattern.compile("\\?(?![.\\[])");
 
     private ActionConditions() {
     }
@@ -54,13 +56,14 @@ public final class ActionConditions {
 
     /**
      * Lets conditions use {@code player.} and {@code server.} without the SpEL {@code #} prefix,
-     * and reads a leading {@code !} on a single comparison as negating the comparison.
+     * and reads a leading {@code !} on a single comparison without a conditional operator as negating the comparison.
      * Quoted strings are left as written.
      */
     static String normalize(String condition) {
         String expression = rewriteOutsideStrings(condition.trim());
         String code = STRING_LITERAL.matcher(expression).replaceAll("''");
-        if (expression.startsWith("!") && COMPARISON.matcher(code).find() && !LOGICAL_OPERATOR.matcher(code).find())
+        if (expression.startsWith("!") && COMPARISON.matcher(code).find() && !LOGICAL_OPERATOR.matcher(code).find()
+                && !CONDITIONAL_OPERATOR.matcher(code).find())
             expression = "!(" + expression.substring(1) + ")";
         return expression;
     }

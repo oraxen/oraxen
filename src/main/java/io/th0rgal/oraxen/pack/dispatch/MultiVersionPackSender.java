@@ -147,11 +147,11 @@ public class MultiVersionPackSender implements Listener {
         if (!sendOnJoin && sendPreJoin) sendOnJoin = true;
         if (!sendOnJoin) return;
 
-        int delay = (int) Settings.SEND_PACK_DELAY.getValue();
+        long delay = PackSender.getSendDelayTicks();
         if (delay <= 0) {
             sendPack(player);
         } else {
-            SchedulerUtil.runForEntityLater(player, delay * 20L, () -> sendPack(player), null);
+            SchedulerUtil.runForEntityLater(player, delay, () -> sendPack(player), null);
         }
     }
 

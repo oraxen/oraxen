@@ -83,6 +83,7 @@ public class MultiVersionPackGenerator {
     private static final String ITEMS_ATLAS_PATH = "assets/minecraft/atlases/items.json";
 
     private final File packFolder;
+    private final File legacyPack;
     private final PackVersionManager versionManager;
     private final Map<String, String> generatedCoreShaderHashes;
 
@@ -91,8 +92,15 @@ public class MultiVersionPackGenerator {
     }
 
     public MultiVersionPackGenerator(File packFolder, Map<String, String> generatedCoreShaderHashes) {
+        this(packFolder, PackOutputLocation.defaultFile(packFolder), generatedCoreShaderHashes);
+    }
+
+    MultiVersionPackGenerator(File packFolder, File legacyPack, Map<String, String> generatedCoreShaderHashes) {
         this.packFolder = packFolder;
-        this.versionManager = new PackVersionManager(packFolder);
+        this.legacyPack = legacyPack;
+        String packName = legacyPack.equals(PackOutputLocation.defaultFile(packFolder))
+                ? "pack" : PackOutputLocation.packName(legacyPack);
+        this.versionManager = new PackVersionManager(legacyPack.getParentFile(), packName);
         this.generatedCoreShaderHashes = Map.copyOf(generatedCoreShaderHashes);
     }
 
@@ -130,16 +138,21 @@ public class MultiVersionPackGenerator {
         // This prevents stream consumption issues when reusing files across multiple pack versions
         List<MaterializedFile> materializedFiles = new java.util.ArrayList<>();
         JsonObject originalMcmeta = null;
+        boolean hasRootMcmeta = false;
         for (VirtualFile file : output) {
             try (InputStream inputStream = file.getInputStream()) {
                 byte[] content = org.apache.commons.io.IOUtils.toByteArray(inputStream);
-                materializedFiles.add(new MaterializedFile(file.getPath(), content));
-                if (isPackMcmeta(file.getPath())) {
+                String path = file.getPath();
+                materializedFiles.add(new MaterializedFile(path, content));
+                boolean rootMcmeta = "pack.mcmeta".equals(path);
+                if (rootMcmeta || (!hasRootMcmeta && isPackMcmeta(path))) {
                     try {
                         String mcmetaContent = new String(content, StandardCharsets.UTF_8);
                         originalMcmeta = JsonParser.parseString(mcmetaContent).getAsJsonObject();
+                        hasRootMcmeta = rootMcmeta;
                     } catch (Exception e) {
-                        Logs.logWarning("Failed to read pack.mcmeta: " + e.getMessage());
+                        Logs.logWarning("Failed to read pack.mcmeta: " + path);
+                        Logs.debug(e);
                     }
                 }
             } catch (Exception e) {
@@ -258,7 +271,6 @@ public class MultiVersionPackGenerator {
     }
 
     private void writeLegacyPack(List<MaterializedFile> materializedFiles) {
-        File legacyPack = new File(packFolder, packFolder.getName() + ".zip");
         try {
             boolean supportsSplitAtlas = PlatformCapabilities.supportsSplitItemAtlas(PlatformCapabilities.currentVersion());
             byte[] itemsAtlasBytes = supportsSplitAtlas ? null : findMaterializedContent(materializedFiles, ITEMS_ATLAS_PATH);

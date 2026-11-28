@@ -5,28 +5,28 @@ import org.bukkit.configuration.ConfigurationSection;
 
 public class BlockSounds {
 
-    public static String VANILLA_STONE_PLACE = "minecraft:required.stone.place";
-    public static String VANILLA_STONE_BREAK = "minecraft:required.stone.break";
-    public static String VANILLA_STONE_HIT = "minecraft:required.stone.hit";
-    public static String VANILLA_STONE_STEP = "minecraft:required.stone.step";
-    public static String VANILLA_STONE_FALL = "minecraft:required.stone.fall";
+    public static final String VANILLA_STONE_PLACE = "minecraft:required.stone.place";
+    public static final String VANILLA_STONE_BREAK = "minecraft:required.stone.break";
+    public static final String VANILLA_STONE_HIT = "minecraft:required.stone.hit";
+    public static final String VANILLA_STONE_STEP = "minecraft:required.stone.step";
+    public static final String VANILLA_STONE_FALL = "minecraft:required.stone.fall";
 
-    public static String VANILLA_WOOD_PLACE = "minecraft:required.wood.place";
-    public static String VANILLA_WOOD_BREAK = "minecraft:required.wood.break";
-    public static String VANILLA_WOOD_HIT = "minecraft:required.wood.hit";
-    public static String VANILLA_WOOD_STEP = "minecraft:required.wood.step";
-    public static String VANILLA_WOOD_FALL = "minecraft:required.wood.fall";
+    public static final String VANILLA_WOOD_PLACE = "minecraft:required.wood.place";
+    public static final String VANILLA_WOOD_BREAK = "minecraft:required.wood.break";
+    public static final String VANILLA_WOOD_HIT = "minecraft:required.wood.hit";
+    public static final String VANILLA_WOOD_STEP = "minecraft:required.wood.step";
+    public static final String VANILLA_WOOD_FALL = "minecraft:required.wood.fall";
 
-    public static float VANILLA_PLACE_VOLUME = 1.0f;
-    public static float VANILLA_PLACE_PITCH = 0.8f;
-    public static float VANILLA_BREAK_VOLUME = 1.0f;
-    public static float VANILLA_BREAK_PITCH = 0.8f;
-    public static float VANILLA_HIT_VOLUME = 0.25f;
-    public static float VANILLA_HIT_PITCH = 0.5f;
-    public static float VANILLA_STEP_VOLUME = 0.15f;
-    public static float VANILLA_STEP_PITCH = 1.0f;
-    public static float VANILLA_FALL_VOLUME = 0.5f;
-    public static float VANILLA_FALL_PITCH = 0.75f;
+    public static final float VANILLA_PLACE_VOLUME = 1.0f;
+    public static final float VANILLA_PLACE_PITCH = 0.8f;
+    public static final float VANILLA_BREAK_VOLUME = 1.0f;
+    public static final float VANILLA_BREAK_PITCH = 0.8f;
+    public static final float VANILLA_HIT_VOLUME = 0.25f;
+    public static final float VANILLA_HIT_PITCH = 0.5f;
+    public static final float VANILLA_STEP_VOLUME = 0.15f;
+    public static final float VANILLA_STEP_PITCH = 1.0f;
+    public static final float VANILLA_FALL_VOLUME = 0.5f;
+    public static final float VANILLA_FALL_PITCH = 0.75f;
 
     public static boolean isBlockSoundEnabled(ConfigurationSection section) {
         return isEnabled(section, "block", "noteblock_and_block", true);

@@ -21,4 +21,14 @@ class EnergyBlastMechanicTest extends MechanicTestSupport {
         assertEquals(4.5, mechanic.getDamage());
         assertEquals(12, mechanic.getLength());
     }
+
+    @Test
+    void fallsBackToCritWhenParticleIsMissing() {
+        allowLogging();
+        EnergyBlastMechanic mechanic = new EnergyBlastMechanic(mechanicFactory(), mechanicSection("energyblast",
+                "damage", 4.5));
+
+        assertEquals(Particle.CRIT, mechanic.getParticle());
+        assertNull(mechanic.getParticleColor());
+    }
 }

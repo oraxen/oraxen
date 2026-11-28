@@ -3,8 +3,10 @@ package io.th0rgal.oraxen.pack.generation;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.configs.Settings;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenMeta;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import org.bukkit.Material;
 import org.jetbrains.annotations.NotNull;
 
@@ -590,13 +592,20 @@ public class VanillaItemDefinitionGenerator {
         when.add("gui");
         when.add("ground");
         when.add("fixed");
-        when.add("on_shelf");
+        // Clients before 1.21.9 reject the whole definition when they see on_shelf. Spears only exist on 1.21.11+.
+        if (isSpearMaterial(material) || supportsShelfDisplayContext())
+            when.add("on_shelf");
         caseObj.add("when", when);
         caseObj.add("model", displayModel);
         cases.add(caseObj);
 
         selectModel.add("cases", cases);
         return selectModel;
+    }
+
+    private static boolean supportsShelfDisplayContext() {
+        // Multi-version packs share item definitions between 1.21.4+ clients
+        return VersionUtil.atOrAbove("1.21.9") && !Settings.MULTI_VERSION_PACKS.toBool();
     }
 
     // =====================================================================

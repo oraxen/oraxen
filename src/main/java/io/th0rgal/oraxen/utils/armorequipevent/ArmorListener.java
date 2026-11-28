@@ -58,7 +58,6 @@ public class ArmorListener implements Listener {
         if (!shift && newArmorType != null && event.getRawSlot() != newArmorType.getSlot()) return;
 
         if (shift) {
-            newArmorType = ArmorType.matchType(event.getCurrentItem());
             if (newArmorType != null) {
                 boolean equipping = event.getRawSlot() != newArmorType.getSlot();
                 if (newArmorType.equals(ArmorType.HELMET) && (equipping == isEmpty(event.getWhoClicked().getInventory().getHelmet())) || newArmorType.equals(ArmorType.CHESTPLATE) && (equipping == isEmpty(event.getWhoClicked().getInventory().getChestplate())) || newArmorType.equals(ArmorType.LEGGINGS) && (equipping ? isEmpty(event.getWhoClicked().getInventory().getLeggings()) : !isEmpty(event.getWhoClicked().getInventory().getLeggings())) || newArmorType.equals(ArmorType.BOOTS) && (equipping ? isEmpty(event.getWhoClicked().getInventory().getBoots()) : !isEmpty(event.getWhoClicked().getInventory().getBoots()))) {
@@ -78,7 +77,7 @@ public class ArmorListener implements Listener {
                     ItemStack hotbarItem = null;
                     if (event.getHotbarButton() != -1) {
                         hotbarItem = clickedInventory.getItem(event.getHotbarButton());
-                    } else if (event.getHotbarButton() == -1 && clickedInventory instanceof PlayerInventory playerInventory) {
+                    } else if (clickedInventory instanceof PlayerInventory playerInventory) {
                         hotbarItem = playerInventory.getItem(EquipmentSlot.OFF_HAND);
                     }
                     if (!isEmpty(hotbarItem)) {// Equipping

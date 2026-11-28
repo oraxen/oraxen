@@ -56,8 +56,9 @@ public class EntityUtils {
      * @param location The location to spawn the entity at
      * @param clazz The class of the entity to spawn
      * @param consumer The consumer to apply to the entity
-     * @return The entity that was spawned
+     * @return The entity that was spawned, or null if spawning failed
      */
+    @Nullable
     public static <T extends Entity> T spawnEntity(@NotNull Location location, @NotNull Class<T> clazz, EntityConsumer<T> consumer) {
         try {
             RegionAccessor regionAccessor = location.getWorld();
@@ -65,7 +66,8 @@ public class EntityUtils {
                 return regionAccessor.spawn(location, clazz, consumer::accept);
             return LegacySpawner.spawn(regionAccessor, location, clazz, consumer);
         } catch (RuntimeException e) {
-            Logs.logWarning(e.getMessage());
+            Logs.logWarning("Failed to spawn " + clazz.getSimpleName() + ": " + e.getMessage());
+            Logs.debug(e);
         }
         return null;
     }

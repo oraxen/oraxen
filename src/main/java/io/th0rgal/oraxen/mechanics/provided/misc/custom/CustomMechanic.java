@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.custom.fields.CustomEvent;
 import io.th0rgal.oraxen.mechanics.provided.misc.custom.listeners.CustomListener;
 import io.th0rgal.oraxen.utils.actions.ClickAction;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.Map;
@@ -30,14 +31,26 @@ public class CustomMechanic extends Mechanic {
                 ClickAction clickAction = ClickAction.from(subsection);
                 if (clickAction == null) return null;
 
-                CustomListener listener = new CustomEvent(
-                        subsection.getString("event", ""),
-                        subsection.getBoolean("one_usage", false)
-                ).getListener(getItemID(), subsection.getLong("cooldown"), clickAction);
+                CustomListener listener;
+                try {
+                    listener = new CustomEvent(
+                            subsection.getString("event", ""),
+                            subsection.getBoolean("one_usage", false)
+                    ).getListener(getItemID(), subsection.getLong("cooldown"), clickAction);
+                } catch (IllegalArgumentException e) {
+                    Logs.logError("Skipping custom mechanic \"" + subMechanicName + "\" of item " + getItemID() + ". " + e.getMessage());
+                    return null;
+                }
                 listener.register();
                 return listener;
             });
         }
+    }
+
+    /** Unregisters every loaded variant so removed items or sections stop reacting after a reload. */
+    public static void unregisterListeners() {
+        LOADED_VARIANTS.values().forEach(CustomListener::unregister);
+        LOADED_VARIANTS.clear();
     }
 
 }

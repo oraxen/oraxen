@@ -14,6 +14,11 @@ public class WorkstationLoader extends RecipeLoader {
     }
 
     @Override
+    public void retainPreviousVersion() {
+        if (!resetsRecipes()) CustomWorkstationRegistry.retain(type, getRecipeName());
+    }
+
+    @Override
     public void registerRecipe() {
         String baseKey = type == CustomWorkstationRecipe.Type.CAULDRON ? "input" : "base";
         String fluid = type == CustomWorkstationRecipe.Type.CAULDRON ? getSection().getString("fluid", "water").toLowerCase(java.util.Locale.ROOT).replace('-', '_') : null;

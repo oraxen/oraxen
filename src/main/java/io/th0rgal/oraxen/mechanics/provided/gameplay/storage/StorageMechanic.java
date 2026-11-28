@@ -9,13 +9,16 @@ import dev.triumphteam.gui.guis.StorageGui;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.items.ItemBuilder;
+import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.ItemUtils;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.sound.Sound;
+import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -93,6 +96,7 @@ public class StorageMechanic {
         frameStorages.clear();
         playerStorages.clear();
         lockedBlockStorages.clear();
+        pendingBlockContents.clear();
         lockedEntityStorages.clear();
     }
 
@@ -180,15 +184,27 @@ public class StorageMechanic {
     }
 
     public StorageMechanic(ConfigurationSection section) {
-        rows = section.getInt("rows", 6);
+        int configuredRows = section.getInt("rows", 6);
+        rows = configuredRows >= 1 && configuredRows <= 6 ? configuredRows : 1;
         title = section.getString("title", "Storage");
-        type = StorageType.valueOf(section.getString("type", "STORAGE"));
+        type = parseType(section);
         openSound = section.getString("open_sound", "minecraft:block.chest.open");
         closeSound = section.getString("close_sound", "minecraft:block.chest.close");
         openAnimation = section.getString("open_animation", null);
         closeAnimation = section.getString("close_animation", null);
         volume = (float) section.getDouble("volume", 0.5);
         pitch = (float) section.getDouble("pitch", 0.95f);
+    }
+
+    private static StorageType parseType(ConfigurationSection section) {
+        String value = section.getString("type", "STORAGE");
+        try {
+            return StorageType.valueOf(value.toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException e) {
+            Logs.logWarning("Invalid storage type " + value + " in " + section.getCurrentPath() + ", using STORAGE");
+            Logs.logWarning("Valid types are: " + StringUtils.join(StorageType.values(), ", "));
+            return StorageType.STORAGE;
+        }
     }
 
     public enum StorageType {
@@ -253,32 +269,68 @@ public class StorageMechanic {
         }
     }
 
+    /**
+     * Moves the contents a shulker item carries into the block it was placed as.
+     *
+     * @param block The placed storage block
+     * @param item  The item the block was placed from
+     */
+    public void loadStorageContent(Block block, @Nullable ItemStack item) {
+        loadStorageContent(BlockHelpers.getPDC(block), item);
+    }
+
+    /**
+     * Moves the contents a shulker item carries into the given container, for example a falling block.
+     *
+     * @param pdc  The container that holds the storage contents
+     * @param item The item the block was placed from
+     */
+    public void loadStorageContent(PersistentDataContainer pdc, @Nullable ItemStack item) {
+        ItemMeta itemMeta = isShulker() && item != null ? item.getItemMeta() : null;
+        if (itemMeta == null) return;
+        ItemStack[] items = itemMeta.getPersistentDataContainer().get(STORAGE_KEY, DataType.ITEM_STACK_ARRAY);
+        if (items != null) pdc.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, items);
+    }
+
     public void dropStorageContent(Block block) {
-        if (!lockedBlockStorages.add(block)) return;
+        Mechanic mechanic = OraxenBlocks.getOraxenBlock(block.getLocation());
+        dropStorageContent(block, mechanic != null ? mechanic.getItemID() : null);
+    }
+
+    /**
+     * Drops the contents of a block storage. A shulker storage that holds items drops its item with the contents instead.
+     *
+     * @param block  The storage block
+     * @param itemId The item a shulker storage drops, can be null
+     * @return True if a shulker item holding the contents was dropped
+     */
+    public boolean dropStorageContent(Block block, @Nullable String itemId) {
+        if (!lockedBlockStorages.add(block)) return false;
         try {
             StorageGui gui = blockStorages.remove(block);
+            pendingBlockContents.remove(block);
             PersistentDataContainer pdc = BlockHelpers.getPDC(block);
             ItemStack[] items = gui != null ? snapshotContents(gui) : resolveBlockStorageItems(block, null);
             pdc.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, items);
             closeGuiViewers(gui);
 
+            boolean droppedShulker = false;
             if (isShulker()) {
-                NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
-                if (mechanic != null) {
-                    ItemStack shulker = OraxenItems.getItemById(mechanic.getItemID()).build();
-                    ItemMeta shulkerMeta = shulker.getItemMeta();
-
-                    if (shulkerMeta != null)
-                        shulkerMeta.getPersistentDataContainer().set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, items);
-
-                    shulker.setItemMeta(shulkerMeta);
+                boolean hasContents = Arrays.stream(items).anyMatch(item -> item != null && !item.getType().isAir());
+                ItemBuilder shulkerBuilder = itemId != null && hasContents ? OraxenItems.getItemById(itemId) : null;
+                if (shulkerBuilder != null) {
+                    ItemStack shulker = shulkerBuilder.build();
+                    ItemUtils.editItemMeta(shulker, shulkerMeta ->
+                            shulkerMeta.getPersistentDataContainer().set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, items));
                     block.getWorld().dropItemNaturally(block.getLocation(), shulker);
+                    droppedShulker = true;
                 }
             } else for (ItemStack item : items) {
                 if (item == null) continue;
                 block.getWorld().dropItemNaturally(block.getLocation(), item);
             }
             pdc.remove(STORAGE_KEY);
+            return droppedShulker;
         } finally {
             // blockStorages.remove() already called at start of try block
             lockedBlockStorages.remove(block);
@@ -496,7 +548,6 @@ public class StorageMechanic {
         gui.setCloseGuiAction(event -> {
             ItemStack[] contents = snapshotContents(gui);
             Runnable persist = () -> {
-                pendingBlockContents.remove(block, contents);
                 if (!canPersistBlockStorage(block, gui)) return;
                 storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, contents);
                 if (hasCloseSound() && block.getLocation().isChunkLoaded())
@@ -504,13 +555,18 @@ public class StorageMechanic {
                 if (frame != null) playOpenAnimation(frame, closeAnimation);
             };
             if (Bukkit.isOwnedByCurrentRegion(location)) {
+                // This write is the newest, so an older snapshot from another region must not win later
+                pendingBlockContents.remove(block);
                 persist.run();
                 return;
             }
             // The viewer closed from another region (teleport, quit) and the chunk PDC belongs to the block's region.
             // Reopening before the write lands must use this snapshot, not the older PDC contents.
             pendingBlockContents.put(block, contents);
-            SchedulerUtil.runAtLocation(location, persist);
+            SchedulerUtil.runAtLocation(location, () -> {
+                // Skip the write if a newer close already replaced or persisted this snapshot
+                if (pendingBlockContents.remove(block, contents)) persist.run();
+            });
         });
 
         return gui;

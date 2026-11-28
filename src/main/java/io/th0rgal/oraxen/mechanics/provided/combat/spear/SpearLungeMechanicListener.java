@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.VersionUtil;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
@@ -18,9 +19,11 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
@@ -164,16 +167,10 @@ public class SpearLungeMechanicListener implements Listener {
         // Restore walk speed
         player.setWalkSpeed(state.originalWalkSpeed());
 
-        ItemStack item = player.getInventory().getItem(state.hand());
-        if (item == null || item.getType().isAir())
-            return;
-
         // Verify it's still the spear
-        String itemId = OraxenItems.getIdByItem(item);
-        if (factory.isNotImplementedIn(itemId))
-            return;
-
-        if (performAttack) {
+        ItemStack item = player.getInventory().getItem(state.hand());
+        if (performAttack && item != null && !item.getType().isAir()
+                && !factory.isNotImplementedIn(OraxenItems.getIdByItem(item))) {
             long chargedTicks = Bukkit.getCurrentTick() - state.startTick();
             double chargePercent = Math.min(1.0, (double) chargedTicks / state.mechanic().getChargeTicks());
 
@@ -185,11 +182,35 @@ public class SpearLungeMechanicListener implements Listener {
             }
         }
 
-        // Revert to original model
-        if (state.originalModel() != null) {
-            setItemModel(item, state.originalModel());
-            player.getInventory().setItem(state.hand(), item);
+        // Revert to original model wherever the spear ended up, as it may have left the hand mid-charge
+        PlayerInventory inventory = player.getInventory();
+        ItemStack[] contents = inventory.getContents();
+        for (int slot = 0; slot < contents.length; slot++) {
+            if (revertModel(contents[slot], state))
+                inventory.setItem(slot, contents[slot]);
         }
+        ItemStack cursor = player.getItemOnCursor();
+        if (revertModel(cursor, state))
+            player.setItemOnCursor(cursor);
+    }
+
+    private boolean revertModel(ItemStack item, ChargeState state) {
+        NamespacedKey model = getItemModel(item);
+        if (model == null || state.originalModel() == null || !isChargeModel(state.mechanic(), model))
+            return false;
+
+        setItemModel(item, state.originalModel());
+        return true;
+    }
+
+    private static boolean isChargeModel(SpearLungeMechanic mechanic, NamespacedKey model) {
+        if (mechanic.hasActiveModel() && model.equals(mechanic.getActiveItemModelKey()))
+            return true;
+        for (int frame = 0; frame < mechanic.getIntermediateModelCount(); frame++) {
+            if (model.equals(mechanic.getIntermediateModelKey(frame)))
+                return true;
+        }
+        return false;
     }
 
     private void performLungeAttack(Player player, SpearLungeMechanic mechanic, double chargePercent) {
@@ -278,14 +299,15 @@ public class SpearLungeMechanicListener implements Listener {
 
     private void applyDamageToTarget(Player player, SpearLungeMechanic mechanic, LivingEntity target,
             Vector direction, double chargePercent) {
-        intentionalDamageTargets.add(target.getUniqueId());
-
         double damage = mechanic.getMinDamage() + ((mechanic.getDamage() - mechanic.getMinDamage()) * chargePercent);
-        target.damage(damage, player);
-
-        // Note: intentionalDamageTargets is cleared in onEntityDamage after allowing
-        // the lunge damage. This prevents the melee swing (which fires later in the
-        // same tick) from also being allowed through.
+        intentionalDamageTargets.add(target.getUniqueId());
+        try {
+            target.damage(damage, player);
+        } finally {
+            // Remove right away, so the melee swing later in the same tick is not allowed through,
+            // even when no damage event fired (for example against an invulnerable target)
+            intentionalDamageTargets.remove(target.getUniqueId());
+        }
 
         Vector knockback = direction.clone().normalize().multiply(mechanic.getKnockback());
         knockback.setY(0.2);
@@ -327,7 +349,8 @@ public class SpearLungeMechanicListener implements Listener {
             meta.setItemModel(model);
             item.setItemMeta(meta);
         } catch (Exception e) {
-            // Silently fail if model swapping isn't supported
+            Logs.debug("Failed to set item model " + model + " for spear lunge");
+            Logs.debug(e);
         }
     }
 
@@ -337,45 +360,57 @@ public class SpearLungeMechanicListener implements Listener {
         cancelCharge(event.getPlayer(), false);
     }
 
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onInventoryClick(InventoryClickEvent event) {
+        // Cancel before the click applies, so a spear moved into another inventory is already reverted
+        if (event.getWhoClicked() instanceof Player player)
+            cancelCharge(player, false);
+    }
+
     @EventHandler(priority = EventPriority.MONITOR)
     public void onItemDrop(PlayerDropItemEvent event) {
         // Cancel charge if player drops the item
+        ChargeState state = chargingPlayers.get(event.getPlayer().getUniqueId());
         cancelCharge(event.getPlayer(), false);
+        if (state == null)
+            return;
+
+        ItemStack dropped = event.getItemDrop().getItemStack();
+        if (revertModel(dropped, state))
+            event.getItemDrop().setItemStack(dropped);
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerQuit(PlayerQuitEvent event) {
-        // Clean up on disconnect - must restore walk speed!
-        Player player = event.getPlayer();
-        ChargeState state = chargingPlayers.remove(player.getUniqueId());
-        if (state != null) {
-            if (state.task() != null) {
-                state.task().cancel();
-            }
-            // Restore walk speed before player disconnects
-            player.setWalkSpeed(state.originalWalkSpeed());
-        }
-        attackCooldowns.remove(player.getUniqueId());
+        // Clean up on disconnect - must restore walk speed and model before the player is saved!
+        cancelCharge(event.getPlayer(), false);
+        attackCooldowns.remove(event.getPlayer().getUniqueId());
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerDeath(PlayerDeathEvent event) {
         // Clean up on death - must restore walk speed before respawn!
-        Player player = event.getEntity();
-        ChargeState state = chargingPlayers.remove(player.getUniqueId());
-        if (state != null) {
-            if (state.task() != null) {
-                state.task().cancel();
-            }
-            // Restore walk speed so it's correct on respawn
-            player.setWalkSpeed(state.originalWalkSpeed());
-        }
+        ChargeState state = chargingPlayers.get(event.getEntity().getUniqueId());
+        cancelCharge(event.getEntity(), false);
+        if (state != null)
+            event.getDrops().forEach(drop -> revertModel(drop, state));
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerSwapHands(PlayerSwapHandItemsEvent event) {
         // Cancel charge if player swaps hands
+        ChargeState state = chargingPlayers.get(event.getPlayer().getUniqueId());
         cancelCharge(event.getPlayer(), false);
+        if (state == null)
+            return;
+
+        // The swap writes the event's copies of both hands back after this handler
+        ItemStack mainHand = event.getMainHandItem();
+        ItemStack offHand = event.getOffHandItem();
+        if (revertModel(mainHand, state))
+            event.setMainHandItem(mainHand);
+        if (revertModel(offHand, state))
+            event.setOffHandItem(offHand);
     }
 
     /**

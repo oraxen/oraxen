@@ -484,35 +484,6 @@ public final class PackObfuscator {
             atlas.add("sources", sources);
         }
 
-        private Map<String, String> collectAllAtlasSprites() {
-            Map<String, String> sprites = new LinkedHashMap<>();
-            for (String key : textureKeys.keySet()) {
-                sprites.put(key, key);
-            }
-            return sprites;
-        }
-
-        private Map<String, String> collectAtlasSprites(JsonElement atlas, String namespace) {
-            Map<String, String> sprites = new LinkedHashMap<>();
-            if (atlas == null || !atlas.isJsonObject()) return sprites;
-            JsonObject object = atlas.getAsJsonObject();
-            if (!object.has("sources") || !object.get("sources").isJsonArray()) return sprites;
-
-            for (JsonElement sourceElement : object.getAsJsonArray("sources")) {
-                if (!sourceElement.isJsonObject()) continue;
-                JsonObject source = sourceElement.getAsJsonObject();
-                String type = source.has("type") && source.get("type").isJsonPrimitive()
-                        ? source.get("type").getAsString()
-                        : "";
-                if (type.endsWith("single")) {
-                    addAtlasSingleSprite(source, namespace, sprites);
-                } else if (type.endsWith("directory")) {
-                    addAtlasDirectorySprites(source, namespace, sprites);
-                }
-            }
-            return sprites;
-        }
-
         private void addAtlasSingleReference(JsonObject source, String property, String namespace, Set<String> keys) {
             if (!source.has(property) || !source.get(property).isJsonPrimitive()) return;
             String value = stripKnownExtension(source.get(property).getAsString());
@@ -521,14 +492,6 @@ public final class PackObfuscator {
             } else {
                 keys.add(namespace + ":" + value);
             }
-        }
-
-        private void addAtlasSingleSprite(JsonObject source, String namespace, Map<String, String> sprites) {
-            String resource = atlasProperty(source, "resource");
-            if (resource == null) return;
-            String key = namespacedKey(resource, namespace);
-            String sprite = atlasProperty(source, "sprite");
-            sprites.put(key, namespacedKey(sprite != null ? sprite : resource, namespace));
         }
 
         private void addAtlasDirectorySprites(JsonObject source, String namespace, Map<String, String> sprites) {
@@ -556,10 +519,6 @@ public final class PackObfuscator {
             String type = object.get("type").getAsString();
             return (type.endsWith("single") || type.endsWith("directory"))
                     && (object.has("resource") || object.has("source"));
-        }
-
-        private static String namespacedKey(String value, String namespace) {
-            return value.contains(":") ? value : namespace + ":" + value;
         }
 
         private static boolean isKeyUnderDirectory(String key, String namespace, String directory) {
@@ -631,10 +590,6 @@ public final class PackObfuscator {
 
         private static String appendSuffix(String value, String suffix) {
             return value == null ? null : value + suffix;
-        }
-
-        private static boolean isUntrackedVanillaTexture(String key, Set<String> referencedTextureKeys) {
-            return key.startsWith("minecraft:") && !referencedTextureKeys.contains(key);
         }
 
         private static boolean isUntrackedVanillaModel(String key, Set<String> referencedModelKeys) {

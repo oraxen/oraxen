@@ -7,19 +7,24 @@ set -euo pipefail
 # Usage:
 #   ./scripts/server.sh --version Paper/26.3
 #   ./scripts/server.sh --version Folia/1.21.11 --no-reset
+#   ./scripts/server.sh --version Paper/26.3 --port 25570 --instance second
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd -- "$SCRIPT_DIR/.." && pwd)"
 SERVERS_DIR="${HOME}/Oraxen/Servers"
 VERSION_SPEC=""
+SERVER_PORT="25568"
+INSTANCE_NAME=""
 NO_RESET=false
 
 usage() {
     cat <<'EOF'
-Usage: ./scripts/server.sh --version <Paper|Folia>/<version> [--no-reset]
+Usage: ./scripts/server.sh --version <Paper|Folia>/<version> [--port <port>] [--instance <name>] [--no-reset]
 
 Options:
   --version, -v  Server and Minecraft version, for example Paper/26.3
+  --port, -p     Server port, 25568 by default
+  --instance     Use a separate server directory, so several servers of one version can run at once
   --no-reset     Keep the existing plugins and world files
   --help, -h     Show this help
 EOF
@@ -46,6 +51,26 @@ while [[ $# -gt 0 ]]; do
             [[ -n "$VERSION_SPEC" ]] || error "--version requires a value"
             shift
             ;;
+        --port|-p)
+            require_argument "$1" "${2:-}"
+            SERVER_PORT="$2"
+            shift 2
+            ;;
+        --port=*)
+            SERVER_PORT="${1#*=}"
+            [[ -n "$SERVER_PORT" ]] || error "--port requires a value"
+            shift
+            ;;
+        --instance)
+            require_argument "$1" "${2:-}"
+            INSTANCE_NAME="$2"
+            shift 2
+            ;;
+        --instance=*)
+            INSTANCE_NAME="${1#*=}"
+            [[ -n "$INSTANCE_NAME" ]] || error "--instance requires a value"
+            shift
+            ;;
         --no-reset)
             NO_RESET=true
             shift
@@ -69,12 +94,41 @@ else
     error "version must look like Paper/26.3 or Folia/1.21.11"
 fi
 
+if [[ ! "$SERVER_PORT" =~ ^[0-9]{1,5}$ ]] || ((10#$SERVER_PORT < 1 || 10#$SERVER_PORT > 65535)); then
+    error "port must be a number between 1 and 65535"
+fi
+if [[ -n "$INSTANCE_NAME" && ! "$INSTANCE_NAME" =~ ^[A-Za-z0-9_-]+$ ]]; then
+    error "instance names may only contain letters, digits, hyphens and underscores"
+fi
+
 PROJECT_NAME="$(printf '%s' "$SERVER_NAME" | tr '[:upper:]' '[:lower:]')"
-SERVER_DIR="$SERVERS_DIR/$SERVER_NAME/$MC_VERSION"
+DOWNLOAD_DIR="$SERVERS_DIR/$SERVER_NAME"
+VERSION_DIR="$DOWNLOAD_DIR/$MC_VERSION"
+# Instances share the downloaded server jar of their version but keep their own files.
+SHARED_JAR="$VERSION_DIR/server.jar"
+TEMPORARY_JAR=""
+if [[ -n "$INSTANCE_NAME" ]]; then
+    SERVER_DIR="$VERSION_DIR-$INSTANCE_NAME"
+else
+    SERVER_DIR="$VERSION_DIR"
+fi
 SERVER_JAR="$SERVER_DIR/server.jar"
 
+cleanup_temporary_jar() {
+    if [[ -n "$TEMPORARY_JAR" ]]; then
+        rm -f "$TEMPORARY_JAR"
+        TEMPORARY_JAR=""
+    fi
+}
+
+trap cleanup_temporary_jar EXIT
+trap 'cleanup_temporary_jar; exit 129' HUP
+trap 'cleanup_temporary_jar; exit 130' INT
+trap 'cleanup_temporary_jar; exit 143' TERM
+
 required_java_version() {
-    if [[ "$MC_VERSION" == 26.* ]]; then
+    [[ "$MC_VERSION" =~ ^(1\.)?([0-9]+) ]]
+    if ((10#${BASH_REMATCH[2]} >= 26)); then
         echo 25
     else
         echo 21
@@ -155,7 +209,7 @@ find_oraxen_jar() {
 
     shopt -s nullglob
     for jar in "$PROJECT_DIR"/build/libs/oraxen-*.jar; do
-        [[ "$jar" == *-sources.jar || "$jar" == *-javadoc.jar ]] || jars+=("$jar")
+        [[ "$jar" == *-sources.jar || "$jar" == *-javadoc.jar || "$jar" == *-plain.jar ]] || jars+=("$jar")
     done
     shopt -u nullglob
 
@@ -190,7 +244,7 @@ known_download_url() {
 }
 
 download_server_jar() {
-    [[ -f "$SERVER_JAR" ]] && return 0
+    [[ -f "$SHARED_JAR" ]] && return 0
 
     local download_url
     download_url="$(known_download_url || true)"
@@ -205,12 +259,14 @@ download_server_jar() {
         download_url="https://api.papermc.io/v2/projects/${PROJECT_NAME}/versions/${MC_VERSION}/builds/${build}/downloads/${PROJECT_NAME}-${MC_VERSION}-${build}.jar"
     fi
 
-    local temporary_jar="$SERVER_DIR/server.jar.download"
-    mkdir -p "$SERVER_DIR"
+    mkdir -p "$VERSION_DIR"
+    # Keep partial downloads outside the default server directory so its reset cannot remove another instance's download.
+    TEMPORARY_JAR="$(mktemp "$DOWNLOAD_DIR/server-${MC_VERSION}.jar.download.XXXXXX")"
     echo "Downloading ${SERVER_NAME} ${MC_VERSION}..."
-    curl --fail --location --output "$temporary_jar" "$download_url" \
+    curl --fail --location --output "$TEMPORARY_JAR" "$download_url" \
         || error "could not download ${SERVER_NAME} ${MC_VERSION}"
-    mv "$temporary_jar" "$SERVER_JAR"
+    mv -f "$TEMPORARY_JAR" "$SHARED_JAR"
+    TEMPORARY_JAR=""
 }
 
 reset_server_files() {
@@ -223,6 +279,9 @@ reset_server_files() {
             [[ "$path" == "$SERVER_JAR" ]] || rm -rf "$path"
         done
         shopt -u dotglob nullglob
+    fi
+    if [[ "$SERVER_JAR" != "$SHARED_JAR" && ! -f "$SERVER_JAR" ]]; then
+        cp "$SHARED_JAR" "$SERVER_JAR"
     fi
     mkdir -p "$SERVER_DIR/plugins"
 }
@@ -277,10 +336,10 @@ configure_server_properties
 cp "$oraxen_jar" "$SERVER_DIR/plugins/Oraxen.jar"
 
 cat <<EOF
-Starting ${SERVER_NAME} ${MC_VERSION}
+Starting ${SERVER_NAME} ${MC_VERSION} on port ${SERVER_PORT}
 Server directory: ${SERVER_DIR}
 Oraxen jar: ${oraxen_jar}
 EOF
 
 cd "$SERVER_DIR"
-exec "$java_command" -Xmx1G -jar server.jar --nogui --port 25568
+exec "$java_command" -Xmx1G -jar server.jar --nogui --port "$SERVER_PORT"

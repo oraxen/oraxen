@@ -9,6 +9,9 @@ import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.MockedStatic;
 
 import java.io.*;
@@ -163,6 +166,64 @@ class PackImportCompositionTest {
         logs.verify(() -> Logs.logError("Failed to import resource pack a-bad.zip"));
     }
 
+    @Test void normalizesDeeplyNestedPackRootsAndSkipsNonPackFiles() throws Exception {
+        Path zip = tempDir.resolve("uploads/battlepass.zip");
+        Files.createDirectories(zip.getParent());
+        writeZip(zip, Map.of(
+                "Plugins/BattlePass/config.yml", "some: config",
+                "README.md", "# Instructions",
+                "Textures (use 1)/ItemsAdders/contents/pack/resourcepack/pack.mcmeta", "{\"pack\":{\"pack_format\":34}}",
+                "Textures (use 1)/ItemsAdders/contents/pack/resourcepack/assets/test/models/item/paper.json", "{\"parent\":\"item/generated\"}",
+                "Textures (use 1)/vanilla_pack/pack.mcmeta", "{\"pack\":{\"pack_format\":34}}",
+                "Textures (use 1)/vanilla_pack/assets/test/textures/icon.png", "PNG_DATA"));
+
+        Map<String, String> files = contents(new PackMerger(tempDir.toFile()).mergeUploadedPacks());
+
+        assertEquals("{\"parent\":\"item/generated\"}", files.get("assets/test/models/item/paper.json"));
+        assertEquals("PNG_DATA", files.get("assets/test/textures/icon.png"));
+        assertFalse(files.keySet().stream().anyMatch(path -> path.contains("config.yml") || path.contains("README")
+                || path.contains("Textures") || path.contains("ItemsAdders")));
+    }
+
+    @Test void doesNotTreatFolderEndingWithAssetsAsPackRoot() throws Exception {
+        Path zip = tempDir.resolve("uploads/tricky.zip");
+        Files.createDirectories(zip.getParent());
+        writeZip(zip, Map.of(
+                "testassets/minecraft/textures/bad.png", "BAD",
+                "realpack/pack.mcmeta", "{\"pack\":{\"pack_format\":34}}",
+                "realpack/assets/minecraft/textures/good.png", "GOOD"));
+
+        Map<String, String> files = contents(new PackMerger(tempDir.toFile()).mergeUploadedPacks());
+
+        assertEquals("GOOD", files.get("assets/minecraft/textures/good.png"));
+        assertFalse(files.keySet().stream().anyMatch(path -> path.contains("bad.png") || path.contains("testassets")));
+    }
+
+    @Test void ignoresMetadataJunkEntriesInUploadedZips() throws Exception {
+        Path zip = tempDir.resolve("uploads/junk.zip");
+        Files.createDirectories(zip.getParent());
+        writeZip(zip, Map.of(
+                "pack.mcmeta", "{\"pack\":{\"pack_format\":34}}",
+                "assets/test/good.txt", "GOOD",
+                "assets/.DS_Store", "junk",
+                "__MACOSX/pack.mcmeta", "junk",
+                "__MACOSX/assets/test/junk.txt", "junk"));
+
+        Map<String, String> files = contents(new PackMerger(tempDir.toFile()).mergeUploadedPacks());
+
+        assertEquals("GOOD", files.get("assets/test/good.txt"));
+        assertFalse(files.keySet().stream().anyMatch(path -> path.contains("DS_Store") || path.contains("MACOSX") || path.contains("junk")));
+    }
+
+    @Test void alphabeticallyLaterUploadWinsWhenPacksProvideTheSamePath() throws Exception {
+        write("a-low", Map.of("assets/test/notes.txt", "low"));
+        write("b-high", Map.of("assets/test/notes.txt", "high"));
+
+        Map<String, String> files = contents(new PackMerger(tempDir.toFile()).mergeUploadedPacks());
+
+        assertEquals("high", files.get("assets/test/notes.txt"));
+    }
+
     @Test void composesNativeResourcesAndRetainsValidLowerFiles() throws Exception {
         write("a", Map.of(
                 "assets/test/lang/en_us.json", "{\"low\":\"low\",\"shared\":\"low\"}",
@@ -188,6 +249,213 @@ class PackImportCompositionTest {
         assertEquals(1, json(files, "assets/test/sounds.json").getAsJsonObject("replace").getAsJsonArray("sounds").size());
         assertEquals("single", json(files, "assets/test/atlases/blocks.json").getAsJsonArray("sources").get(0).getAsJsonObject().get("type").getAsString());
         assertFalse(files.containsKey("assets/test/textures/a.png.mcmeta"));
+    }
+
+    @ParameterizedTest
+    @CsvSource({"equipment, 46, 75", "models/equipment, 42, 42"})
+    void mergesEquipmentAcrossUploadsAndKeepsOverlayReplacementWithinAnUpload(String folder, int min, int max) throws Exception {
+        String path = "assets/test/" + folder + "/armor.json";
+        write("a", Map.of(path, """
+                {"layers":{"humanoid":[{"texture":"test:base"}],"wings":[{"texture":"test:wings"}]}}
+                """));
+        write("b", Map.of(path, "{\"layers\":{\"humanoid\":[{\"texture\":\"test:detail\"}]}}",
+                "pack.mcmeta", metadata("variant", min, max),
+                "variant/" + path, "{\"layers\":{\"humanoid\":[{\"texture\":\"test:modern\"}]}}"));
+        write("c", Map.of(path, "{\"layers\":{\"humanoid\":false}}"));
+
+        PackMerger merger = new PackMerger(tempDir.toFile());
+        Map<String, String> files = contents(merger.mergeUploadedPacks());
+        String directory = merger.getMergedOverlayEntries().get(0).getAsJsonObject().get("directory").getAsString();
+        assertTrue(directory.startsWith("oraxen_import_"));
+        assertEquals(JsonParser.parseString("""
+                {"humanoid":[{"texture":"test:base"},{"texture":"test:detail"}],"wings":[{"texture":"test:wings"}]}
+                """), json(files, path).get("layers"));
+        assertEquals(JsonParser.parseString("""
+                {"humanoid":[{"texture":"test:base"},{"texture":"test:modern"}],"wings":[{"texture":"test:wings"}]}
+                """), json(files, directory + "/" + path).get("layers"));
+    }
+
+    @Test void preservesRepeatedEquipmentLayersAndRejectsEmptyDefinitions() throws Exception {
+        String path = "assets/test/equipment/armor.json";
+        write("a", Map.of(path, "{\"layers\":{\"humanoid\":[{\"texture\":\"test:same\"}]},\"custom\":\"low\"}"));
+        write("b", Map.of(path, "{\"layers\":{\"humanoid\":[{\"texture\":\"test:same\"}]},\"custom\":\"high\"}"));
+        write("c", Map.of(path, "{\"layers\":{}}"));
+        write("d", Map.of(path, "{\"layers\":{\"humanoid\":[]}}"));
+        write("e", Map.of(path, "{\"layers\":{\"humanoid\":[false]}}"));
+        write("f", Map.of(path, "{\"layers\":{\"humanoid\":[{}]}}"));
+        write("g", Map.of(path, "{\"layers\":{\"humanoid\":[{\"texture\":42}]}}"));
+
+        Map<String, String> files = contents(new PackMerger(tempDir.toFile()).mergeUploadedPacks());
+        assertEquals(JsonParser.parseString("""
+                {"layers":{"humanoid":[{"texture":"test:same"},{"texture":"test:same"}]},"custom":"high"}
+                """), json(files, path));
+    }
+
+    @Test void rejectsEquipmentWithInvalidTextureIdsWithoutLosingValidShorthandIds() throws Exception {
+        String path = "assets/test/equipment/armor.json";
+        write("a", Map.of(path, """
+                {"layers":{"humanoid":[{"texture":"test:Armor"}]}}
+                """));
+        write("b", Map.of(path, """
+                {"layers":{"humanoid":[{"texture":"armor/detail-1.2"},{"texture":":trim"}]}}
+                """));
+        write("c", Map.of(path, """
+                {"layers":{"humanoid":[{"texture":"Test:trim"}]}}
+                """));
+
+        Map<String, String> files = contents(new PackMerger(tempDir.toFile()).mergeUploadedPacks());
+        assertEquals(JsonParser.parseString("""
+                {"humanoid":[{"texture":"armor/detail-1.2"},{"texture":":trim"}]}
+                """), json(files, path).get("layers"));
+    }
+
+    @Test void composesLocalLegacyEquipmentWithoutDroppingOrdinaryModelsInItsFolder() throws Exception {
+        String root = "assets/test/models/equipment/";
+        String equipment = root + "armor.json";
+        String model = root + "shield.json";
+        String higherModel = "{\"parent\":\"minecraft:item/handheld\"}";
+        write("uploaded", Map.of(model, "{\"parent\":\"minecraft:item/generated\"}"));
+        PackMerger merger = new PackMerger(tempDir.toFile());
+        merger.mergeUploadedPacks();
+
+        Map<String, String> files = contents(merger.mergeWithHigherPriorityFiles(List.of(
+                vfile(model, higherModel),
+                vfile(equipment, "{\"layers\":{\"humanoid\":[{\"texture\":\"test:detail\"}]}}"),
+                vfile(equipment, "{\"layers\":{\"humanoid\":[{\"texture\":\"test:base\"}]}}"))));
+        assertEquals(higherModel, files.get(model));
+        assertEquals(JsonParser.parseString("""
+                {"humanoid":[{"texture":"test:base"},{"texture":"test:detail"}]}
+                """), json(files, equipment).get("layers"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"#trim", "test:preview"})
+    void keepsLegacyItemModelsWithArmorShapedMetadata(String texture) throws Exception {
+        String root = "assets/test/models/equipment/";
+        String path = root + "shield.json";
+        String base = "{\"layers\":{\"humanoid\":[{\"texture\":\"test:base\"}]}}";
+        String model = """
+                {"parent":"test:item/shield_base","layers":{"humanoid":[{"texture":"%s"}]}}
+                """.formatted(texture);
+        write("a", Map.of(path, base, "assets/test/models/item/shield_base.json",
+                "{\"parent\":\"minecraft:item/generated\",\"textures\":{\"trim\":\"test:item/shield\"}}"));
+        write("b", Map.of(path, model, root + "standalone.json", model));
+        PackMerger merger = new PackMerger(tempDir.toFile());
+
+        Map<String, String> uploaded = contents(merger.mergeUploadedPacks());
+        assertEquals(model, uploaded.get(path));
+        assertEquals(model, uploaded.get(root + "standalone.json"));
+        assertEquals(model, contents(merger.mergeWithHigherPriorityFiles(List.of(
+                vfile(path, model), vfile(path, base)))).get(path));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"test:detail", "#trim"})
+    void composesLegacyEquipmentWithDisplayLabels(String texture) throws Exception {
+        String path = "assets/test/models/equipment/armor.json";
+        String local = "assets/test/models/equipment/local.json";
+        String base = "{\"layers\":{\"humanoid\":[{\"texture\":\"test:base\"}]}}";
+        String detail = """
+                {"display":"Winter set","layers":{"humanoid_leggings":[{"texture":"%s"}]}}
+                """.formatted(texture);
+        JsonElement expected = JsonParser.parseString(texture.equals("#trim") ? base : """
+                {"display":"Winter set","layers":{"humanoid":[{"texture":"test:base"}],
+                "humanoid_leggings":[{"texture":"test:detail"}]}}
+                """);
+        write("a", Map.of(path, base));
+        write("b", Map.of(path, detail));
+        PackMerger merger = new PackMerger(tempDir.toFile());
+
+        assertEquals(expected, json(contents(merger.mergeUploadedPacks()), path));
+        Map<String, String> composed = contents(merger.mergeWithHigherPriorityFiles(List.of(
+                vfile(local, detail), vfile(local, base))));
+        assertEquals(expected, json(composed, local));
+    }
+
+    @Test void reportsLegacyEquipmentReplacingAnOrdinaryModelAsAnOverride() throws Exception {
+        String path = "assets/test/models/equipment/armor.json";
+        String equipment = "{\"layers\":{\"humanoid\":[{\"texture\":\"test:armor\"}]}}";
+        write("a", Map.of(path, """
+                {"parent":"minecraft:item/generated","layers":{"humanoid":[{"texture":"test:preview"}]}}
+                """));
+        write("b", Map.of(path, equipment));
+        settings.set(Settings.DEBUG.getPath(), true);
+        Settings.invalidateCache();
+
+        Map<String, String> files = contents(new PackMerger(tempDir.toFile()).mergeUploadedPacks());
+        assertEquals(equipment, files.get(path));
+        logs.verify(() -> Logs.logInfo("[Debug] Resource pack override '" + path + "' from 'a' replaced by 'b'."));
+    }
+
+    @Test void deduplicatesAtlasSourcesAndFontProvidersWithoutChangingPriority() throws Exception {
+        String atlas = "assets/test/atlases/blocks.json";
+        String font = "assets/test/font/default.json";
+        write("a", Map.of(atlas, """
+                {"sources":[{"type":"single","resource":"test:restored"},{"type":"filter","pattern":{"path":"restored"}}]}
+                """, font, """
+                {"providers":[{"type":"reference","id":"test:shared","filter":{"uniform":true}},
+                {"type":"reference","id":"test:shared","filter":{"uniform":false}},
+                {"type":"reference","id":"test:low"}]}
+                """));
+        write("b", Map.of(atlas, """
+                {"sources":[{"resource":"test:restored","type":"single"}]}
+                """, font, """
+                {"providers":[{"filter":{"uniform":true},"id":"test:shared","type":"reference"},
+                {"type":"reference","id":"test:high"}]}
+                """));
+
+        Map<String, String> files = contents(new PackMerger(tempDir.toFile()).mergeUploadedPacks());
+        assertEquals(JsonParser.parseString("""
+                [{"type":"filter","pattern":{"path":"restored"}},{"type":"single","resource":"test:restored"}]
+                """), json(files, atlas).get("sources"));
+        assertEquals(JsonParser.parseString("""
+                [{"type":"reference","id":"test:shared","filter":{"uniform":true}},
+                {"type":"reference","id":"test:high"},
+                {"type":"reference","id":"test:shared","filter":{"uniform":false}},
+                {"type":"reference","id":"test:low"}]
+                """), json(files, font).get("providers"));
+    }
+
+    @Test void reportsChangedUploadOverridesOnceAndOnlyInDebugMode() throws Exception {
+        String texture = "assets/test/textures/changed.png";
+        String identical = "assets/test/textures/same.png";
+        String model = "assets/test/models/block/example.json";
+        String equipment = "assets/test/equipment/armor.json";
+        write("a-low", Map.of(texture, "low", identical, "same", model, "{\"parent\":\"test:low\"}",
+                equipment, "{\"layers\":{\"humanoid\":[{\"texture\":\"test:low\"}]}}"));
+        writeZip(tempDir.resolve("uploads/b-high.zip"), Map.of(texture, "high", identical, "same",
+                equipment, "{\"layers\":{\"humanoid\":[{\"texture\":\"test:high\"}]}}",
+                "pack.mcmeta", metadata("modern", 46, 75), "modern/" + model, "{\"parent\":\"test:high\"}"));
+
+        settings.set(Settings.DEBUG.getPath(), false);
+        Settings.invalidateCache();
+        assertEquals("high", contents(new PackMerger(tempDir.toFile()).mergeUploadedPacks()).get(texture));
+        logs.verifyNoInteractions();
+
+        settings.set(Settings.DEBUG.getPath(), true);
+        Settings.invalidateCache();
+        assertEquals("high", contents(new PackMerger(tempDir.toFile()).mergeUploadedPacks()).get(texture));
+        logs.verify(() -> Logs.logInfo("[Debug] Resource pack override '" + texture + "' from 'a-low' replaced by 'b-high.zip'."));
+        logs.verify(() -> Logs.logInfo("[Debug] Resource pack override '" + model + "' from 'a-low' replaced by 'b-high.zip'."));
+        logs.verifyNoMoreInteractions();
+    }
+
+    @Test void reportsActualNestedSourceAfterIdenticalReplacementAndIgnoresFilteredResources() throws Exception {
+        String changed = "assets/test/textures/changed.png";
+        String filtered = "assets/test/textures/filtered.png";
+        write("a", Map.of(changed, "same", filtered, "low"));
+        write("b", Map.of("wrapper/pack.mcmeta", "{}", "wrapper/" + changed, "same"));
+        write("c", Map.of(changed, "new", filtered, "high", "pack.mcmeta", """
+                {"filter":{"block":[{"namespace":"test","path":"textures/filtered.png"}]}}
+                """));
+        settings.set(Settings.DEBUG.getPath(), true);
+        Settings.invalidateCache();
+
+        Map<String, String> files = contents(new PackMerger(tempDir.toFile()).mergeUploadedPacks());
+        assertEquals("new", files.get(changed));
+        assertEquals("high", files.get(filtered));
+        logs.verify(() -> Logs.logInfo("[Debug] Resource pack override '" + changed + "' from 'b/wrapper' replaced by 'c'."));
+        logs.verifyNoMoreInteractions();
     }
 
     @Test void filtersImportedBaseAndOverlayPathsAfterStrippingWrapperFolders() throws Exception {
@@ -563,6 +831,26 @@ class PackImportCompositionTest {
                 {"language":{"test":{"name":"Local","region":"Local"}}}
                 """)));
         assertEquals("Local", merger.getMergedLanguageMetadata().getAsJsonObject("test").get("name").getAsString());
+    }
+
+    @Test void ignoresMalformedSodiumShaderListsAndResetsMergedMetadataOnReload() throws Exception {
+        write("a", Map.of("pack.mcmeta", """
+                {"sodium":{"ignored_shaders":["fog.glsl",false,"light.glsl",null,{}]}}
+                """));
+        write("b", Map.of("pack.mcmeta", """
+                {"sodium":{"ignored_shaders":"not a list"}}
+                """));
+        PackMerger merger = new PackMerger(tempDir.toFile());
+        merger.mergeUploadedPacks();
+        merger.mergeWithHigherPriorityFiles(List.of(vfile("pack.mcmeta", "{\"sodium\":false}")));
+
+        assertEquals(JsonParser.parseString("""
+                {"ignored_shaders":["fog.glsl","light.glsl"]}
+                """), merger.getMergedSodiumMetadata());
+
+        write("a", Map.of("pack.mcmeta", "{}"));
+        merger.mergeUploadedPacks();
+        assertEquals(new JsonObject(), merger.getMergedSodiumMetadata());
     }
 
     private static String modernItem(String model) {

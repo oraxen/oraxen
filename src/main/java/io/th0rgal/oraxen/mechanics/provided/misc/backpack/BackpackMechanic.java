@@ -27,7 +27,8 @@ public class BackpackMechanic extends Mechanic {
 
     public BackpackMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         super(mechanicFactory, section);
-        rows = ConfigPropertyValues.integer(BackpackMechanicFactory.class, section, BackpackMechanicFactory.PROP_ROWS);
+        int configuredRows = ConfigPropertyValues.integer(BackpackMechanicFactory.class, section, BackpackMechanicFactory.PROP_ROWS);
+        rows = configuredRows >= 1 && configuredRows <= 6 ? configuredRows : 1;
         title = ConfigPropertyValues.text(BackpackMechanicFactory.class, section, BackpackMechanicFactory.PROP_TITLE);
         openSound = ConfigPropertyValues.text(BackpackMechanicFactory.class, section, BackpackMechanicFactory.PROP_OPEN_SOUND);
         closeSound = ConfigPropertyValues.text(BackpackMechanicFactory.class, section, BackpackMechanicFactory.PROP_CLOSE_SOUND);

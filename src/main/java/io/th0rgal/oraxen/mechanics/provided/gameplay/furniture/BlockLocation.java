@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class BlockLocation implements ConfigurationSerializable {
 
@@ -123,6 +124,11 @@ public class BlockLocation implements ConfigurationSerializable {
     @Override
     public boolean equals(Object obj) {
         return obj instanceof BlockLocation blockLocation && blockLocation.x == x && blockLocation.y == y && blockLocation.z == z;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(x, y, z);
     }
 
     @Override

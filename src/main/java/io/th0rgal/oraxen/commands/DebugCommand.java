@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.commands;
 
-import io.th0rgal.oraxen.commands.arguments.StringArgument;
+import io.th0rgal.oraxen.commands.arguments.BooleanArgument;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.configs.ConfigsManager;
 import io.th0rgal.oraxen.configs.Message;
@@ -17,11 +17,11 @@ public class DebugCommand {
     OraxenCommand getDebugCommand() {
         return new OraxenCommand("debug")
                 .withPermission("oraxen.command.debug")
-                .withOptionalArguments(new StringArgument("toggle"))
+                .withOptionalArguments(new BooleanArgument("toggle"))
                 .executes((sender, args) -> {
                     ConfigsManager configsManager = OraxenPlugin.get().getConfigsManager();
                     YamlConfiguration settings = configsManager.getSettings();
-                    boolean debugState = args.getOptional("toggle").isPresent() ? Boolean.parseBoolean(args.getOptional("toggle").get().toString()) : !settings.getBoolean("debug", true);
+                    boolean debugState = (boolean) args.getOptional("toggle").orElse(!settings.getBoolean("debug", true));
                     settings.set("debug", debugState);
                     Settings.invalidateCache();
                     try {

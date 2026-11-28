@@ -32,6 +32,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -46,6 +47,7 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -64,11 +66,31 @@ public class BreakerSystem implements Listener {
     // Re-populated by mechanic factories on every reload while block-damage
     // handlers iterate it concurrently on region threads (Folia).
     public static final List<HardnessModifier> MODIFIERS = new CopyOnWriteArrayList<>();
+    private static final Map<Class<?>, HardnessModifier> OWNED_MODIFIERS = new HashMap<>();
     // Use thread-safe collections for Folia compatibility (concurrent region thread access)
     private final Set<Location> breakerLocations = ConcurrentHashMap.newKeySet();
     private final Map<Location, SchedulerUtil.ScheduledTask> breakerTasks = new ConcurrentHashMap<>();
     private final Map<Location, SchedulerUtil.ScheduledTask> breakerPlaySound = new ConcurrentHashMap<>();
     private final Map<Location, Player> clientSideBreakSuppressions = new ConcurrentHashMap<>();
+    private volatile CustomBlockSoundToggles customBlockSoundToggles;
+
+    private record CustomBlockSoundToggles(YamlConfiguration mechanics, boolean blocks, boolean stringBlocks,
+                                           boolean furniture) {
+    }
+
+    /**
+     * Adds the hardness modifier of the given owner, replacing the one it registered before.
+     */
+    public static synchronized void registerModifier(Class<?> owner, HardnessModifier modifier) {
+        unregisterModifier(owner);
+        OWNED_MODIFIERS.put(owner, modifier);
+        MODIFIERS.add(modifier);
+    }
+
+    public static synchronized void unregisterModifier(Class<?> owner) {
+        HardnessModifier modifier = OWNED_MODIFIERS.remove(owner);
+        if (modifier != null) MODIFIERS.remove(modifier);
+    }
 
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
     public void onBlockDamage(final BlockDamageEvent event) {
@@ -128,6 +150,7 @@ public class BreakerSystem implements Listener {
         if (triggeredModifier == null) return;
         final long period = triggeredModifier.getPeriod(player, block, item);
         if (period == 0) return;
+        final long delay = Math.max(0, triggeredModifier.getDelay(player, block, item));
 
         NoteBlockMechanic noteMechanic = OraxenBlocks.getNoteBlockMechanic(block);
         StringBlockMechanic stringMechanic = OraxenBlocks.getStringMechanic(block);
@@ -212,10 +235,10 @@ public class BreakerSystem implements Listener {
                 final float clientBreakSpeed = block.getBreakSpeed(player);
 
                 final int[] valueHolder = {0};
-                final float[] clientProgress = {0f};
+                final float[] clientProgress = {clientBreakSpeed * delay};
                 final float[] serverProgress = {0f};
                 final long timerPeriod = useAttributeTiming ? 1L : period;
-                SchedulerUtil.ScheduledTask breakerTask = SchedulerUtil.runAtLocationTimer(location, timerPeriod, timerPeriod, () -> {
+                SchedulerUtil.ScheduledTask breakerTask = SchedulerUtil.runAtLocationTimer(location, delay + timerPeriod, timerPeriod, () -> {
                     if (!breakerLocations.contains(location)) {
                         stopBlockBreaker(location);
                         stopBlockHitSound(location);
@@ -253,6 +276,17 @@ public class BreakerSystem implements Listener {
                         if (valueHolder[0]++ < 10) return;
                     }
 
+                    // Drops, durability and the period were resolved for the item held when digging
+                    // started. A different item makes the client restart digging with a new breaker.
+                    final ItemStack tool = player.getInventory().getItemInMainHand();
+                    if (!tool.isSimilar(item)) {
+                        stopBlockBreaker(location);
+                        stopBlockHitSound(location);
+                        resetBlockBreakAnimations(world,
+                                furnitureMechanic != null ? furnitureBarrierLocations : Collections.singletonList(location));
+                        return;
+                    }
+
                     BlockDurability.setSuppressVanillaDamageCancellation(true);
                     boolean canBreak;
                     try {
@@ -262,8 +296,8 @@ public class BreakerSystem implements Listener {
                     }
                     if (canBreak) {
                         // Damage item with properties identified earlier, unless the block mechanic configured durability itself.
-                        if (durabilityAction == null) ItemUtils.damageItem(player, drop, item);
-                        modifier.breakBlock(player, block, item);
+                        if (durabilityAction == null) ItemUtils.damageItem(player, drop, tool);
+                        modifier.breakBlock(player, block, tool);
                     } else stopBlockHitSound(location);
 
                     stopBlockBreaker(location);
@@ -306,15 +340,14 @@ public class BreakerSystem implements Listener {
             return;
         }
 
-        // Folia does not allow arbitrary nearby-entity scans from a region thread.
-        // Hop to each player's entity scheduler before reading their location/world.
+        // Folia does not allow arbitrary nearby-entity scans from a region thread. A region
+        // always owns the chunks around the block it ticks, so every player within range is
+        // owned by this region and can be read here. Players owned elsewhere are out of range.
         for (final Player viewer : Bukkit.getOnlinePlayers()) {
-            SchedulerUtil.runForEntity(viewer, () -> {
-                if (!viewer.isOnline() || !viewer.getWorld().equals(world)) return;
-                if (viewer.getLocation().distanceSquared(origin) > 16 * 16) return;
-                for (Location breakLocation : breakLocations)
-                    sendBlockBreak(viewer, breakLocation, stage);
-            }, null);
+            if (!Bukkit.isOwnedByCurrentRegion(viewer) || !viewer.getWorld().equals(world)) continue;
+            if (viewer.getLocation().distanceSquared(origin) > 16 * 16) continue;
+            for (Location breakLocation : breakLocations)
+                sendBlockBreak(viewer, breakLocation, stage);
         }
     }
 
@@ -485,31 +518,45 @@ public class BreakerSystem implements Listener {
         Optional.ofNullable(breakerPlaySound.remove(location)).ifPresent(SchedulerUtil.ScheduledTask::cancel);
     }
 
+    // A reload replaces the mechanics config, so custom_block_sounds is only re-read after one.
+    private CustomBlockSoundToggles customBlockSoundToggles() {
+        final YamlConfiguration mechanics = OraxenPlugin.get().getConfigsManager().getMechanics();
+        CustomBlockSoundToggles toggles = customBlockSoundToggles;
+        if (toggles != null && toggles.mechanics() == mechanics) return toggles;
+
+        final ConfigurationSection soundSection = mechanics.getConfigurationSection("custom_block_sounds");
+        toggles = new CustomBlockSoundToggles(mechanics,
+                soundSection != null && BlockSounds.isBlockSoundEnabled(soundSection),
+                soundSection != null && BlockSounds.isStringBlockSoundEnabled(soundSection),
+                soundSection != null && BlockSounds.isFurnitureSoundEnabled(soundSection));
+        customBlockSoundToggles = toggles;
+        return toggles;
+    }
+
     private BlockSounds getBlockSounds(Block block) {
-        ConfigurationSection soundSection = OraxenPlugin.get().getConfigsManager().getMechanics().getConfigurationSection("custom_block_sounds");
-        if (soundSection == null) return null;
+        final CustomBlockSoundToggles toggles = customBlockSoundToggles();
         switch (block.getType()) {
             case NOTE_BLOCK -> {
                 NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
                 if (mechanic == null || !mechanic.hasBlockSounds()) return null;
-                if (!BlockSounds.isBlockSoundEnabled(soundSection)) return null;
+                if (!toggles.blocks()) return null;
                 else return mechanic.getBlockSounds();
             }
             case TRIPWIRE -> {
                 StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(block);
                 if (mechanic == null || !mechanic.hasBlockSounds()) return null;
-                if (!BlockSounds.isStringBlockSoundEnabled(soundSection)) return null;
+                if (!toggles.stringBlocks()) return null;
                 else return mechanic.getBlockSounds();
             }
             case BARRIER -> {
                 FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
                 if (mechanic == null || !mechanic.hasBlockSounds()) return null;
-                if (!BlockSounds.isFurnitureSoundEnabled(soundSection)) return null;
+                if (!toggles.furniture()) return null;
                 else return mechanic.getBlockSounds();
             }
             default -> {
                 ShapedBlockMechanic mechanic = OraxenBlocks.getShapedMechanic(block);
-                return mechanic != null && mechanic.hasBlockSounds() && BlockSounds.isBlockSoundEnabled(soundSection)
+                return mechanic != null && mechanic.hasBlockSounds() && toggles.blocks()
                         ? mechanic.getBlockSounds()
                         : null;
             }
@@ -517,8 +564,6 @@ public class BreakerSystem implements Listener {
     }
 
     private String getHitSound(Block block) {
-        ConfigurationSection soundSection = OraxenPlugin.get().getConfigsManager().getMechanics().getConfigurationSection("custom_block_sounds");
-        if (soundSection == null) return null;
         BlockSounds sounds = getBlockSounds(block);
         if (sounds == null) return null;
         return switch (block.getType()) {

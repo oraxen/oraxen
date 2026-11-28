@@ -32,7 +32,6 @@ import org.bukkit.Bukkit;
  */
 public final class CustomPaintingRegistry {
 
-    private static final String TAG = "CustomPaintings";
     private static final ConcurrentMap<String, String> INJECTED_SIGNATURES = new ConcurrentHashMap<>();
     private static final Set<String> KNOWN_MANAGED_VARIANT_IDS = ConcurrentHashMap.newKeySet();
 

@@ -354,6 +354,7 @@ class WorldEditFurnitureTest extends MechanicTestSupport {
         World world = mock(World.class);
         when(base.getLocation()).thenReturn(new Location(world, 0.5, 64, 0.5));
         when(base.getPersistentDataContainer()).thenReturn(data);
+        when(base.getUniqueId()).thenReturn(java.util.UUID.randomUUID());
         java.util.UUID seatUuid = java.util.UUID.randomUUID(), interactionUuid = java.util.UUID.randomUUID();
         when(data.getOrDefault(org.mockito.ArgumentMatchers.eq(FurnitureMechanic.SEATS_KEY), any(), any()))
                 .thenReturn(List.of(seatUuid));

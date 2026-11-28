@@ -24,6 +24,7 @@ import org.bukkit.inventory.meta.components.JukeboxPlayableComponent;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
+import io.th0rgal.oraxen.mechanics.provided.misc.custom.CustomMechanic;
 import io.th0rgal.oraxen.mechanics.provided.combat.trident.TridentMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureModelData;
 import javax.annotation.Nullable;
@@ -45,6 +46,7 @@ public class OraxenItems {
             var tridentFactory = TridentMechanicFactory.get();
             if (tridentFactory != null) tridentFactory.clearMechanics();
             VariationRegistry.resetSessionReservations();
+            CustomMechanic.unregisterListeners();
             ItemLoader.MODEL_DATAS_BY_ID.clear();
             ModelData.DATAS.clear();
             OraxenPlugin.get().getConfigsManager().assignAllUsedModelDatas();
@@ -192,7 +194,11 @@ public class OraxenItems {
     public static List<ItemStack> getItemStacksByName(final List<List<String>> lists) {
         return lists.stream().flatMap(list -> {
             final ItemStack[] itemStack = new ItemStack[] { new ItemStack(Material.AIR) };
-            list.stream().map(line -> line.split(":")).forEach(param -> {
+            list.stream().map(line -> line.split(":", 2)).forEach(param -> {
+                if (param.length < 2) {
+                    Logs.logWarning("Skipping item line \"" + param[0] + "\" without a \"key:value\" format.");
+                    return;
+                }
                 switch (param[0].toLowerCase(Locale.ROOT)) {
                     case "type" -> {
                         if (exists(param[1]))
@@ -200,7 +206,11 @@ public class OraxenItems {
                         else
                             Message.ITEM_NOT_FOUND.log(AdventureUtils.tagResolver("item", param[1]));
                     }
-                    case "amount" -> itemStack[0].setAmount(NumberUtils.toInt(param[1], 1));
+                    case "amount" -> {
+                        int amount = NumberUtils.toInt(param[1], 0);
+                        if (amount > 0) itemStack[0].setAmount(amount);
+                        else Logs.logWarning("Ignoring invalid item amount \"" + param[1] + "\", it must be greater than 0.");
+                    }
                 }
             });
             return Stream.of(itemStack[0]);
@@ -217,7 +227,8 @@ public class OraxenItems {
     }
 
     public static Map<String, ItemBuilder> getEntriesAsMap() {
-        return entryStream().collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+        return entryStream().collect(Collectors.toMap(Entry::getKey, Entry::getValue, (first, duplicate) -> first,
+                LinkedHashMap::new));
     }
 
     public static Set<Entry<String, ItemBuilder>> getEntries() {

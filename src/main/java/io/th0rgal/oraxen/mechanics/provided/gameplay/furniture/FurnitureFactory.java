@@ -17,6 +17,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.text.FurnitureTex
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
+import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
@@ -58,8 +59,14 @@ public class FurnitureFactory extends MechanicFactory {
             MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new FurniturePickItemListener());
         if (VersionUtil.atOrAbove("1.21.6"))
             MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new FurnitureGhastEntities());
-        if (VersionUtil.atOrAbove("1.21.2"))
+        if (VersionUtil.atOrAbove("1.21.2")) {
             MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new FurnitureShulkerEntities());
+            MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new FurnitureBeds());
+            MechanicsManager.registerTask(getMechanicID(), FurnitureBeds.startNightSkipTask());
+        }
+        // EntityRemoveEvent is missing from early 1.20.4 builds
+        if (VersionUtil.atOrAbove("1.20.5"))
+            MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new FurniturePaperListener());
         evolvingFurnitures = false;
         instance = this;
         FurniturePacketDispatcher.init();
@@ -69,6 +76,12 @@ public class FurnitureFactory extends MechanicFactory {
 
         if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new FurnitureSoundListener());
         detectViabackwards = OraxenPlugin.get().getConfigsManager().getMechanics().getConfigurationSection("furniture").getBoolean("detect_viabackwards", true);
+    }
+
+    @Override
+    public void onUnregister() {
+        BreakerSystem.unregisterModifier(FurnitureListener.class);
+        if (OraxenPlugin.get().isEnabled() && VersionUtil.atOrAbove("1.21.2")) FurnitureBeds.leaveAll();
     }
 
     public static boolean setDefaultType(ConfigurationSection mechanicSection) {
@@ -177,6 +190,7 @@ public class FurnitureFactory extends MechanicFactory {
     public static void unregisterEvolution() {
         if (evolutionTask != null)
             evolutionTask.cancel();
+        FurnitureBeds.shutdown();
         FurniturePacketDispatcher.shutdown();
         FurnitureTextPacketBridge.unregister();
     }
@@ -226,9 +240,10 @@ public class FurnitureFactory extends MechanicFactory {
                 MechanicConfigProperty.list("hitboxes", "List of hitbox offsets and dimensions formatted '<x>,<y>,<z> <width>,<height>'"),
                 MechanicConfigProperty.list("ghasts", "List of solid hitboxes formatted '<x>,<y>,<z> <scale>'. Requires Minecraft 1.21.6 or newer"),
                 MechanicConfigProperty.list("shulkers", "List of solid hitboxes formatted '<x>,<y>,<z> <scale> [peek] [direction]'. Requires Minecraft 1.21.2 or newer"),
+                MechanicConfigProperty.list("beds", "List of spots where players lie down, formatted '<x>,<y>,<z> [skip_night] [reset_phantoms] [night_only] [set_respawn]'. The offset is where the head rests. The options default to true, true, true and false. Requires Minecraft 1.21.2 or newer"),
                 MechanicConfigProperty.list("seats", "List of seat offsets relative to the furniture center formatted '<x>,<y>,<z>' or '<x>,<y>,<z> <yaw>'"),
                 MechanicConfigProperty.list("barriers", "List of barrier block offsets relative to furniture formatted '<x>,<y>,<z>' with integer coordinates"),
-                MechanicConfigProperty.list("events", "Actions for furniture clicks or successful player breaks or placements. Use trigger: click with type: LEFT, RIGHT, or BOTH, trigger: break, or trigger: place. The trigger defaults to click; the legacy click filter remains supported."),
+                MechanicConfigProperty.list("events", "Actions for furniture clicks, successful player breaks or placements, or sitting on a seat. Use trigger: click with type: LEFT, RIGHT, or BOTH, trigger: break, trigger: place, or trigger: sit. The trigger defaults to click; the legacy click filter remains supported. Actions accept an optional cooldown such as 80ms, 2s, 3m, 1h, or 2d. Use java for a Java action with player and server variables."),
                 MechanicConfigProperty.object("properties", "Furniture entity properties; unsupported properties are ignored", Map.of(
                         "display_transform", MechanicConfigProperty.enumType("display_transform", "Display transform mode",
                                 List.of("NONE", "THIRDPERSON_LEFTHAND", "THIRDPERSON_RIGHTHAND", "FIRSTPERSON_LEFTHAND",

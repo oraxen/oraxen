@@ -146,8 +146,8 @@ public class ModelGenerator {
         if (oraxenMeta.hasBlockingTexture()) PredicatesGenerator.generateBlockingModels(oraxenMeta);
         if (oraxenMeta.hasChargedTexture()) PredicatesGenerator.generateChargedModels(oraxenMeta);
         if (oraxenMeta.hasCastTexture()) PredicatesGenerator.generateCastModels(oraxenMeta);
-        if (oraxenMeta.hasFireworkModel()) PredicatesGenerator.generateFireworkModels(oraxenMeta);
-        if (oraxenMeta.hasDamagedModels()) PredicatesGenerator.generateDamageModels(oraxenMeta);
+        if (oraxenMeta.hasFireworkTexture()) PredicatesGenerator.generateFireworkModels(oraxenMeta);
+        if (oraxenMeta.hasDamagedTextures()) PredicatesGenerator.generateDamageModels(oraxenMeta);
     }
 
     private void applyDisplay(OraxenMeta oraxenMeta) {

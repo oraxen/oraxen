@@ -1,19 +1,27 @@
 package io.th0rgal.oraxen.pack.generation;
 
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.configs.ConfigsManager;
+import io.th0rgal.oraxen.configs.Settings;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenMeta;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.persistence.PersistentDataType;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.MockedStatic;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -24,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 class VanillaItemDefinitionGeneratorTest {
@@ -174,6 +183,38 @@ class VanillaItemDefinitionGeneratorTest {
         JsonObject rangeDispatch = select.getAsJsonObject("fallback");
         JsonObject rangeEntry = rangeDispatch.getAsJsonArray("entries").get(0).getAsJsonObject();
         assertLeatherModel(rangeEntry.getAsJsonObject("model"), reference, 0xFFA06540);
+    }
+
+    @ParameterizedTest
+    @CsvSource({"false, false, false", "true, true, false", "true, false, true"})
+    void tridentDisplayContextsOnlyIncludeShelvesWhenEveryClientSupportsThem(boolean serverAt1219,
+            boolean multiVersion, boolean expectShelf) {
+        OraxenPlugin plugin = OraxenPlugin.get();
+        ConfigsManager configs = mock(ConfigsManager.class);
+        YamlConfiguration settings = new YamlConfiguration();
+        settings.set(Settings.MULTI_VERSION_PACKS.getPath(), multiVersion);
+        when(configs.getSettings()).thenReturn(settings);
+        when(plugin.getConfigsManager()).thenReturn(configs);
+        Settings.invalidateCache();
+
+        JsonObject model;
+        // VersionUtil reads the plugin jar manifest when it loads, which the mocked plugin cannot provide
+        try (MockedStatic<OraxenPlugin> plugins = mockStatic(OraxenPlugin.class);
+             MockedStatic<VersionUtil> versions = mockStatic(VersionUtil.class)) {
+            plugins.when(OraxenPlugin::get).thenReturn(plugin);
+            versions.when(() -> VersionUtil.atOrAbove("1.21.9")).thenReturn(serverAt1219);
+            model = generator(Material.TRIDENT, List.of(customItem("custom_trident", 123, "oraxen:item/custom_trident")),
+                    true, false).toJSON().getAsJsonObject("model");
+        } finally {
+            Settings.invalidateCache();
+        }
+
+        JsonObject customDisplay = model.getAsJsonArray("cases").get(0).getAsJsonObject().getAsJsonObject("model");
+        for (JsonObject display : List.of(customDisplay, model.getAsJsonObject("fallback"))) {
+            assertEquals("minecraft:display_context", display.get("property").getAsString());
+            JsonArray contexts = display.getAsJsonArray("cases").get(0).getAsJsonObject().getAsJsonArray("when");
+            assertEquals(expectShelf, contexts.contains(new JsonPrimitive("on_shelf")), contexts.toString());
+        }
     }
 
     private static void assertLeatherModel(JsonObject model, String expectedModel, int expectedColor) {

@@ -58,7 +58,7 @@ public class FurnitureListener implements Listener {
 
     public FurnitureListener() {
         // BreakerSystem no longer requires a packet library, register unconditionally.
-        BreakerSystem.MODIFIERS.add(getHardnessModifier());
+        BreakerSystem.registerModifier(FurnitureListener.class, getHardnessModifier());
     }
 
     private HardnessModifier getHardnessModifier() {
@@ -222,6 +222,10 @@ public class FurnitureListener implements Listener {
         }
 
         Entity baseEntity = mechanic.place(block.getLocation(), item, yaw, event.getBlockFace(), true);
+        if (baseEntity == null) {
+            block.setBlockData(currentBlockData);
+            return;
+        }
         Utils.swingHand(player, event.getHand());
 
         final OraxenFurniturePlaceEvent furniturePlaceEvent = new OraxenFurniturePlaceEvent(mechanic, block, baseEntity,
@@ -614,7 +618,10 @@ public class FurnitureListener implements Listener {
             }
         }
 
-        if (mechanic.hasSeat() && pdc != null && mechanic.isRotatable()) {
+        if (mechanic.hasBeds() && !(player.isSneaking() && mechanic.isRotatable()))
+            FurnitureBeds.lieDown(player, baseEntity, mechanic,
+                    block != null ? block.getLocation().toCenterLocation() : player.getLocation());
+        else if (mechanic.hasSeat() && pdc != null && mechanic.isRotatable()) {
             if (!player.isSneaking())
                 FurnitureMechanic.sitOnSeat(pdc, player);
             else

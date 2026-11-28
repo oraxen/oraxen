@@ -39,6 +39,7 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -56,7 +57,7 @@ public class ResourcePack {
     private ComponentArmorModels componentArmorModels;
     private static final File packFolder = new File(OraxenPlugin.get().getDataFolder(), "pack");
     private static final Set<String> LEGACY_SHADER_OVERLAY_DIRECTORIES = Set.of("overlay_1_21_6_plus", "overlay_1_21_4_5");
-    private final File pack = new File(packFolder, packFolder.getName() + ".zip");
+    private volatile File pack = PackOutputLocation.defaultFile(packFolder);
     private final SoundGenerator soundGenerator = new SoundGenerator();
     private PackFileCollector fileCollector;
     private PackExclusions packExclusions;
@@ -87,10 +88,14 @@ public class ResourcePack {
             if (!packReady.isDone()) {
                 Logs.logInfo("Awaiting ModelEngine resource pack...");
                 packReady.copy().orTimeout(300, TimeUnit.SECONDS).whenComplete((ignored, exception) -> {
-                    if (shutdownRequested || !OraxenPlugin.get().isEnabled()) return;
+                    if (shutdownRequested || !OraxenPlugin.get().isEnabled()) {
+                        finishGeneration();
+                        return;
+                    }
                     if (exception != null) Logs.logWarning("ModelEngine resource pack was not ready within 300 seconds; continuing pack generation");
                     SchedulerUtil.runTask(() -> {
-                        if (!shutdownRequested) generateWhenReady();
+                        if (shutdownRequested) finishGeneration();
+                        else generateWhenReady();
                     });
                 });
                 return;
@@ -227,18 +232,18 @@ public class ResourcePack {
             handleCustomArmor(output);
             applyArmorStandModelOverrides(output);
             Collections.sort(output);
-            submitAsyncPostProcessing(packWorker, output);
+            submitAsyncPostProcessing(packWorker, output, resolveModelEngineFolder());
         } catch (Exception exception) {
             handleGenerationFailure(packWorker, "sync custom armor generation", exception);
         }
     }
 
-    private void submitAsyncPostProcessing(ExecutorService packWorker, List<VirtualFile> output) {
+    private void submitAsyncPostProcessing(ExecutorService packWorker, List<VirtualFile> output, File modelEngineFolder) {
         try {
             packWorker.submit(() -> {
                 try {
                     if (shutdownRequested) return;
-                    postProcessOutputAsyncSafe(output);
+                    postProcessOutputAsyncSafe(output, modelEngineFolder);
                     if (shutdownRequested) return;
                     SchedulerUtil.runTask(() -> finishSinglePackOutputOnMain(packWorker, output));
                 } catch (Exception exception) {
@@ -273,12 +278,14 @@ public class ResourcePack {
                 try {
                     if (shutdownRequested) return;
                     filterGeneratedCoreShadersBelow1214(output, MinecraftVersion.getCurrentVersion());
+                    File packFile = resolvePackFile();
                     UnprotectedPackWriter.writeConfigured(output, packFolder);
                     PackObfuscator.obfuscate(output);
                     PackPipeline.sparsifyGeneratedOverlays(output, mergedImportOverlayEntries);
                     if (shutdownRequested) return;
-                    ZipUtils.writeZipFile(pack, output);
+                    ZipUtils.writeZipFile(packFile, output);
                     if (shutdownRequested) return;
+                    pack = packFile;
                     SchedulerUtil.runTask(this::uploadGeneratedPackAndFinish);
                 } catch (Exception exception) {
                     handleGenerationFailure(packWorker, "async pack writing", exception);
@@ -303,12 +310,15 @@ public class ResourcePack {
 
     private void uploadGeneratedPack() {
         UploadManager uploadManager = OraxenPlugin.get().getUploadManager();
-        if (uploadManager != null) { // If the uploadManager isnt null, this was triggered by a pack-reload
+        // A non-null uploadManager means a pack-reload. Keep it unless the upload settings changed.
+        if (uploadManager != null && uploadManager.usesCurrentUploadSettings()) {
             uploadManager.uploadAsyncAndSendToPlayers(OraxenPlugin.get().getResourcePack(), true, true);
-        } else { // Otherwise this is was triggered on server-startup
+        } else {
+            boolean isReload = uploadManager != null;
             uploadManager = new UploadManager(OraxenPlugin.get());
+            // Unregisters the previous manager, which stops its self-host server and frees the port.
             OraxenPlugin.get().setUploadManager(uploadManager);
-            uploadManager.uploadAsyncAndSendToPlayers(OraxenPlugin.get().getResourcePack(), false, false);
+            uploadManager.uploadAsyncAndSendToPlayers(OraxenPlugin.get().getResourcePack(), isReload, isReload);
         }
     }
 
@@ -568,6 +578,8 @@ public class ResourcePack {
         // (packet listener on Paper 1.20.3+, shaders below, warning on 26.x+).
         if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool())
             textShaderGenerator.hideScoreboardNumbers();
+        else if (OraxenPlugin.get().getPacketAdapter() != null)
+            OraxenPlugin.get().getPacketAdapter().removeScoreboardListener();
     }
 
     /** Runs registered pack modifier callbacks. */
@@ -611,13 +623,14 @@ public class ResourcePack {
      * merges duplicates, filters excluded extensions, and generates sounds.
      */
     private void postProcessOutput(List<VirtualFile> output) {
-        postProcessOutputAsyncSafe(output);
+        postProcessOutputAsyncSafe(output, resolveModelEngineFolder());
         PackPipeline.processSnapshots(output, soundGenerator::generateSound);
     }
 
-    private void postProcessOutputAsyncSafe(List<VirtualFile> output) {
-        mergeUploadedPacks(output);
-        PackPipeline.processSnapshots(output, this::convertGlobalLang);
+    private void postProcessOutputAsyncSafe(List<VirtualFile> output, File modelEngineFolder) {
+        mergeUploadedPacks(output, modelEngineFolder);
+        JsonObject globalLang = loadGlobalLang();
+        PackPipeline.processSnapshots(output, snapshot -> convertGlobalLang(snapshot, globalLang));
         Map<String, Set<String>> malformedFilesByLayer = Settings.VERIFY_PACK_FILES.toBool()
                 ? PackFileCollector.verifyPackFormatting(output)
                 : Collections.emptyMap();
@@ -666,9 +679,21 @@ public class ResourcePack {
         }
 
         // Use MultiVersionPackGenerator for multi-version zip and upload
-        MultiVersionPackGenerator multiVersionGenerator = new MultiVersionPackGenerator(packFolder,
+        File packFile = resolvePackFile();
+        pack = packFile;
+        MultiVersionPackGenerator multiVersionGenerator = new MultiVersionPackGenerator(packFolder, packFile,
                 textShaderGenerator.getGeneratedCoreShaderHashes());
         multiVersionGenerator.generateMultipleVersions(output, switchingFromSinglePack, mergedImportOverlayEntries);
+    }
+
+    private File resolvePackFile() {
+        try {
+            return PackOutputLocation.resolve(packFolder, Settings.PACK_LOCATION.getValue());
+        } catch (IOException | InvalidPathException exception) {
+            Logs.logWarning("Invalid pack.generation.location, using the default resource pack location.");
+            Logs.debug(exception);
+            return PackOutputLocation.defaultFile(packFolder);
+        }
     }
 
     private void filterGeneratedCoreShadersBelow1214(List<VirtualFile> output, MinecraftVersion targetVersion) {
@@ -686,8 +711,10 @@ public class ResourcePack {
     }
 
     private String sha256(VirtualFile file) {
-        try {
-            byte[] content = file.getInputStream().readAllBytes();
+        InputStream stream = file.getInputStream();
+        if (stream == null) return "";
+        try (stream) {
+            byte[] content = stream.readAllBytes();
             file.setInputStream(new ByteArrayInputStream(content));
             return HashUtils.sha256(content);
         } catch (IOException | IllegalStateException e) {
@@ -1070,13 +1097,6 @@ public class ResourcePack {
             writeStringToVirtual("assets/minecraft/items", generator.getFileName(),
                     generator.toJSON().toString());
         }
-    }
-
-    private static boolean needsTinting(Material material) {
-        return material.name().startsWith("LEATHER_")
-                || material == Material.POTION
-                || material == Material.SPLASH_POTION
-                || material == Material.LINGERING_POTION;
     }
 
     private void generateModelDefinitions(final Map<Material, Map<String, ItemBuilder>> texturedItems) {
@@ -1462,9 +1482,10 @@ public class ResourcePack {
             addOutputFiles(new VirtualFile(folder, name, new ByteArrayInputStream(outputStream.toByteArray())));
         } catch (IOException e) {
             Logs.logError("Failed to write generated texture: " + folder + "/" + name);
-            if (Settings.DEBUG.toBool())
+            if (Settings.DEBUG.toBool()) {
                 Logs.logWarning("Failed to generate or copy a resource pack texture.");
                 Logs.debug(e);
+            }
         }
     }
 
@@ -1485,23 +1506,26 @@ public class ResourcePack {
         }
     }
 
-    private void mergeUploadedPacks(List<VirtualFile> output) {
+    private static File resolveModelEngineFolder() {
+        if (!Settings.IMPORT_MODEL_ENGINE.toBool()) return null;
+        Plugin modelEngine = Bukkit.getPluginManager().getPlugin("ModelEngine");
+        return modelEngine != null && modelEngine.isEnabled() ? modelEngine.getDataFolder() : null;
+    }
+
+    private void mergeUploadedPacks(List<VirtualFile> output, File modelEngineFolder) {
         mergedImportOverlayEntries = new JsonArray();
         boolean preserveNativeOverlays = isMcmetaGenerationDisabled();
         PackMerger packMerger = new PackMerger(packFolder, packExclusions);
         packMerger.setConvertLegacyItemModels(multiVersionResolved
                 || (VersionUtil.atOrAbove("1.21.4") && AppearanceMode.shouldGenerateVanillaItemDefinitions()));
         packMerger.mergeUploadedPacks();
-        if (Settings.IMPORT_MODEL_ENGINE.toBool()) {
-            Plugin modelEngine = Bukkit.getPluginManager().getPlugin("ModelEngine");
-            if (modelEngine != null && modelEngine.isEnabled()) {
-                File modelEnginePack = new File(modelEngine.getDataFolder(), "resource pack.zip");
-                if (!modelEnginePack.isFile()) modelEnginePack = new File(modelEngine.getDataFolder(), "resource pack");
-                if (modelEnginePack.exists()) {
-                    packMerger.mergeModelEnginePack(modelEnginePack);
-                } else {
-                    Logs.logWarning("Could not find ModelEngine resource pack.zip or resource pack folder");
-                }
+        if (modelEngineFolder != null) {
+            File modelEnginePack = new File(modelEngineFolder, "resource pack.zip");
+            if (!modelEnginePack.isFile()) modelEnginePack = new File(modelEngineFolder, "resource pack");
+            if (modelEnginePack.exists()) {
+                packMerger.mergeModelEnginePack(modelEnginePack);
+            } else {
+                Logs.logWarning("Could not find ModelEngine resource pack.zip or resource pack folder");
             }
         }
         PackPipeline.mergeNativeFiles(output, !Boolean.FALSE.equals(Settings.MERGE_DUPLICATE_FONTS.getValue()));
@@ -1517,6 +1541,8 @@ public class ResourcePack {
             if (!languages.isEmpty()) metadata.add("language", languages);
             JsonObject filters = packMerger.getMergedFilterMetadata();
             if (!filters.isEmpty()) metadata.add("filter", filters);
+            JsonObject sodium = packMerger.getMergedSodiumMetadata();
+            if (!sodium.isEmpty()) metadata.add("sodium", sodium);
             if (preserveNativeOverlays) {
                 PackMcmetaUtils.appendOverlayEntries(metadata, mergedImportOverlayEntries);
             } else {
@@ -1528,24 +1554,25 @@ public class ResourcePack {
         }
     }
 
-    private void convertGlobalLang(List<VirtualFile> output) {
+    private JsonObject loadGlobalLang() {
         if (Settings.DEBUG.toBool()) Logs.logInfo("Converting global lang file to individual language files...");
-        Set<VirtualFile> virtualLangFiles = new HashSet<>();
         File globalLangFile = new File(packFolder, "lang/global.json");
-        JsonObject globalLang = new JsonObject();
-        String content = "";
         if (!globalLangFile.exists())
             OraxenPlugin.get().saveResource("pack/lang/global.json", false);
 
         try {
-            content = Files.readString(globalLangFile.toPath(), StandardCharsets.UTF_8);
-            globalLang = JsonParser.parseString(content).getAsJsonObject();
-        } catch (IOException | IllegalStateException | IllegalArgumentException ignored) {
+            String content = Files.readString(globalLangFile.toPath(), StandardCharsets.UTF_8);
+            return content.isBlank() ? null : JsonParser.parseString(content).getAsJsonObject();
+        } catch (IOException | IllegalStateException | JsonParseException e) {
+            Logs.logWarning("Failed to read " + globalLangFile.getPath() + " as a JSON object, skipping global lang conversion");
+            Logs.debug(e);
+            return null;
         }
+    }
 
-        if (content.isEmpty() || globalLang.isJsonNull())
-            return;
-
+    private void convertGlobalLang(List<VirtualFile> output, JsonObject globalLang) {
+        if (globalLang == null) return;
+        Set<VirtualFile> virtualLangFiles = new HashSet<>();
         for (String lang : availableLanguageCodes) {
             JsonObject langJson = new JsonObject();
 

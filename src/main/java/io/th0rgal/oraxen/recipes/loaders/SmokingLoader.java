@@ -16,7 +16,7 @@ public class SmokingLoader extends RecipeLoader {
         double experience = getSection().getDouble("experience", 0);
         if (time <= 0 || !Double.isFinite(experience) || experience < 0)
             throw new IllegalArgumentException("Recipe '" + getRecipeName() + "' has invalid cooking settings");
-        SmokingRecipe recipe = new SmokingRecipe(getNamespacedKey(), getValidResult(),
+        SmokingRecipe recipe = new SmokingRecipe(getUniqueKey(), getValidResult(),
                 getRequiredChoice("input"), (float) experience, time);
         recipe.setGroup(getGroup());
         RecipeProcessing.register(recipe, recipe.getInputChoice());

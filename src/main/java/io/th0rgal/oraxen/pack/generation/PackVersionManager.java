@@ -32,12 +32,18 @@ public class PackVersionManager {
     };
 
     private final Map<String, PackVersion> packVersions = new ConcurrentHashMap<>();
-    private final File packFolder;
+    private final File outputFolder;
+    private final String packName;
     private volatile PackVersion serverPackVersion;
     private boolean silentMode = false;
 
     public PackVersionManager(File packFolder) {
-        this.packFolder = packFolder;
+        this(packFolder, "pack");
+    }
+
+    PackVersionManager(File outputFolder, String packName) {
+        this.outputFolder = outputFolder;
+        this.packName = packName;
     }
 
     public void setSilentMode(boolean silent) {
@@ -81,7 +87,7 @@ public class PackVersionManager {
     }
 
     private void addPackVersion(String mcVersion, int format, int minFormat, int maxFormat) {
-        File packFile = new File(packFolder, "pack_" + mcVersion.replace(".", "_") + ".zip");
+        File packFile = new File(outputFolder, packName + "_" + mcVersion.replace(".", "_") + ".zip");
         PackVersion version = new PackVersion(mcVersion, format, minFormat, maxFormat, packFile);
         packVersions.put(mcVersion, version);
         logInfo("  - " + mcVersion + ": format " + format + " (supports " + minFormat + "-" + maxFormat + ")");

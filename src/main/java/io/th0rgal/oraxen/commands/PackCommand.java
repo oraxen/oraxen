@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.commands.arguments.BooleanArgument;
 import io.th0rgal.oraxen.commands.arguments.EntitySelectorArgument;
 import io.th0rgal.oraxen.commands.arguments.TextArgument;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.configs.Message;
 import io.th0rgal.oraxen.configs.ResourcesManager;
 import io.th0rgal.oraxen.utils.SchedulerUtil;
 import org.bukkit.entity.Player;
@@ -31,8 +32,11 @@ public class PackCommand {
                 .executes((sender, args) -> {
                     final Collection<Player> targets = (Collection<Player>) args.getOptional("targets")
                             .orElse(sender instanceof Player player ? List.of(player) : null);
-                    if (targets == null) return;
-                    
+                    if (targets == null) {
+                        Message.NOT_PLAYER.send(sender);
+                        return;
+                    }
+
                     var multiVersionManager = OraxenPlugin.get().getMultiVersionUploadManager();
                     var mvPackSender = multiVersionManager != null ? multiVersionManager.getPackSender() : null;
                     if (mvPackSender != null) {
@@ -44,7 +48,10 @@ public class PackCommand {
                         // Single-pack mode: use regular UploadManager
                         var uploadManager = OraxenPlugin.get().getUploadManager();
                         var packSender = uploadManager != null ? uploadManager.getSender() : null;
-                        if (packSender == null) return;
+                        if (packSender == null) {
+                            Message.PACK_NOT_UPLOADED.send(sender);
+                            return;
+                        }
                         for (final Player target : targets) {
                             SchedulerUtil.runForEntity(target, () -> packSender.sendPack(target));
                         }

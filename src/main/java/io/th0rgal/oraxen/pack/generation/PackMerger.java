@@ -24,12 +24,14 @@ public class PackMerger {
     private final JsonArray mergedOverlayEntries = new JsonArray();
     private final JsonObject languageMetadata = new JsonObject();
     private final JsonObject filterMetadata = new JsonObject();
+    private final JsonObject sodiumMetadata = new JsonObject();
     private final Map<String, Map<String, byte[]>> overlaySnapshots = new LinkedHashMap<>();
     private boolean convertLegacyItemModels;
     private boolean shaderWarningShown;
 
     private record Overlay(JsonObject declaration, long min, long max, Map<String, byte[]> files) {}
-    private record Layer(Map<String, byte[]> base, List<Overlay> overlays, JsonObject metadata) {}
+    private record Layer(Map<String, byte[]> base, List<Overlay> overlays, JsonObject metadata, String source) {}
+    private record PackOverride(String path, String previous, String replacement) {}
 
     public PackMerger(File packFolder) { this(packFolder, PackExclusions.load()); }
 
@@ -46,36 +48,46 @@ public class PackMerger {
         layers.clear();
         languageMetadata.entrySet().clear();
         filterMetadata.entrySet().clear();
+        sodiumMetadata.entrySet().clear();
         if (!uploadsDirectory.exists()) uploadsDirectory.mkdirs();
         File[] packs = uploadsDirectory.listFiles(file -> file.isDirectory() || file.getName().toLowerCase(Locale.ROOT).endsWith(".zip"));
         if (packs != null) {
             Arrays.sort(packs, Comparator.comparing(File::getName, PATH_ORDER));
             for (File pack : packs) importPack(pack, true);
         }
-        return buildFiles();
+        Set<PackOverride> overrides = Boolean.TRUE.equals(Settings.DEBUG.toBool()) ? new LinkedHashSet<>() : null;
+        List<VirtualFile> result = buildFiles(overrides);
+        if (overrides != null) for (PackOverride override : overrides) {
+            Logs.logInfo("[Debug] Resource pack override '" + logLabel(override.path()) + "' from '"
+                    + logLabel(override.previous()) + "' replaced by '" + logLabel(override.replacement()) + "'.");
+        }
+        return result;
     }
+
+    private static String logLabel(String value) { return value.replace("\\", "\\\\").replace("<", "\\<").replace("\r", "\\r").replace("\n", "\\n"); }
 
     /** ModelEngine has higher priority than uploaded packs. */
     public List<VirtualFile> mergeModelEnginePack(File pack) {
         importPack(pack, false);
-        return buildFiles();
+        return buildFiles(null);
     }
 
     public JsonArray getMergedOverlayEntries() { return PackMcmetaUtils.normalizeOverlayEntries(mergedOverlayEntries); }
     public JsonObject getMergedLanguageMetadata() { return languageMetadata.deepCopy(); }
     public JsonObject getMergedFilterMetadata() { return filterMetadata.deepCopy(); }
+    public JsonObject getMergedSodiumMetadata() { return sodiumMetadata.deepCopy(); }
 
     private void importPack(File pack, boolean includeIcon) {
         try {
             Map<String, byte[]> entries = readEntries(pack);
-            importEntries(entries, includeIcon, true);
+            importEntries(entries, includeIcon, true, pack.getName());
         } catch (IOException | IllegalArgumentException exception) {
             Logs.logError("Failed to import resource pack " + pack.getName());
             Logs.debug(exception);
         }
     }
 
-    private void importEntries(Map<String, byte[]> entries, boolean includeIcon, boolean applyExclusions) {
+    private void importEntries(Map<String, byte[]> entries, boolean includeIcon, boolean applyExclusions, String source) {
             List<String> roots = roots(entries);
             for (String root : roots) {
                 JsonObject metadata = object(entries.get(root + "pack.mcmeta"));
@@ -98,7 +110,8 @@ public class PackMerger {
                 }
                 Map<String, byte[]> base = collect(entries, root, applyExclusions);
                 if (includeIcon && (!applyExclusions || !exclusions.matches("pack.png")) && entries.containsKey(root + "pack.png")) base.put("pack.png", entries.get(root + "pack.png"));
-                layers.add(new Layer(base, overlays, metadata));
+                layers.add(new Layer(base, overlays, metadata,
+                        root.isEmpty() ? source : source + "/" + root.substring(0, root.length() - 1)));
                 if (metadata.has("language") && metadata.get("language").isJsonObject())
                     metadata.getAsJsonObject("language").entrySet().forEach(entry ->
                             languageMetadata.add(entry.getKey(), entry.getValue().deepCopy()));
@@ -109,7 +122,31 @@ public class PackMerger {
                         blocks.getAsJsonArray().forEach(block -> filterMetadata.getAsJsonArray("block").add(block.deepCopy()));
                     }
                 }
+                mergeSodiumMetadata(metadata.get("sodium"));
             }
+    }
+
+    private void mergeSodiumMetadata(JsonElement section) {
+        if (section == null || !section.isJsonObject()) return;
+        for (var entry : section.getAsJsonObject().entrySet()) {
+            String key = entry.getKey();
+            JsonElement value = entry.getValue();
+            boolean ignoredShaders = key.equals("ignored_shaders");
+            if (!value.isJsonArray()) {
+                if (!ignoredShaders) sodiumMetadata.add(key, value.deepCopy());
+                continue;
+            }
+
+            JsonElement previous = sodiumMetadata.get(key);
+            JsonArray merged = previous != null && previous.isJsonArray() ? previous.getAsJsonArray() : new JsonArray();
+            Set<JsonElement> seen = new HashSet<>();
+            merged.forEach(seen::add);
+            for (JsonElement element : value.getAsJsonArray()) {
+                if (ignoredShaders && (!element.isJsonPrimitive() || !element.getAsJsonPrimitive().isString())) continue;
+                if (seen.add(element)) merged.add(element.deepCopy());
+            }
+            sodiumMetadata.add(key, merged);
+        }
     }
 
     private Map<String, byte[]> readEntries(File pack) throws IOException {
@@ -204,15 +241,25 @@ public class PackMerger {
                 byte[] bytes = input.readAllBytes();
                 file.setInputStream(new ByteArrayInputStream(bytes));
                 byte[] first = entries.get(file.getPath());
+                String type = PackAssetMerger.additiveType(file.getPath());
                 if (first == null) entries.put(file.getPath(), bytes);
                 else if (Boolean.TRUE.equals(Settings.MERGE_SHADERS.toBool())
                         && CoreShaderMerger.isCoreShader(shaderResourcePath(file.getPath()))) {
                     int depth = shaderDuplicates.merge(file.getPath(), 1, Integer::sum) - 1;
                     while (duplicateShaders.size() <= depth) duplicateShaders.add(new LinkedHashMap<>());
                     duplicateShaders.get(depth).put(file.getPath(), bytes);
-                } else if (PackAssetMerger.isAdditivePath(file.getPath()) && !validResource(file.getPath(), object(first))
-                        && validResource(file.getPath(), object(bytes))) entries.put(file.getPath(), bytes);
-                else if (shouldMergeNative(file.getPath())) {
+                } else if (PackAssetMerger.isLegacyEquipmentPath(file.getPath())) {
+                    JsonObject high = object(first);
+                    if (!PackAssetMerger.isLegacyEquipment(high)) continue;
+                    JsonObject low = object(bytes);
+                    if (low == null) continue;
+                    if (!PackAssetMerger.hasEquipmentLayers(high)) entries.put(file.getPath(), bytes);
+                    else if (PackAssetMerger.isLegacyEquipment(low) && PackAssetMerger.hasEquipmentLayers(low))
+                        entries.put(file.getPath(), PackAssetMerger.mergeJson(file.getPath(), low, high)
+                                .toString().getBytes(StandardCharsets.UTF_8));
+                } else if (!type.isEmpty() && !validResource(type, object(first))
+                        && validResource(type, object(bytes))) entries.put(file.getPath(), bytes);
+                else if (shouldMergeNative(type)) {
                     JsonObject high = object(first);
                     JsonObject low = object(bytes);
                     if (high == null && low != null) entries.put(file.getPath(), bytes);
@@ -249,16 +296,16 @@ public class PackMerger {
         Map<String, byte[]> preservedOverlayFiles = preserveNativeOverlays
                 ? collectDeclaredOverlayFiles(entries)
                 : Collections.emptyMap();
-        importEntries(entries, true, false);
-        List<VirtualFile> result = buildFiles();
+        importEntries(entries, true, false, "local pack");
+        List<VirtualFile> result = buildFiles(null);
         result.addAll(virtualFiles(preservedOverlayFiles));
         return result;
     }
 
-    private List<VirtualFile> buildFiles() {
+    private List<VirtualFile> buildFiles(Set<PackOverride> overrides) {
         while (!mergedOverlayEntries.isEmpty()) mergedOverlayEntries.remove(0);
         overlaySnapshots.clear();
-        Map<String, byte[]> base = resolve(null);
+        Map<String, byte[]> base = resolve(null, overrides);
         TreeSet<Long> boundaries = new TreeSet<>();
         for (Layer layer : layers) for (Overlay overlay : layer.overlays) {
             boundaries.add(overlay.min);
@@ -277,12 +324,13 @@ public class PackMerger {
             long min = points.get(index);
             long max = index + 1 < points.size() ? points.get(index + 1) - 1 : MAX_FORMAT;
             if (layers.stream().noneMatch(layer -> layer.overlays.stream().anyMatch(overlay -> overlay.min <= min && min <= overlay.max))) continue;
-            Map<String, byte[]> snapshot = resolve(min);
+            Map<String, byte[]> snapshot = resolve(min, overrides);
             // Missing files still inherit the base pack. Mask removed additive
-            // resources and metadata with an empty resource in the overlay.
+            // resources and metadata with an empty resource in the overlay. Equipment has no valid empty definition.
             base.forEach((path, bytes) -> {
-                if ((PackAssetMerger.isAdditivePath(path) || path.endsWith(".png.mcmeta")) && !snapshot.containsKey(path))
-                    snapshot.put(path, emptyResource(path).toString().getBytes(StandardCharsets.UTF_8));
+                String type = PackAssetMerger.additiveType(path);
+                if (((!type.isEmpty() && !type.equals("equipment")) || path.endsWith(".png.mcmeta")) && !snapshot.containsKey(path))
+                    snapshot.put(path, emptyResource(type).toString().getBytes(StandardCharsets.UTF_8));
             });
             String directory;
             do {
@@ -333,8 +381,9 @@ public class PackMerger {
         return result;
     }
 
-    private Map<String, byte[]> resolve(Long version) {
+    private Map<String, byte[]> resolve(Long version, Set<PackOverride> overrides) {
         Map<String, byte[]> result = new LinkedHashMap<>();
+        Map<String, String> sources = overrides == null ? null : new HashMap<>();
         for (Layer layer : layers) {
             applyFilters(result, layer.metadata);
             Map<String, byte[]> active = new LinkedHashMap<>(layer.base);
@@ -343,7 +392,7 @@ public class PackMerger {
             if (convertLegacyItemModels)
                 active = ItemModelMerger.convertLegacyLayer(active, result,
                         Boolean.TRUE.equals(Settings.MERGE_DUPLICATES.toBool()));
-            mergeAll(result, active);
+            mergeAll(result, active, layer.source, sources, overrides);
         }
         return result;
     }
@@ -375,31 +424,53 @@ public class PackMerger {
         });
     }
 
-    private void mergeAll(Map<String, byte[]> lower, Map<String, byte[]> higher) {
+    private void mergeAll(Map<String, byte[]> lower, Map<String, byte[]> higher, String source,
+                          Map<String, String> sources, Set<PackOverride> overrides) {
         Map<String, byte[]> shaders = mergeShaderGroups(lower, higher);
         higher.forEach((path, bytes) -> {
             if (!path.endsWith(".mcmeta")) lower.remove(path + ".mcmeta");
-            if (PackAssetMerger.isAdditivePath(path) && !validResource(path, object(bytes))) return;
+            String type = PackAssetMerger.additiveType(path);
+            boolean legacyEquipmentPath = PackAssetMerger.isLegacyEquipmentPath(path);
+            byte[] previous = lower.get(path);
+            JsonObject high = type.isEmpty() && !legacyEquipmentPath ? null : object(bytes);
+            if (legacyEquipmentPath && PackAssetMerger.isLegacyEquipment(high))
+                type = "equipment";
+            if (!type.isEmpty() && !validResource(type, high)) return;
+            byte[] incoming = bytes;
+            boolean merged = false;
             if (shaders.containsKey(path)) {
                 bytes = shaders.get(path);
-            } else if (shouldMergeNative(path)) {
-                JsonObject high = object(bytes);
-                JsonObject low = object(lower.get(path));
-                if (!validResource(path, high)) return;
-                if (high != null && low != null) bytes = PackAssetMerger.mergeJson(path, low, high).toString().getBytes(StandardCharsets.UTF_8);
+                merged = true;
+            } else if (shouldMergeNative(type)) {
+                JsonObject low = object(previous);
+                if (low != null && (!legacyEquipmentPath
+                        || PackAssetMerger.isLegacyEquipment(low) && PackAssetMerger.hasEquipmentLayers(low))) {
+                    bytes = PackAssetMerger.mergeJson(path, low, high).toString().getBytes(StandardCharsets.UTF_8);
+                    merged = true;
+                }
             } else if (Boolean.TRUE.equals(Settings.MERGE_DUPLICATES.toBool())) {
-                JsonObject high = object(bytes);
-                JsonObject low = object(lower.get(path));
+                high = object(bytes);
+                JsonObject low = object(previous);
                 if (high != null && low != null) {
                     try {
+                        JsonObject combined = null;
                         if (path.matches("assets/[^/]+/items/.+\\.json"))
-                            bytes = ItemModelMerger.mergeDefinition(high, low, path).toString().getBytes(StandardCharsets.UTF_8);
+                            combined = ItemModelMerger.mergeDefinition(high, low, path);
                         else if (path.matches("assets/[^/]+/models/item/.+\\.json"))
-                            bytes = ItemModelMerger.mergeLegacy(high, low, path).toString().getBytes(StandardCharsets.UTF_8);
+                            combined = ItemModelMerger.mergeLegacy(high, low, path);
+                        if (combined != null) {
+                            bytes = combined.toString().getBytes(StandardCharsets.UTF_8);
+                            merged = sources == null || !combined.equals(high);
+                        }
                     } catch (RuntimeException exception) {
                         Logs.logWarning("Failed to merge duplicate item resource " + path + ". Keeping the higher priority file.");
                     }
                 }
+            }
+            if (sources != null) {
+                String previousSource = sources.put(path, source);
+                if (!merged && previous != null && !Arrays.equals(previous, incoming))
+                    overrides.add(new PackOverride(path, previousSource, source));
             }
             lower.put(path, bytes);
         });
@@ -472,28 +543,28 @@ public class PackMerger {
         return merged;
     }
 
-    private static boolean shouldMergeNative(String path) {
-        return PackAssetMerger.isAdditivePath(path)
-                && (!path.contains("/font/") || !Boolean.FALSE.equals(Settings.MERGE_DUPLICATE_FONTS.toBool()));
+    private static boolean shouldMergeNative(String type) {
+        return !type.isEmpty() && (!type.equals("font") || !Boolean.FALSE.equals(Settings.MERGE_DUPLICATE_FONTS.toBool()));
     }
 
-    private static boolean validResource(String path, JsonObject value) {
+    private static boolean validResource(String type, JsonObject value) {
         if (value == null) return false;
-        if (path.contains("/lang/")) return value.entrySet().stream().allMatch(entry -> entry.getValue().isJsonPrimitive());
-        if (path.contains("/font/")) return value.has("providers") && value.get("providers").isJsonArray()
+        if (type.equals("lang")) return value.entrySet().stream().allMatch(entry -> entry.getValue().isJsonPrimitive());
+        if (type.equals("font")) return value.has("providers") && value.get("providers").isJsonArray()
                 && value.getAsJsonArray("providers").asList().stream().allMatch(JsonElement::isJsonObject);
-        if (path.contains("/atlases/")) return value.has("sources") && value.get("sources").isJsonArray()
+        if (type.equals("atlases")) return value.has("sources") && value.get("sources").isJsonArray()
                 && value.getAsJsonArray("sources").asList().stream().allMatch(JsonElement::isJsonObject);
-        if (path.contains("/blockstates/")) return value.has("variants") && value.get("variants").isJsonObject()
+        if (type.equals("blockstates")) return value.has("variants") && value.get("variants").isJsonObject()
                 || value.has("multipart") && value.get("multipart").isJsonArray();
+        if (type.equals("equipment")) return PackAssetMerger.hasEquipmentLayers(value);
         return true;
     }
 
-    private static JsonObject emptyResource(String path) {
+    private static JsonObject emptyResource(String type) {
         JsonObject value = new JsonObject();
-        if (path.contains("/font/")) value.add("providers", new JsonArray());
-        else if (path.contains("/atlases/")) value.add("sources", new JsonArray());
-        else if (path.contains("/blockstates/")) value.add("variants", new JsonObject());
+        if (type.equals("font")) value.add("providers", new JsonArray());
+        else if (type.equals("atlases")) value.add("sources", new JsonArray());
+        else if (type.equals("blockstates")) value.add("variants", new JsonObject());
         return value;
     }
 

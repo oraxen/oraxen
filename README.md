@@ -90,6 +90,7 @@ example-block:
         actions:
           - command: 'say "<Player> clicked this block"'
             executor: CONSOLE # PLAYER, CONSOLE, OP-PLAYER
+            cooldown: 1s # 80ms, 2s, 3m, 1h, 2d
           - message: '<green>Hi <Player>.'
     breaking: # Custom drop and breaking configuration
       - when: # When the tool is...

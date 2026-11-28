@@ -21,7 +21,7 @@ public class ClickListener extends CustomListener {
         super(itemID, cooldown, event, clickAction);
         List<String> params = event.getParams();
         if (params.size() > 2)
-            throw new IllegalArgumentException("CLICK events accept at most two parameters: CLICK:<right|left|all>:<air|block|all>");
+            throw new IllegalArgumentException("CLICK events accept at most two parameters, such as CLICK:right:block.");
 
         String button = params.isEmpty() ? "all" : params.get(0).toLowerCase(Locale.ROOT);
         String target = params.size() < 2 ? "all" : params.get(1).toLowerCase(Locale.ROOT);
@@ -34,7 +34,7 @@ public class ClickListener extends CustomListener {
                 addLeftClickActions(target);
                 break;
             default:
-                throw new IllegalArgumentException("Unexpected CLICK button: " + params.get(0));
+                throw new IllegalArgumentException("Unknown CLICK button \"" + params.get(0) + "\". Valid buttons: right, left, all.");
         }
     }
 
@@ -51,7 +51,7 @@ public class ClickListener extends CustomListener {
                 interactActions.add(Action.RIGHT_CLICK_AIR);
                 break;
             default:
-                throw new IllegalArgumentException("Unexpected CLICK target: " + target);
+                throw invalidTarget(target);
         }
     }
 
@@ -68,8 +68,12 @@ public class ClickListener extends CustomListener {
                 interactActions.add(Action.LEFT_CLICK_AIR);
                 break;
             default:
-                throw new IllegalArgumentException("Unexpected CLICK target: " + target);
+                throw invalidTarget(target);
         }
+    }
+
+    private static IllegalArgumentException invalidTarget(String target) {
+        return new IllegalArgumentException("Unknown CLICK target \"" + target + "\". Valid targets: air, block, all.");
     }
 
     @EventHandler

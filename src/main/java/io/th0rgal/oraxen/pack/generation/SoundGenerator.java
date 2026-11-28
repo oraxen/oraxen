@@ -73,12 +73,6 @@ class SoundGenerator {
         for (Map.Entry<String, JsonObject> entry : outputJsons.entrySet()) {
             InputStream soundInput = new ByteArrayInputStream(entry.getValue().toString().getBytes(StandardCharsets.UTF_8));
             output.add(new VirtualFile("assets/" + entry.getKey(), "sounds.json", soundInput));
-            try {
-                soundInput.close();
-            } catch (IOException e) {
-                Logs.logError("Failed to close generated sounds file for " + entry.getKey());
-                Logs.debug(e);
-            }
         }
     }
 

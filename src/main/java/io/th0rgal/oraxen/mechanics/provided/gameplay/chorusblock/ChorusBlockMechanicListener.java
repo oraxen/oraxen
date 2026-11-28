@@ -18,6 +18,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.MultipleFacing;
 import org.bukkit.entity.*;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -46,7 +47,7 @@ public class ChorusBlockMechanicListener implements Listener {
 
     public ChorusBlockMechanicListener() {
         // BreakerSystem no longer requires a packet library, register unconditionally.
-        BreakerSystem.MODIFIERS.add(getHardnessModifier());
+        BreakerSystem.registerModifier(ChorusBlockMechanicListener.class, getHardnessModifier());
     }
 
     private HardnessModifier getHardnessModifier() {
@@ -197,6 +198,14 @@ public class ChorusBlockMechanicListener implements Listener {
         ChorusBlockMechanic mechanic = OraxenBlocks.getChorusMechanic(block);
         if (mechanic == null)
             return;
+        // The client also sends an off-hand click because chorus plants have no vanilla use.
+        // The main-hand click handles the block, the off-hand item stays unused on storage and seats.
+        if (event.getHand() != EquipmentSlot.HAND) {
+            if ((mechanic.isStorage() || mechanic.hasSeat())
+                    && !(event.getPlayer().isSneaking() && ItemUtils.hasItemInAnyHand(event.getPlayer())))
+                event.setCancelled(true);
+            return;
+        }
 
         OraxenChorusBlockInteractEvent interactEvent = new OraxenChorusBlockInteractEvent(
                 mechanic, event.getPlayer(), event.getItem(),
@@ -363,7 +372,10 @@ public class ChorusBlockMechanicListener implements Listener {
             return;
 
         BlockData data = ChorusBlockMechanicFactory.createChorusData(mechanic.getCustomVariation());
-        makePlayerPlaceBlock(player, event.getHand(), item, placedAgainst, event.getBlockFace(), data, mechanic);
+        if (makePlayerPlaceBlock(player, event.getHand(), item, placedAgainst, event.getBlockFace(), data, mechanic)) {
+            event.setUseInteractedBlock(Event.Result.DENY);
+            event.setUseItemInHand(Event.Result.DENY);
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -404,8 +416,12 @@ public class ChorusBlockMechanicListener implements Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onExplosionDestroy(EntityExplodeEvent event) {
+        if (VersionUtil.atOrAbove("1.21")) {
+            ExplosionResult result = event.getExplosionResult();
+            if (result != ExplosionResult.DESTROY && result != ExplosionResult.DESTROY_WITH_DECAY) return;
+        }
         List<Block> blockList = event.blockList().stream()
                 .filter(block -> block.getType().equals(Material.CHORUS_PLANT))
                 .toList();
@@ -436,8 +452,12 @@ public class ChorusBlockMechanicListener implements Listener {
         });
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockExplosionDestroy(BlockExplodeEvent event) {
+        if (VersionUtil.atOrAbove("1.21")) {
+            ExplosionResult result = event.getExplosionResult();
+            if (result != ExplosionResult.DESTROY && result != ExplosionResult.DESTROY_WITH_DECAY) return;
+        }
         List<Block> blockList = event.blockList().stream()
                 .filter(block -> block.getType().equals(Material.CHORUS_PLANT))
                 .toList();
@@ -538,13 +558,16 @@ public class ChorusBlockMechanicListener implements Listener {
         Block block = event.getBlock();
         block.setBlockData(multipleFacing, false);
         OraxenBlocks.place(mechanic.getItemID(), block.getLocation());
+        ItemStack[] storageContents = fallingBlock.getPersistentDataContainer().get(StorageMechanic.STORAGE_KEY, DataType.ITEM_STACK_ARRAY);
+        if (storageContents != null)
+            BlockHelpers.getPDC(block).set(StorageMechanic.STORAGE_KEY, DataType.ITEM_STACK_ARRAY, storageContents);
 
         if (mechanic.hasLight()) {
             mechanic.getLight().createBlockLight(block);
         }
     }
 
-    private void makePlayerPlaceBlock(final Player player, final EquipmentSlot hand, final ItemStack item,
+    private boolean makePlayerPlaceBlock(final Player player, final EquipmentSlot hand, final ItemStack item,
             final Block placedAgainst, final BlockFace face, final BlockData newData,
             final ChorusBlockMechanic mechanic) {
         final Block target;
@@ -554,9 +577,9 @@ public class ChorusBlockMechanicListener implements Listener {
         else
             target = placedAgainst.getRelative(face);
         if (!BlockHelpers.isReplaceable(target.getType()))
-            return;
+            return false;
         if (!mechanic.canPlaceOn(face, placedAgainst))
-            return;
+            return false;
 
         // Store oldData in case event(s) is cancelled, set the target blockData
         final BlockData oldData = target.getBlockData();
@@ -575,7 +598,7 @@ public class ChorusBlockMechanicListener implements Listener {
         // Call the event and check if it is cancelled, if so reset BlockData
         if (!blockPlaceEvent.callEvent() || !blockPlaceEvent.canBuild()) {
             target.setBlockData(oldData);
-            return;
+            return false;
         }
 
         OraxenBlocks.place(mechanic.getItemID(), target.getLocation());
@@ -584,7 +607,7 @@ public class ChorusBlockMechanicListener implements Listener {
                 item, hand);
         if (!oraxenPlaceEvent.callEvent()) {
             target.setBlockData(oldData);
-            return;
+            return false;
         }
 
         // Handle falling blocks
@@ -596,9 +619,14 @@ public class ChorusBlockMechanicListener implements Listener {
                         target.getLocation().add(0.5, 0, 0.5), FallingBlock.class, entity -> {
                             entity.setBlockData(newData);
                             entity.setDropItem(false);
+                            // The falling block carries shulker contents to where it lands
+                            if (mechanic.isStorage())
+                                mechanic.getStorage().loadStorageContent(entity.getPersistentDataContainer(), item);
                         });
             }
         }
+        if (mechanic.isStorage() && target.getType() == Material.CHORUS_PLANT)
+            mechanic.getStorage().loadStorageContent(target, item);
 
         if (player.getGameMode() != GameMode.CREATIVE)
             item.setAmount(item.getAmount() - 1);
@@ -606,23 +634,10 @@ public class ChorusBlockMechanicListener implements Listener {
         mechanic.runPlaceEvents(player);
 
         target.getWorld().sendGameEvent(player, GameEvent.BLOCK_PLACE, target.getLocation().toVector());
+        return true;
     }
 
     public static void fixClientsideUpdate(Location loc) {
-        List<Entity> players = Objects.requireNonNull(loc.getWorld()).getNearbyEntities(loc, 20, 20, 20)
-                .stream().filter(entity -> entity.getType() == EntityType.PLAYER).toList();
-
-        for (double x = loc.getX() - 10; x < loc.getX() + 10; x++) {
-            for (double y = loc.getY() - 4; y < loc.getY() + 4; y++) {
-                for (double z = loc.getZ() - 10; z < loc.getZ() + 10; z++) {
-                    Location newLoc = new Location(loc.getWorld(), x, y, z);
-                    if (newLoc.getBlock().getType() == Material.CHORUS_PLANT) {
-                        for (Entity e : players) {
-                            ((Player) e).sendBlockChange(newLoc, newLoc.getBlock().getBlockData());
-                        }
-                    }
-                }
-            }
-        }
+        BlockHelpers.resendNearbyBlocks(loc, Material.CHORUS_PLANT);
     }
 }

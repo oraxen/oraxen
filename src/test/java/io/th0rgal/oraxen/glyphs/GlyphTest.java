@@ -11,6 +11,8 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mockStatic;
@@ -28,6 +30,17 @@ class GlyphTest {
         Glyph glyph = createGlyph("example", List.of("\ue001"));
 
         assertEquals("<glyph:example>", glyph.getGlyphTag());
+    }
+
+    @Test
+    void glyphTagPatternsMatchNamesWithRegexCharactersLiterally() {
+        Glyph glyph = createGlyph("smile.big(", List.of("\ue001"));
+        AnimatedGlyph animated = createAnimatedGlyph("spin.fast");
+
+        assertTrue(glyph.baseRegex.matcher("<glyph:smile.big(>").find());
+        assertFalse(glyph.baseRegex.matcher("<glyph:smileXbig(>").find());
+        assertTrue(animated.baseRegex.matcher("<g:spin.fast>").find());
+        assertFalse(animated.baseRegex.matcher("<g:spinXfast>").find());
     }
 
     @Test

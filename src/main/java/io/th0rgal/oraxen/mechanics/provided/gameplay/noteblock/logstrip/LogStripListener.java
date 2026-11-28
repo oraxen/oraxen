@@ -2,10 +2,12 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.logstrip;
 
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.misc.MiscMechanic;
 import io.th0rgal.oraxen.mechanics.provided.misc.misc.MiscMechanicFactory;
+import io.th0rgal.oraxen.protection.AntiGriefLib;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -20,7 +22,7 @@ import org.bukkit.inventory.meta.Damageable;
 
 public class LogStripListener implements Listener {
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onStrippingLog(PlayerInteractEvent event) {
         Player player = event.getPlayer();
         Block block = event.getClickedBlock();
@@ -36,12 +38,14 @@ public class LogStripListener implements Listener {
             mechanic = mechanic.getDirectional().getParentMechanic();
 
         LogStripping log = mechanic.getLog();
-        if (!mechanic.isLog() || !log.canBeStripped()) return;
+        if (log == null || !log.canBeStripped()) return;
+        if (!AntiGriefLib.canBuild(player, block.getLocation())) return;
 
-        if (log.hasStrippedDrop()) {
+        ItemBuilder strippedDrop = log.hasStrippedDrop() ? OraxenItems.getItemById(log.getStrippedLogDrop()) : null;
+        if (strippedDrop != null) {
             player.getWorld().dropItemNaturally(
                     block.getRelative(player.getFacing().getOppositeFace()).getLocation(),
-                    OraxenItems.getItemById(log.getStrippedLogDrop()).build());
+                    strippedDrop.build());
         }
 
         if (log.shouldDecreaseAxeDurability() && player.getGameMode() != GameMode.CREATIVE) {

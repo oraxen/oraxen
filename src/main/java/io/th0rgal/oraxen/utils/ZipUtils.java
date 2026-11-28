@@ -9,24 +9,47 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.attribute.FileTime;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 public class ZipUtils {
 
+    private static final Map<String, Integer> COMPRESSION_LEVELS = new LinkedHashMap<>();
+
+    static {
+        COMPRESSION_LEVELS.put("NO_COMPRESSION", Deflater.NO_COMPRESSION);
+        COMPRESSION_LEVELS.put("BEST_SPEED", Deflater.BEST_SPEED);
+        COMPRESSION_LEVELS.put("DEFAULT_COMPRESSION", Deflater.DEFAULT_COMPRESSION);
+        COMPRESSION_LEVELS.put("BEST_COMPRESSION", Deflater.BEST_COMPRESSION);
+    }
+
     private ZipUtils() {
+    }
+
+    private static int compressionLevel() {
+        String configured = String.valueOf(Settings.COMPRESSION.getValue());
+        Integer level = COMPRESSION_LEVELS.get(configured.toUpperCase(Locale.ROOT));
+        if (level != null) return level;
+        Logs.logWarning("Invalid pack.compression value " + configured + ", using BEST_COMPRESSION. Valid values are "
+                + String.join(", ", COMPRESSION_LEVELS.keySet()));
+        return Deflater.BEST_COMPRESSION;
     }
 
     public static void writeZipFile(final File outputFile,
             final List<VirtualFile> fileList) {
 
+        final int compressionLevel = compressionLevel();
         try {
+            Files.createDirectories(outputFile.toPath().toAbsolutePath().getParent());
             try (final FileOutputStream fos = new FileOutputStream(outputFile);
                 final ZipOutputStream zos = new ZipOutputStream(fos, StandardCharsets.UTF_8)) {
-                final int compressionLevel = Deflater.class.getDeclaredField(Settings.COMPRESSION.toString()).getInt(null);
                 zos.setLevel(compressionLevel);
                 zos.setComment(Settings.COMMENT.toString());
                 for (final VirtualFile file : fileList) {
@@ -34,7 +57,7 @@ public class ZipUtils {
                 }
             }
             if (Settings.PACK_SIZE_SPOOFING.toBool()) ZipSizeSpoofer.spoof(outputFile.toPath());
-        } catch (final IOException | NoSuchFieldException | IllegalAccessException ex) {
+        } catch (final IOException ex) {
             Logs.logError("Failed to write resource pack zip");
             Logs.debug(ex);
         }

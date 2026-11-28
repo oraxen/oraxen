@@ -153,11 +153,14 @@ public final class ItemProperties {
             }
         }
         if (section.contains("PotionEffects")) {
-            final List<LinkedHashMap<String, Object>> potionEffects = (List<LinkedHashMap<String, Object>>) section.getList("PotionEffects");
-            if (potionEffects == null) return;
+            final List<LinkedHashMap<String, Object>> potionEffects = (List<LinkedHashMap<String, Object>>) section.getList("PotionEffects", List.of());
             for (final Map<String, Object> serializedPotionEffect : potionEffects) {
                 final PotionEffectType effect = PotionUtils.getEffectType((String) serializedPotionEffect.getOrDefault("type", ""));
-                if (effect == null) return;
+                if (effect == null) {
+                    Logs.logWarning("Invalid potion effect type " + serializedPotionEffect.get("type")
+                            + " in item " + section.getName() + ", skipping.");
+                    continue;
+                }
                 final int duration = (int) serializedPotionEffect.getOrDefault("duration", 60);
                 final int amplifier = (int) serializedPotionEffect.getOrDefault("amplifier", 0);
                 final boolean ambient = (boolean) serializedPotionEffect.getOrDefault("ambient", true);
@@ -167,17 +170,11 @@ public final class ItemProperties {
             }
         }
         if (section.contains("PersistentData")) {
-            try {
-                final List<LinkedHashMap<String, Object>> dataHolder = (List<LinkedHashMap<String, Object>>) section.getList("PersistentData");
-                for (final LinkedHashMap<String, Object> attributeJson : dataHolder) {
-                    final String[] keyContent = ((String) attributeJson.get("key")).split(":");
-                    final Object persistentDataType = PersistentDataType.class.getDeclaredField((String) attributeJson.get("type")).get(null);
-                    item.addCustomTag(new NamespacedKey(keyContent[0], keyContent[1]),
-                            (PersistentDataType<Object, Object>) persistentDataType, attributeJson.get("value"));
-                }
-            } catch (final IllegalAccessException | NoSuchFieldException e) {
-                Logs.logWarning("Error parsing CustomTags in " + section.getName());
-                Logs.debug(e);
+            if (!section.isList("PersistentData"))
+                Logs.logWarning("PersistentData in item " + section.getName() + " must be a list, skipping.");
+            for (final Object entry : section.getList("PersistentData", List.of())) {
+                if (!addPersistentData(item, entry))
+                    Logs.logWarning("Invalid PersistentData entry " + entry + " in item " + section.getName() + ", skipping.");
             }
         }
         parseAttributeModifiers(item, section);
@@ -198,6 +195,26 @@ public final class ItemProperties {
                     item.addEnchant(enchantment, level);
             }
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static boolean addPersistentData(final ItemBuilder item, final Object entry) {
+        if (!(entry instanceof Map<?, ?> data) || !(data.get("key") instanceof String key) || !key.contains(":")
+                || !(data.get("type") instanceof String type))
+            return false;
+        final NamespacedKey namespacedKey = NamespacedKey.fromString(key);
+        final Object value = data.get("value");
+        final Object dataType;
+        try {
+            dataType = PersistentDataType.class.getDeclaredField(type).get(null);
+        } catch (final IllegalAccessException | NoSuchFieldException e) {
+            return false;
+        }
+        if (namespacedKey == null || !(dataType instanceof PersistentDataType<?, ?> persistentDataType)
+                || !persistentDataType.getComplexType().isInstance(value))
+            return false;
+        item.addCustomTag(namespacedKey, (PersistentDataType<Object, Object>) persistentDataType, value);
+        return true;
     }
 
     @SuppressWarnings("unchecked")

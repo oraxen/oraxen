@@ -39,7 +39,7 @@ public class FurnitureSoundListener implements Listener {
     @EventHandler
     public void onWorldUnload(WorldUnloadEvent event) {
         for (Map.Entry<Location, SchedulerUtil.ScheduledTask> entry : breakerPlaySound.entrySet()) {
-            if (entry.getKey().isWorldLoaded() || entry.getValue().isCancelled()) continue;
+            if (!event.getWorld().equals(entry.getKey().getWorld())) continue;
             entry.getValue().cancel();
             breakerPlaySound.remove(entry.getKey());
         }

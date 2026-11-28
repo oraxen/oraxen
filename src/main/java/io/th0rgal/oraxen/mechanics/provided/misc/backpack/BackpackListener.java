@@ -42,7 +42,7 @@ public class BackpackListener implements Listener {
     }
 
     // Cancels placing backpacks if the base material is a block
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onBlockPlace(final BlockPlaceEvent event) {
         if (isBackpack(event.getPlayer().getInventory().getItemInMainHand()))
             event.setCancelled(true);
@@ -59,7 +59,8 @@ public class BackpackListener implements Listener {
         if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         if (event.getHand() == EquipmentSlot.OFF_HAND) return;
         if (event.useItemInHand() == Event.Result.DENY) return;
-        if (event.getClickedBlock() != null && isBackpack(event.getItem()))
+        if (!isBackpack(event.getItem())) return;
+        if (event.getClickedBlock() != null)
             event.setUseInteractedBlock(Event.Result.DENY);
         event.setUseItemInHand(Event.Result.ALLOW);
         openBackpack(event.getPlayer());

@@ -6,15 +6,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ItemTemplate {
 
-    private static volatile Map<String, ItemLoader> itemTemplates = new HashMap<>();
+    private static volatile Map<String, ItemLoader> itemTemplates = new ConcurrentHashMap<>();
 
     public static void replaceAll(Collection<ConfigurationSection> sections) {
-        Map<String, ItemLoader> templates = new HashMap<>();
+        Map<String, ItemLoader> templates = new ConcurrentHashMap<>();
         for (ConfigurationSection section : sections) {
             section.set("injectId", false);
             OraxenYaml.invalidateKeyCache(section);

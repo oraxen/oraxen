@@ -37,6 +37,9 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.util.Transformation;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -229,6 +232,32 @@ class FurnitureMechanicTest extends MechanicTestSupport {
         assertEquals(2.0f, mechanic.getDisplayEntityProperties().getScale().y());
         assertEquals(0.25f, mechanic.getDisplayEntityProperties().getTranslation().x());
         assertEquals(0.0f, mechanic.getDisplayEntityProperties().getTranslation().y());
+    }
+
+    @Test
+    void furnitureUpdateAppliesDisplayScaleAndTranslation() {
+        ConfigurationSection section = mechanicSection("furniture", "type", "DISPLAY_ENTITY");
+        section.set("properties.scale.y", 2.0);
+        section.set("properties.translation.x", 0.25);
+        Transformation scaled = updatedTransformation(new FurnitureMechanic(mechanicFactory(), section));
+        assertEquals(new Vector3f(1, 2, 1), scaled.getScale());
+        assertEquals(new Vector3f(0.25f, 0, 0), scaled.getTranslation());
+
+        // Placement shrinks FIXED displays without a configured scale, so updating must keep that size
+        ConfigurationSection fixedSection = mechanicSection("furniture", "type", "DISPLAY_ENTITY");
+        fixedSection.set("properties.display_transform", "FIXED");
+        Transformation fixed = updatedTransformation(new FurnitureMechanic(mechanicFactory(), fixedSection));
+        assertEquals(new Vector3f(0.5f), fixed.getScale());
+    }
+
+    private static Transformation updatedTransformation(FurnitureMechanic mechanic) {
+        ItemDisplay itemDisplay = mock(ItemDisplay.class);
+        when(itemDisplay.getTransformation()).thenReturn(
+                new Transformation(new Vector3f(), new Quaternionf(), new Vector3f(1), new Quaternionf()));
+        assertTrue(mechanic.getDisplayEntityProperties().ensureSameDisplayProperties(itemDisplay));
+        ArgumentCaptor<Transformation> transformation = ArgumentCaptor.forClass(Transformation.class);
+        verify(itemDisplay).setTransformation(transformation.capture());
+        return transformation.getValue();
     }
 
     @Test

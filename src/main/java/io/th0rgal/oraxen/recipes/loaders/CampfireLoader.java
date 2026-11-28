@@ -16,7 +16,7 @@ public class CampfireLoader extends RecipeLoader {
         double experience = getSection().getDouble("experience", 0);
         if (time <= 0 || !Double.isFinite(experience) || experience < 0)
             throw new IllegalArgumentException("Recipe '" + getRecipeName() + "' has invalid cooking settings");
-        CampfireRecipe recipe = new CampfireRecipe(getNamespacedKey(), getValidResult(),
+        CampfireRecipe recipe = new CampfireRecipe(getUniqueKey(), getValidResult(),
                 getRequiredChoice("input"), (float) experience, time);
         recipe.setGroup(getGroup());
         RecipeProcessing.register(recipe, recipe.getInputChoice());

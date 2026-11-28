@@ -61,9 +61,10 @@ public class BlockLimitsCommand {
     private static List<Usage> usages() {
         boolean enabled = MechanicsManager.isMechanicEnabled("block");
         List<Usage> usages = new ArrayList<>();
-        // Note blocks accept variation IDs 0 through 775, inclusive.
-        usages.add(new Usage("note", "Note blocks", 776, enabled ? countSlots(
-                NoteBlockMechanicFactory.BLOCK_PER_VARIATION, NoteBlockMechanicFactory.getInstance(), 0, 775) : 0));
+        // Note blocks accept variation IDs 0 through 773, inclusive.
+        usages.add(new Usage("note", "Note blocks", NoteBlockMechanicFactory.MAX_BLOCK_VARIATION + 1, enabled ? countSlots(
+                NoteBlockMechanicFactory.BLOCK_PER_VARIATION, NoteBlockMechanicFactory.getInstance(), 0,
+                NoteBlockMechanicFactory.MAX_BLOCK_VARIATION) : 0));
         usages.add(new Usage("chorus", "Chorus blocks", ChorusBlockMechanicFactory.MAX_BLOCK_VARIATION,
                 enabled ? countSlots(ChorusBlockMechanicFactory.BLOCK_PER_VARIATION,
                         ChorusBlockMechanicFactory.getInstance(), 1, ChorusBlockMechanicFactory.MAX_BLOCK_VARIATION) : 0));
@@ -96,8 +97,10 @@ public class BlockLimitsCommand {
             String percent = String.format(Locale.ROOT, "%.1f", 100.0 * usage.used() / usage.max());
             report = report.append(Component.text(usage.title(), NamedTextColor.AQUA))
                     .append(Component.newline())
+                    .append(Component.text("[", NamedTextColor.WHITE))
                     .append(Component.text("|".repeat(filled), NamedTextColor.GREEN))
                     .append(Component.text("|".repeat(BAR_WIDTH - filled), NamedTextColor.DARK_GRAY))
+                    .append(Component.text("]", NamedTextColor.WHITE))
                     .append(Component.newline())
                     .append(Component.text(usage.used() + " / " + usage.max() + " used (" + percent + "%) • "
                             + (usage.max() - usage.used()) + " free", NamedTextColor.WHITE));

@@ -138,7 +138,7 @@ public class OraxenMeta {
         }
 
         // If not specified, check if a model or texture is set
-        this.generate_model = section.getBoolean("generate_model", modelName.isEmpty());
+        this.generate_model = section.getBoolean("generate_model", modelName == null || modelName.isEmpty());
         this.generatedModelPath = section.getString("generated_model_path", "");
         this.parentModel = section.getString("parent_model", "item/generated");
 
@@ -165,7 +165,7 @@ public class OraxenMeta {
             }
         }
 
-        if (generate_model && !modelName.matches("^[a-z0-9-_/]+$")) {
+        if (generate_model && modelName != null && !modelName.matches("^[a-z0-9-_/]+$")) {
             Logs.logWarning("Item " + section.getParent().getName()
                     + " is set to generate a model, but ItemID does not adhere to [a-z0-9-_]!");
             Logs.logWarning("This will generate a malformed model!");
