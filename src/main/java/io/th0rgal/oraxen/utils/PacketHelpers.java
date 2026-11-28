@@ -32,7 +32,7 @@ public class PacketHelpers {
     public static Component translateTitle(Component component) {
         if (component instanceof TextComponent text && text.children().isEmpty()) {
             String content = text.content();
-            if (content.indexOf('\\') >= 0 && content.indexOf('&') < 0 && content.indexOf('\u00a7') < 0) {
+            if (content.indexOf('\\') >= 0 && !hasLegacyCodes(content)) {
                 if (content.indexOf('<') < 0) return text;
                 // Only parse raw MiniMessage when there is no existing style to carry over.
                 if (!text.hasStyling()) return AdventureUtils.MINI_MESSAGE.deserialize(content);
@@ -41,5 +41,10 @@ public class PacketHelpers {
         return AdventureUtils.MINI_MESSAGE.deserialize(
             AdventureUtils.removeBackslashes(AdventureUtils.parseMiniMessageThroughLegacy(component))
         );
+    }
+
+    private static boolean hasLegacyCodes(String content) {
+        String legacy = content.replace('&', '\u00a7');
+        return !AdventureUtils.PLAIN_TEXT.serialize(AdventureUtils.LEGACY_SERIALIZER.deserialize(legacy)).equals(legacy);
     }
 }

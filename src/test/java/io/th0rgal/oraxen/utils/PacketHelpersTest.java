@@ -57,6 +57,7 @@ class PacketHelpersTest {
         assertSameText("C:\\new\\users \"quoted\"");
         assertSameText("\\\\server\\share");
         assertSameText("trailing \\");
+        assertSameText("C:\\temp & more");
     }
 
     @Test
